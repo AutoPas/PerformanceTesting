@@ -1,6 +1,5 @@
-import os
 from git import Repo
-from Commit import Commit
+from old.Commit import Commit
 
 
 # TODO: Make optional if full set of tests or single dimension

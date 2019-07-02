@@ -1,5 +1,4 @@
-from git import Repo
-from SingleTest import SingleTest
+from old.SingleTest import SingleTest
 
 dMPI = [True, False]
 dOpenMP = [True, False]
