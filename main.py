@@ -11,86 +11,37 @@ To simplify setup and make the system more portable, it relies on MongoDB for st
 import time
 import matplotlib
 import mongoengine as me
+import imp
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from Modes import FullHistory
-
-""" tinyDB is super lightweight both in installation and during runtime. Not optimal for performance or multi-process
-accesses, but these limitations make it very portable and the database file is still human-readable. It doesnt need a
-server to run in the background like most other database setups.
-"""
-
-""" Available Dimensions """
-dMPI = [True, False]
-dOpenMP = [True, False]
-dVec = ["AVX", "AVX2", "SSE"]
-dRMM = [True, False]
-dSize = [50]
+from model.Config import Config
+from Repository import Repository
 
 if __name__ == "__main__":
 
     start = time.time()
 
-    gitPath = "/home/hpc/pr63so/di52sum/jenkins/workspace/RemoteTesting/MarDyn/"
+    # TODO: checkout process also part of python and not of Jenkins
+    gitPath = "../AutoPas"
 
-    # Databse file
-    db = TinyDB(gitPath + "results.json")
+    # Database connection
 
-    # TODO: this is for debugging only!
-    # Clean the entire DB
-    db.purge_tables()
+    db = imp.load_source('db', 'database.config')
+
+    print("DB settings: ", db.collection, db.user, db.server)#, db.password)
+
+    me.connect(db.collection, username=db.user, password=db.password, host=("mongodb://"+db.server))
 
     print("Getting repo history")
 
-    # Commits to test
-    # TODO: Get from github
-    # commits = ["abcdef", "zxywv"]
-
-    fullH = FullHistory(gitPath, branch="kruegener_PerformanceIntegration")
+    repo = Repository(gitPath, branch="master")
 
     print("Starting main tests")
 
-    fullH.run(db)
+    repo.testLatest()
 
-    # Iterate over given commits
-    '''for commit in commits:
-        c = Commit(commit)
-        c.fullRun(db)
-        c.singleDimension(db, {"commit": commit,
-                               "mpi": False,
-                               "openMP": False,
-                               "vec": "AVX",
-                               "RMM": True,
-                               "size": 50})
-
-    # Query to test functions
-    q = Query()
-    print(db.all())
-    avx2 = db.search((q.vec == "AVX2") & q.mpi)
-    for result in avx2:
-        print(result["commit"], result["MMUPS"])
-    '''
-
-    q = Query()
-    res = db.search(q.vec == "AVX")
-    Cs = []
-    Ms = []
-    csv = open(gitPath + "data.csv", "w+")
-    csv.write("commit,MMUPS\n")
-    for r in res:
-        print(r)
-        csv.write(r["commit"] + "," + str(r["MMUPS"]) + "\n")
-        Cs.append(r["commit"])
-        Ms.append(r["MMUPS"])
-    csv.close()
-
-    plt.plot(Ms)
-    plt.xticks([i for i in range(0, len(Cs))], Cs, rotation="vertical")
-    # plt.gca().invert_yaxis()
-    plt.gca().invert_xaxis()
-    plt.savefig(gitPath + "perf.png")
 
     end = time.time()
     print("DURATION", end - start, "seconds")
