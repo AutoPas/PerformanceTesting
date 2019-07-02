@@ -1,0 +1,4 @@
+server = "example.com:30017"
+collection = "performancedb"
+user = "autopasmongo"
+password = "password"
