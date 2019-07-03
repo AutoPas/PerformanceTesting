@@ -2,11 +2,13 @@ from git import Repo
 import os
 import shutil
 from subprocess import run, PIPE
+from glob import glob
+import time
+from datetime import datetime
 
 from model.Config import Config
 
-# TODO: DISABLE
-FAKE_BUILD = True
+# TODO: SET PROPERLY
 THREADS = 4
 
 class Commit:
@@ -23,18 +25,17 @@ class Commit:
         self.repo = repo
         print("New commit:", self.commit, self.message, "\n")
         self.baseDir = repo.git_dir.strip(".git")
+        self.buildDir = os.path.join(self.baseDir, self.buildDir)
+        self.mdFlexDir = os.path.join(self.buildDir, "examples/md-flexible")
         print(self.baseDir)
 
     def build(self):
 
-        self.buildDir = os.path.join(self.baseDir, self.buildDir)
-        self.mdFlexDir = os.path.join(self.buildDir, "examples/md-flexible")
         print("BUILD/MD-FLEX DIR: ", self.buildDir, self.mdFlexDir)
 
         # remove old buildDir if present
-        if not FAKE_BUILD:
-            shutil.rmtree(self.buildDir, ignore_errors=True)
-            os.mkdir(self.buildDir)
+        shutil.rmtree(self.buildDir, ignore_errors=True)
+        os.mkdir(self.buildDir)
         os.chdir(self.buildDir)
 
         # run cmake
@@ -44,10 +45,8 @@ class Commit:
 
         # run make
         print("Running MAKE")
-        if FAKE_BUILD:
-            make_output = run(["make", "-j", "4"], stdout=PIPE, stderr=PIPE)
-        else:
-            make_output = run(["make", "-B", "-j", "4"], stdout=PIPE, stderr=PIPE)
+        make_output = run(["make", "-j", "4"], stdout=PIPE, stderr=PIPE)
+        make_output = run(["make", "-B", "-j", "4"], stdout=PIPE, stderr=PIPE)
         print(make_output.stdout, make_output.stderr)
 
         # change back to top level directory
@@ -72,4 +71,34 @@ class Commit:
         os.chdir(self.baseDir)
 
     def upload(self):
-        pass
+
+        print(self.mdFlexDir)
+
+        measurements = glob(os.path.join(self.mdFlexDir, "measurePerf*/"))
+
+        # all measurement folders (should only be 1 usually)
+        for i, folder in enumerate(measurements):
+            folder = os.path.basename(os.path.dirname(folder))
+            folder = folder.lstrip("measurePerf_")
+            timestamp = time.strptime(folder, "%Y-%m-%d_%H-%M-%S")
+            print(timestamp)
+
+            # change into measurement folder
+            os.chdir(measurements[i])
+
+            # collect all configs
+            configPaths = glob(os.path.join(measurements[i], "*.csv"))
+            configNames = [os.path.basename(x) for x in configPaths]
+            print(configPaths)
+            print(configNames)
+
+            for i, conf in enumerate(configPaths):
+
+                c = Config()
+                c.name = configNames[i]
+                c.date = datetime.utcfromtimestamp(int(time.mktime(timestamp))) 
+                c.save()
+                print(c)
+
+
+        os.chdir(self.baseDir)
