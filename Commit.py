@@ -96,7 +96,13 @@ class Commit:
 
                 c = Config()
                 c.name = configNames[i]
-                c.date = datetime.utcfromtimestamp(int(time.mktime(timestamp))) 
+                c.date = datetime.utcfromtimestamp(int(time.mktime(timestamp)))
+
+                # TODO:
+                # - parse csv file for config details
+                # - add listField with the actual measurements
+                # - optional: add plotting
+
                 c.save()
                 print(c)
 
