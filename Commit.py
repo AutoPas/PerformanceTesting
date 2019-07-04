@@ -5,6 +5,8 @@ from subprocess import run, PIPE
 from glob import glob
 import time
 from datetime import datetime
+import csv
+import re
 
 from model.Config import Config
 
@@ -28,6 +30,53 @@ class Commit:
         self.buildDir = os.path.join(self.baseDir, self.buildDir)
         self.mdFlexDir = os.path.join(self.buildDir, "examples/md-flexible")
         print(self.baseDir)
+
+    def colonSep(self, c:Config, line):
+        sep = line.split(":")
+        e = [x for x in sep]
+        if "Container" in e[0]:
+            c.container = e[1].split(",")[0]
+        elif "Layout" in e[0]:
+            c.layout = e[1].split(",")[0]
+        elif "Functor" in e[0]:
+            c.functor = e[1].rstrip(" \n")
+        elif "Newton3" in e[0]:
+            c.newton = e[1].split(",")[0]
+        elif "Cutoff" in e[0]:
+            c.cutoff = e[1].rstrip(" \n")
+        elif "Cell size factor" in e[0]:
+            c.cellSizeFactor = e[1].rstrip(" \n")
+        elif "Particle Generator" in e[0]:
+            c.generator = e[1].rstrip(" \n")
+        elif "Box length" in e[0]:
+            c.boxLength = float(e[1].rstrip(" \n"))
+        elif "total" in e[0]:
+            particles = e[1].rstrip(" \n").split(" ")
+            particles = [int(p) for p in particles[1:]]
+            c.particles = particles
+        elif "traversals" in e[0]:
+            c.traversal = e[1].split(",")[0]
+        elif "Iterations" in e[0]:
+            iterations = e[1].rstrip(" \n").split(" ")
+            iterations = [int(i) for i in iterations[1:]]
+            c.iterations = iterations
+        elif "Tuning Interval" in e[0]:
+            c.tuningInterval = int(e[1].rstrip(" \n"))
+        elif "Tuning Samples" in e[0]:
+            c.tuningSamples = int(e[1].rstrip(" \n"))
+        elif "epsilon" in e[0]:
+            c.epsilon = float(e[1].rstrip(" \n"))
+        elif "sigma" in e[0]:
+            c.sigma = float(e[1].rstrip(" \n"))
+        else:
+            print("UNPROCESSED COLON SEP PAIR")
+            print(e)
+
+
+    def spaceSep(self, c:Config, line):
+        print(line)
+        sep = csv.reader(line, delimiter=":")
+        pass
 
     def build(self):
 
@@ -102,8 +151,18 @@ class Commit:
                 # - parse csv file for config details
                 # - add listField with the actual measurements
                 # - optional: add plotting
+                with open(configPaths[i]) as f:
+                    for r in f:
+                        r = re.sub("\s\s+", " ", r)
+                        if ":" in r:
+                            self.colonSep(c, r)
+                        else:
+                            self.spaceSep(c, r)
 
                 c.save()
+
+                exit()
+
                 print(c)
 
 
