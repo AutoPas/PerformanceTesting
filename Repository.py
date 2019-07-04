@@ -19,8 +19,9 @@ class Repository:
 
         sha = self.commits[0].hexsha
         c = Commit(self.repo, sha)
-        c.build()
-        c.measure()
+        #c.build()
+        #c.measure()
+        c.upload()
 
         # reset to previous state
         self.repo.head.reset(self.initialHead, index=True, working_tree=True)
