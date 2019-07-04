@@ -27,8 +27,11 @@ if __name__ == "__main__":
     gitPath = "../AutoPas"
 
     # Database connection
-
-    db = imp.load_source('db', 'database.config')
+    try:
+        db = imp.load_source('db', 'database.config')
+    except:
+        print("database.config MISSING. Create file based on: database.config.example")
+        exit(-1)
 
     print("DB settings: ", db.collection, db.user, db.server)#, db.password)
 
