@@ -38,7 +38,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     THREADS = args.threads
-    os.environ["OMP_NUM_THREADS"] = THREADS
+    os.environ["OMP_NUM_THREADS"] = str(THREADS)
 
     if len(sys.argv) < 2:
         print("NO FLAGS SET")
