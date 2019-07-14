@@ -33,6 +33,7 @@ if __name__ == "__main__":
     g.add_argument("--newest", action="store_true", help="run tests for only the latest commit")
     g.add_argument("--last", metavar="N", type=int, help="run on last N commits")
     g.add_argument("--sha", metavar="SHA", type=str, help="SHA to test")
+    parser.add_argument("--config", metavar="path", help="location of db.config file, if not default")
     args = parser.parse_args()
 
     if len(sys.argv) < 2:
@@ -40,9 +41,14 @@ if __name__ == "__main__":
         parser.print_help()
         exit(-1)
 
+    if args.config is not None:
+        dbPath = args.config
+    else:
+        dbPath = "database.config"
+
     # Database connection
     try:
-        db = imp.load_source('db', 'database.config')
+        db = imp.load_source('db', dbPath)
     except:
         print("database.config MISSING. Create file based on: database.config.example")
         exit(-1)
