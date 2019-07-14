@@ -4,6 +4,7 @@ class Config(me.Document):
 
     name = me.StringField()
     date = me.DateTimeField()
+    system = me.StringField()
 
     # CONFIG FIELDS
     container = me.StringField()

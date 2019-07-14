@@ -31,6 +31,47 @@ class Commit:
         self.mdFlexDir = os.path.join(self.buildDir, "examples/md-flexible")
         print(self.baseDir)
 
+    def build(self):
+
+        print("BUILD/MD-FLEX DIR: ", self.buildDir, self.mdFlexDir)
+
+        # remove old buildDir if present
+        shutil.rmtree(self.buildDir, ignore_errors=True)
+        os.mkdir(self.buildDir)
+        os.chdir(self.buildDir)
+
+        # run cmake
+        print("Running CMAKE")
+        cmake_output = run(["cmake", "-DAUTOPAS_OPENMP=ON", "--target", "md-flexible", ".."], stdout=PIPE, stderr=PIPE)
+        print(cmake_output.stdout, cmake_output.stderr)
+
+        # run make
+        print("Running MAKE")
+        make_output = run(["make", "-j", "4"], stdout=PIPE, stderr=PIPE)
+        make_output = run(["make", "-B", "-j", "4"], stdout=PIPE, stderr=PIPE)
+        print(make_output.stdout, make_output.stderr)
+
+        # change back to top level directory
+        os.chdir(self.baseDir)
+
+
+    def measure(self):
+        # change to md-flexible folder
+        os.chdir(self.mdFlexDir)
+
+        # main.py path
+        mainPath = os.path.dirname(os.path.abspath(__file__))
+        print(mainPath)
+        # short test script copy to build folder
+        shutil.copy(os.path.join(mainPath, "measurePerf_short.sh"), self.mdFlexDir)
+
+        # export thread number and run test
+        measure_output = run(["./measurePerf_short.sh", "md-flexible"], stdout=PIPE, stderr=PIPE)
+        print(measure_output.stdout, measure_output.stderr)
+
+        # change to top
+        os.chdir(self.baseDir)
+
     def commaSplit(self, val):
         return val.split(",")[0]
 
@@ -102,47 +143,6 @@ class Commit:
             m["ItMicros"] = float(sep[4])
             c.measurements.append(m)
 
-    def build(self):
-
-        print("BUILD/MD-FLEX DIR: ", self.buildDir, self.mdFlexDir)
-
-        # remove old buildDir if present
-        shutil.rmtree(self.buildDir, ignore_errors=True)
-        os.mkdir(self.buildDir)
-        os.chdir(self.buildDir)
-
-        # run cmake
-        print("Running CMAKE")
-        cmake_output = run(["cmake", "-DAUTOPAS_OPENMP=ON", "--target", "md-flexible", ".."], stdout=PIPE, stderr=PIPE)
-        print(cmake_output.stdout, cmake_output.stderr)
-
-        # run make
-        print("Running MAKE")
-        make_output = run(["make", "-j", "4"], stdout=PIPE, stderr=PIPE)
-        make_output = run(["make", "-B", "-j", "4"], stdout=PIPE, stderr=PIPE)
-        print(make_output.stdout, make_output.stderr)
-
-        # change back to top level directory
-        os.chdir(self.baseDir)
-
-
-    def measure(self):
-        # change to md-flexible folder
-        os.chdir(self.mdFlexDir)
-
-        # main.py path
-        mainPath = os.path.dirname(os.path.abspath(__file__))
-        print(mainPath)
-        # short test script copy to build folder
-        shutil.copy(os.path.join(mainPath, "measurePerf_short.sh"), self.mdFlexDir)
-
-        # export thread number and run test
-        measure_output = run(["./measurePerf_short.sh", "md-flexible"], stdout=PIPE, stderr=PIPE)
-        print(measure_output.stdout, measure_output.stderr)
-
-        # change to top
-        os.chdir(self.baseDir)
-
     def upload(self):
 
         print(self.mdFlexDir)
@@ -171,9 +171,6 @@ class Commit:
                 c.name = configNames[i]
                 c.date = datetime.utcfromtimestamp(int(time.mktime(timestamp)))
 
-                # TODO:
-                # - add listField with the actual measurements
-                # - optional: add plotting
                 with open(configPaths[i]) as f:
                     for r in f:
                         r = re.sub("\s\s+", " ", r)
@@ -183,9 +180,6 @@ class Commit:
                             self.spaceSep(c, r)
 
                 c.save()
-
-                # TODO: Remove
-                #exit()
 
                 print(c)
 
