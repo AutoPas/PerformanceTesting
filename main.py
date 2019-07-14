@@ -29,6 +29,7 @@ if __name__ == "__main__":
     # TODO: github bot
     # TODO: documentation
     # TODO: Requirements python
+    # TODO: Add system config
 
     gitPath = "../AutoPas"
 

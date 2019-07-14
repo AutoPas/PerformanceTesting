@@ -88,9 +88,19 @@ class Commit:
 
 
     def spaceSep(self, c:Config, line):
-        print(line)
-        sep = csv.reader(line, delimiter=":")
-        pass
+        sep = line.lstrip(" ").rstrip("\n").split(" ")
+        if "Particles" in line or len(line) < 2:
+            pass
+        else:
+            m = {}
+            #print([s for s in sep])
+            # NumParticles || GFLOPs/s || MFUPs/s || Time[micros] || SingleIteration[micros]
+            m["N"] = int(sep[0])
+            m["GFLOPs"] = float(sep[1])
+            m["MFUPs"] = float(sep[2])
+            m["Micros"] = float(sep[3])
+            m["ItMicros"] = float(sep[4])
+            c.measurements.append(m)
 
     def build(self):
 
@@ -162,7 +172,6 @@ class Commit:
                 c.date = datetime.utcfromtimestamp(int(time.mktime(timestamp)))
 
                 # TODO:
-                # - parse csv file for config details
                 # - add listField with the actual measurements
                 # - optional: add plotting
                 with open(configPaths[i]) as f:

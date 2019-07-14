@@ -26,6 +26,9 @@ class Config(me.Document):
     epsilon = me.FloatField()
     sigma = me.FloatField()
 
+    # Measurements
+    measurements = me.ListField()
+
     def __str__(self):
         output = f"Name: {self.name} Date: {self.date}"
         return output
