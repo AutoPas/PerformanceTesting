@@ -24,8 +24,6 @@ if __name__ == "__main__":
     start = time.time()
 
     # TODO: checkout process also part of python and not of Jenkins
-    # TODO: does the target work
-    # TODO: add commit hexsha / date / message
     # TODO: github bot
     # TODO: documentation
     # TODO: Requirements python

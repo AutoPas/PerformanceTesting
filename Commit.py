@@ -8,6 +8,7 @@ from datetime import datetime
 import csv
 import re
 from cpuinfo import get_cpu_info
+from mongoengine import NotUniqueError
 
 from model.Config import Config
 
@@ -20,13 +21,13 @@ class Commit:
     buildDir = "build"
     mdFlexDir = ""
 
-    def __init__(self, repo: Repo, commit):
+    def __init__(self, repo: Repo, sha):
         # Reset Dir to specified commit
-        repo.head.reset(commit, index=True, working_tree=True)
+        repo.head.reset(sha, index=True, working_tree=True)
         self.message = repo.head.commit.message
-        self.commit = commit
+        self.sha = sha
         self.repo = repo
-        print("New commit:", self.commit, self.message, "\n")
+        print("New commit:", self.sha, self.message, "\n")
         self.baseDir = repo.git_dir.strip(".git")
         self.buildDir = os.path.join(self.baseDir, self.buildDir)
         self.mdFlexDir = os.path.join(self.buildDir, "examples/md-flexible")
@@ -43,14 +44,14 @@ class Commit:
 
         # run cmake
         print("Running CMAKE")
-        cmake_output = run(["cmake", "-DAUTOPAS_OPENMP=ON", "--target", "md-flexible", ".."], stdout=PIPE, stderr=PIPE)
-        print(cmake_output.stdout, cmake_output.stderr)
+        cmake_output = run(["cmake", "-DAUTOPAS_OPENMP=ON", "--target", "md-flexible", ".."])#, stdout=PIPE, stderr=PIPE)
+        #print(cmake_output.stdout, cmake_output.stderr)
 
         # run make
         print("Running MAKE")
-        make_output = run(["make", "-j", "4"], stdout=PIPE, stderr=PIPE)
-        make_output = run(["make", "-B", "-j", "4"], stdout=PIPE, stderr=PIPE)
-        print(make_output.stdout, make_output.stderr)
+        #make_output = run(["make", "-j", "4"], stdout=PIPE, stderr=PIPE)
+        make_output = run(["make", "md-flexible", "-B", "-j", "4"])#, stdout=PIPE, stderr=PIPE)
+        #print(make_output.stdout, make_output.stderr)
 
         # change back to top level directory
         os.chdir(self.baseDir)
@@ -172,8 +173,20 @@ class Commit:
                 c = Config()
                 c.name = configNames[i]
                 c.date = datetime.utcfromtimestamp(int(time.mktime(timestamp)))
+                c.commitSHA = self.sha
+                c.commitMessage = self.repo.commit(self.sha).message
+                c.commitDate = self.repo.commit(self.sha).authored_datetime
+
                 # Assumes tests were run on this system
                 c.system = cpu
+
+                # TODO: Decide if uniqueness is enforced
+                # c.unique = c.name + c.commitSHA + c.system + str(c.date)
+                # try:
+                #     c.save()
+                # except NotUniqueError:
+                #     print("Exact Configuration for system and commit + date already saved!")
+                #     continue
 
                 with open(configPaths[i]) as f:
                     for r in f:

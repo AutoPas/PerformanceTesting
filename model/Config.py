@@ -4,8 +4,14 @@ class Config(me.Document):
 
     name = me.StringField()
     date = me.DateTimeField()
+    commitSHA = me.StringField()
+    commitDate = me.DateTimeField()
+    commitMessage = me.StringField()
     # Assumes Tests were run on same system as the files reside
     system = me.StringField()
+
+    # Unique combination of Name + SHA + System + Date to prevent reupload
+    unique = me.StringField(unique=True)
 
     # CONFIG FIELDS
     container = me.StringField()
