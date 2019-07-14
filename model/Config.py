@@ -11,7 +11,7 @@ class Config(me.Document):
     system = me.StringField()
 
     # Unique combination of Name + SHA + System + Date to prevent reupload
-    # sparse allows for no unique key
+    # sparse allows for empty unique key
     unique = me.StringField(unique=True, sparse=True)
 
     # CONFIG FIELDS

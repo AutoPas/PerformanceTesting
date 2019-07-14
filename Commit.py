@@ -9,6 +9,9 @@ import csv
 import re
 from cpuinfo import get_cpu_info
 from mongoengine import NotUniqueError
+import matplotlib
+matplotlib.use("Agg")
+from matplotlib import pyplot as plt
 
 from model.Config import Config
 
@@ -164,8 +167,8 @@ class Commit:
             # collect all configs
             configPaths = glob(os.path.join(measurements[i], "*.csv"))
             configNames = [os.path.basename(x) for x in configPaths]
-            print(configPaths)
-            print(configNames)
+            #print(configPaths)
+            #print(configNames)
             cpu = get_cpu_info()["brand"]
 
             for i, conf in enumerate(configPaths):
@@ -180,7 +183,7 @@ class Commit:
                 # Assumes tests were run on this system
                 c.system = cpu
 
-                # TODO: Decide if uniqueness is enforced
+                # TODO: Decide if uniqueness is enforced (Change spare in model to False)
                 # c.unique = c.name + c.commitSHA + c.system + str(c.date)
                 # try:
                 #     c.save()
@@ -196,9 +199,12 @@ class Commit:
                         else:
                             self.spaceSep(c, r)
 
+                self.generatePlot(c)
                 c.save()
-
                 print(c)
 
-
         os.chdir(self.baseDir)
+
+    def generatePlot(self, c:Config):
+
+        pass
