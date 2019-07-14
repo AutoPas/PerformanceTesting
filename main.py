@@ -24,7 +24,7 @@ if __name__ == "__main__":
     # TODO: github bot
     # TODO: documentation
     # TODO: Requirements python
-    # TODO: Add plotting
+    # TODO: Add Comparison to previous commit
 
     gitPath = "../AutoPas"
 

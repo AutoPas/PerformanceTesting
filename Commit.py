@@ -10,7 +10,10 @@ import re
 from cpuinfo import get_cpu_info
 from mongoengine import NotUniqueError
 import matplotlib
+
+# Switch for GUI
 matplotlib.use("Agg")
+#matplotlib.use("TkAgg")
 from matplotlib import pyplot as plt
 
 from model.Config import Config
@@ -90,7 +93,7 @@ class Commit:
         val = e[1]
 
         if "Container" in key:
-            c.container = self.commaSplit(val)
+            c.container = self.commaSplit(val).lstrip(" ")
         elif "Verlet rebuild frequency" in key:
             c.rebuildFreq = float(self.newlineStrip(val))
         elif "Verlet skin radius" in key:
@@ -154,6 +157,8 @@ class Commit:
 
         measurements = glob(os.path.join(self.mdFlexDir, "measurePerf*/"))
 
+        self.configs = []
+
         # all measurement folders (should only be 1 usually)
         for i, folder in enumerate(measurements):
             folder = os.path.basename(os.path.dirname(folder))
@@ -199,12 +204,38 @@ class Commit:
                         else:
                             self.spaceSep(c, r)
 
-                self.generatePlot(c)
                 c.save()
                 print(c)
+                self.configs.append(c)
 
         os.chdir(self.baseDir)
 
-    def generatePlot(self, c:Config):
+    def generatePlot(self):
 
-        pass
+        configs = self.configs
+        containers = ["DirectSum", "LinkedCells", "VerletListsCells", "VerletClusterLists", "VerletLists"]
+        figs = {}
+        # Create figs
+        for cont in containers:
+            figs[cont] = plt.figure(cont, figsize=(16, 9))
+            plt.xlabel("Particles")
+            plt.ylabel("MFUP/s")
+
+        for c in configs:
+            data = c.measurements
+            N = [d["N"] for d in data]
+            MFUPs = [d["MFUPs"] for d in data]
+
+            plt.figure(c.container)
+            name = c.name.lstrip("runtimes_").rstrip(".csv")
+            plt.semilogx(N, MFUPs, label=name)
+            plt.xticks(N, N)
+            plt.legend()
+
+        os.chdir(self.mdFlexDir)
+
+        for cont in containers:
+            plt.figure(cont)
+            plt.savefig(cont + ".png")
+
+        os.chdir(self.baseDir)

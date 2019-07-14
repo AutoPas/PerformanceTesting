@@ -50,6 +50,7 @@ class Repository:
     def _testCommit(self, c:Commit):
 
         # TODO: Re-Enable
-        # c.build()
-        # c.measure()
+        c.build()
+        c.measure()
         c.upload()
+        c.generatePlot()
