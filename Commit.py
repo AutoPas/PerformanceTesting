@@ -56,7 +56,8 @@ class Commit:
         # run make
         print("Running MAKE")
         #make_output = run(["make", "-j", "4"], stdout=PIPE, stderr=PIPE)
-        make_output = run(["make", "md-flexible", "-B", "-j", "4"])#, stdout=PIPE, stderr=PIPE)
+        THREADS = os.environ["OMP_NUM_THREADS"]
+        make_output = run(["make", "md-flexible", "-B", "-j", THREADS])#, stdout=PIPE, stderr=PIPE)
         if make_output.returncode != 0:
             print("MAKE failed with return code", make_output.returncode)
             exit(make_output.returncode)
