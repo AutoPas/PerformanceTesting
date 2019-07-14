@@ -18,9 +18,6 @@ from matplotlib import pyplot as plt
 
 from model.Config import Config
 
-# TODO: SET PROPERLY
-THREADS = 4
-
 class Commit:
 
     baseDir = ""
@@ -51,12 +48,18 @@ class Commit:
         # run cmake
         print("Running CMAKE")
         cmake_output = run(["cmake", "-DAUTOPAS_OPENMP=ON", "--target", "md-flexible", ".."])#, stdout=PIPE, stderr=PIPE)
+        if cmake_output.returncode != 0:
+            print("CMAKE failed with return code", cmake_output.returncode)
+            exit(cmake_output.returncode)
         #print(cmake_output.stdout, cmake_output.stderr)
 
         # run make
         print("Running MAKE")
         #make_output = run(["make", "-j", "4"], stdout=PIPE, stderr=PIPE)
         make_output = run(["make", "md-flexible", "-B", "-j", "4"])#, stdout=PIPE, stderr=PIPE)
+        if make_output.returncode != 0:
+            print("MAKE failed with return code", make_output.returncode)
+            exit(make_output.returncode)
         #print(make_output.stdout, make_output.stderr)
 
         # change back to top level directory
@@ -74,8 +77,11 @@ class Commit:
         shutil.copy(os.path.join(mainPath, "measurePerf_short.sh"), self.mdFlexDir)
 
         # export thread number and run test
-        measure_output = run(["./measurePerf_short.sh", "md-flexible"], stdout=PIPE, stderr=PIPE)
-        print(measure_output.stdout, measure_output.stderr)
+        measure_output = run(["./measurePerf_short.sh", "md-flexible"])#, stdout=PIPE, stderr=PIPE)
+        if measure_output.returncode != 0:
+            print("MEASUREPERF failed with return code", measure_output.returncode)
+            #print(measure_output.stdout, measure_output.stderr)
+            exit(measure_output.returncode)
 
         # change to top
         os.chdir(self.baseDir)

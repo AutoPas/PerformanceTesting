@@ -12,7 +12,7 @@ import time
 import mongoengine as me
 import imp
 import argparse
-import sys
+import sys, os
 
 from Repository import Repository
 
@@ -34,7 +34,11 @@ if __name__ == "__main__":
     g.add_argument("--last", metavar="N", type=int, help="run on last N commits")
     g.add_argument("--sha", metavar="SHA", type=str, help="SHA to test")
     parser.add_argument("--config", metavar="path", help="location of db.config file, if not default")
+    parser.add_argument("--threads", metavar="num", type=int, help="numper of OpenMP threads allowed (default=4)", default=4)
     args = parser.parse_args()
+
+    THREADS = args.threads
+    os.environ["OMP_NUM_THREADS"] = THREADS
 
     if len(sys.argv) < 2:
         print("NO FLAGS SET")
