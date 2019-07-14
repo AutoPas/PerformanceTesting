@@ -15,15 +15,41 @@ class Repository:
             print("empty repo")
             exit(-1)
 
-    def testLatest(self):
+    def testNewest(self):
 
         sha = self.commits[0].hexsha
         c = Commit(self.repo, sha)
 
-        # TODO: Re-Enable
-        #c.build()
-        #c.measure()
-        c.upload()
+        self._testCommit(c)
 
         # reset to previous state
         self.repo.head.reset(self.initialHead, index=True, working_tree=True)
+
+    def testSHA(self, sha):
+
+        c = Commit(self.repo, sha)
+
+        self._testCommit(c)
+
+        # reset to previous state
+        self.repo.head.reset(self.initialHead, index=True, working_tree=True)
+
+    def testLast(self, last):
+
+        last = self.commits[0:last]
+
+        for commit in last:
+            sha = commit.hexsha
+            c = Commit(self.repo, sha)
+
+            self._testCommit(c)
+
+            # reset to previous state
+            self.repo.head.reset(self.initialHead, index=True, working_tree=True)
+
+    def _testCommit(self, c:Commit):
+
+        # TODO: Re-Enable
+        # c.build()
+        # c.measure()
+        c.upload()
