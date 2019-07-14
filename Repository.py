@@ -19,6 +19,8 @@ class Repository:
 
         sha = self.commits[0].hexsha
         c = Commit(self.repo, sha)
+
+        # TODO: Re-Enable
         #c.build()
         #c.measure()
         c.upload()
