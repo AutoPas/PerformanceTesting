@@ -7,6 +7,7 @@ import time
 from datetime import datetime
 import csv
 import re
+from cpuinfo import get_cpu_info
 
 from model.Config import Config
 
@@ -164,12 +165,15 @@ class Commit:
             configNames = [os.path.basename(x) for x in configPaths]
             print(configPaths)
             print(configNames)
+            cpu = get_cpu_info()["brand"]
 
             for i, conf in enumerate(configPaths):
 
                 c = Config()
                 c.name = configNames[i]
                 c.date = datetime.utcfromtimestamp(int(time.mktime(timestamp)))
+                # Assumes tests were run on this system
+                c.system = cpu
 
                 with open(configPaths[i]) as f:
                     for r in f:

@@ -4,6 +4,7 @@ class Config(me.Document):
 
     name = me.StringField()
     date = me.DateTimeField()
+    # Assumes Tests were run on same system as the files reside
     system = me.StringField()
 
     # CONFIG FIELDS
