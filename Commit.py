@@ -31,46 +31,60 @@ class Commit:
         self.mdFlexDir = os.path.join(self.buildDir, "examples/md-flexible")
         print(self.baseDir)
 
+    def commaSplit(self, val):
+        return val.split(",")[0]
+
+    def newlineStrip(self, val):
+        return val.rstrip(" \n")
+
     def colonSep(self, c:Config, line):
         sep = line.split(":")
         e = [x for x in sep]
-        if "Container" in e[0]:
-            c.container = e[1].split(",")[0]
-        elif "Layout" in e[0]:
-            c.layout = e[1].split(",")[0]
-        elif "Functor" in e[0]:
-            c.functor = e[1].rstrip(" \n")
-        elif "Newton3" in e[0]:
-            c.newton = e[1].split(",")[0]
-        elif "Cutoff" in e[0]:
-            c.cutoff = e[1].rstrip(" \n")
-        elif "Cell size factor" in e[0]:
-            c.cellSizeFactor = e[1].rstrip(" \n")
-        elif "Particle Generator" in e[0]:
-            c.generator = e[1].rstrip(" \n")
-        elif "Box length" in e[0]:
-            c.boxLength = float(e[1].rstrip(" \n"))
-        elif "total" in e[0]:
-            particles = e[1].rstrip(" \n").split(" ")
+        key = e[0]
+        val = e[1]
+
+        if "Container" in key:
+            c.container = self.commaSplit(val)
+        elif "Verlet rebuild frequency" in key:
+            c.rebuildFreq = float(self.newlineStrip(val))
+        elif "Verlet skin radius" in key:
+            c.skinRadius = float(self.newlineStrip(val))
+        elif "Layout" in key:
+            c.layout = self.commaSplit(val)
+        elif "Functor" in key:
+            c.functor = self.newlineStrip(val)
+        elif "Newton3" in key:
+            c.newton = self.commaSplit(val)
+        elif "Cutoff" in key:
+            c.cutoff = self.newlineStrip(val)
+        elif "Cell size factor" in key:
+            c.cellSizeFactor = self.newlineStrip(val)
+        elif "Particle Generator" in key:
+            c.generator = self.newlineStrip(val)
+        elif "Box length" in key:
+            c.boxLength = float(self.newlineStrip(val))
+        elif "total" in key:
+            particles = self.newlineStrip(val).split(" ")
             particles = [int(p) for p in particles[1:]]
             c.particles = particles
-        elif "traversals" in e[0]:
-            c.traversal = e[1].split(",")[0]
-        elif "Iterations" in e[0]:
-            iterations = e[1].rstrip(" \n").split(" ")
+        elif "traversals" in key:
+            c.traversal = self.commaSplit(val)
+        elif "Iterations" in key:
+            iterations = self.newlineStrip(val).split(" ")
             iterations = [int(i) for i in iterations[1:]]
             c.iterations = iterations
-        elif "Tuning Interval" in e[0]:
-            c.tuningInterval = int(e[1].rstrip(" \n"))
-        elif "Tuning Samples" in e[0]:
-            c.tuningSamples = int(e[1].rstrip(" \n"))
-        elif "epsilon" in e[0]:
-            c.epsilon = float(e[1].rstrip(" \n"))
-        elif "sigma" in e[0]:
-            c.sigma = float(e[1].rstrip(" \n"))
+        elif "Tuning Interval" in key:
+            c.tuningInterval = int(self.newlineStrip(val))
+        elif "Tuning Samples" in key:
+            c.tuningSamples = int(self.newlineStrip(val))
+        elif "epsilon" in key:
+            c.epsilon = float(self.newlineStrip(val))
+        elif "sigma" in key:
+            c.sigma = float(self.newlineStrip(val))
         else:
             print("UNPROCESSED COLON SEP PAIR")
             print(e)
+            exit(-1)
 
 
     def spaceSep(self, c:Config, line):
@@ -161,7 +175,8 @@ class Commit:
 
                 c.save()
 
-                exit()
+                # TODO: Remove
+                #exit()
 
                 print(c)
 

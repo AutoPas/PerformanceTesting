@@ -7,6 +7,10 @@ class Config(me.Document):
 
     # CONFIG FIELDS
     container = me.StringField()
+    # Verlet
+    rebuildFreq = me.FloatField()
+    skinRadius = me.FloatField()
+    # General
     layout = me.StringField()
     functor = me.StringField()
     newton = me.StringField()
