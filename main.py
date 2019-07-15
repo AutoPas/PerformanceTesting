@@ -21,10 +21,14 @@ if __name__ == "__main__":
     start = time.time()
 
     # TODO: checkout process in Jenkins
-    # TODO: github bot
+    # TODO: github bot with docker image
     # TODO: documentation
     # TODO: Requirements python
     # TODO: Add Comparison to previous commit
+    # TODO: Check Variance
+    # TODO: get SLURM conf to run on mpp3_batch from KNL_LOGIN
+    # TODO: Visualize only differences with large change
+    # TODO: ls-1 alpha wieder einsetzen
 
     gitPath = "../AutoPas"
 
