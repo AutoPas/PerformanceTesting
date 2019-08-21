@@ -1,6 +1,9 @@
 # JetBrains ignore
 .idea/
 
+#/ Key ignore
+*.pem
+
 # Database configs
 database.config
 
