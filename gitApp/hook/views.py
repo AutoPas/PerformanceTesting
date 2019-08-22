@@ -17,6 +17,7 @@ def pretty_request(request):
         body = request.body.decode("utf-8")
     except:
         body = request.text
+        print(request.url)
     jsonBody = json.loads(body)
     print(json.dumps(jsonBody, indent=4, sort_keys=True))
 
@@ -92,12 +93,34 @@ def createCheck():
         "Authorization": "token {}".format(install_token),
     }
     params = {
-        "name": "First Check",
-        "head_sha": "e914066d847531ee22c0345ad4227f43b730e08c",
+        "name": "Second Check",
+        "head_sha": "908c945eede1a3798efe5e48624e589cbf6baa1d",
     }
     CHECK_RUN_URL = "https://api.github.com/repos/kruegener/PushTest/check-runs"
     r = requests.post(url=CHECK_RUN_URL, headers=token_headers, json=params)
     pretty_request(r)
+    check_run_id_url = json.loads(r.text)["url"]
+    print(check_run_id_url)
+
+    # Update Status
+    params = {
+        "status": "in_progress",
+        "output": {
+            "title": "Test X",
+            "summary": "something happened",
+            "text": "Look, more details for this commit",
+            "images": [
+                {
+                    "alt": "test image",
+                    "image_url": "https://image.shutterstock.com/image-vector/example-sign-paper-origami-speech-260nw-1164503347.jpg"
+                }
+            ]
+        }
+    }
+    r = requests.patch(url=check_run_id_url, headers=token_headers, json=params)
+    pretty_request(r)
+
+
 
 if __name__ == '__main__':
     createCheck()
