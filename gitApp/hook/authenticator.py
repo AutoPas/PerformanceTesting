@@ -1,4 +1,3 @@
-import json
 import time
 import dateutil.parser
 import jwt
