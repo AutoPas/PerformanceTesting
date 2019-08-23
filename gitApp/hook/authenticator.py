@@ -1,5 +1,6 @@
 import json
 import time
+import dateutil.parser
 import jwt
 import requests
 from cryptography.hazmat.backends import default_backend
@@ -8,7 +9,7 @@ from .helper import *
 class Authenticator:
 
     # Expiry Thresholds in minutes
-    INSTALL_EXP_THRESHOLD = 20
+    INSTALL_EXP_THRESHOLD = 2
     JWT_EXP_THRESHOLD = 2
 
     def __init__(self, pem, git_app_id, install_id):
@@ -77,7 +78,7 @@ class Authenticator:
         """
         now = int(time.time())
         if self.install_expiry < (now - Authenticator.INSTALL_EXP_THRESHOLD * 60):
-            vprint("INSTALL TOKEN expired")
+            vprint(f"INSTALL TOKEN expired {self.install_expiry} {now} {(now - Authenticator.INSTALL_EXP_THRESHOLD * 60)}")
             self._newInstallToken()
         else:
             vprint("INSTALL TOKEN valid")
@@ -98,6 +99,8 @@ class Authenticator:
         print(r.url)
         # response
         pretty_request(r)
-        self.install_token = json.loads(r.text)["token"]
-        self.install_expiry = int(time.time() + 55*60)
+        parsed = json.loads(r.text)
+        self.install_token = parsed["token"]
+        self.install_expiry = int(dateutil.parser.parse((parsed["expires_at"])).timestamp())
         print(self.install_token)
+        print(self.install_expiry)
