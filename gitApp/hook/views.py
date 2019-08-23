@@ -2,9 +2,7 @@ from django.shortcuts import render
 from django.views.generic.base import View
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from gitApp.hook.helper import pretty_request
-
-
+from .helper import pretty_request
 
 # Create your views here.
 @csrf_exempt
@@ -19,6 +17,8 @@ def base(request):
 def receiveHook(request):
 
     pretty_request(request)
+
+
 
     print("hook called")
     return HttpResponse("200")

@@ -1,5 +1,5 @@
 from django.urls import path
-from gitApp.hook import views
+from . import views
 
 urlpatterns = [
     path('base/', views.base),
