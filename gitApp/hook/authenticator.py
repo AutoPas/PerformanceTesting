@@ -57,7 +57,7 @@ class Authenticator:
         Creates new JWT for authentication based on private key and GIT APP ID
         """
         cert_bytes = open(f"{self.pem}", "r").read().encode()
-        print("CERT", cert_bytes)
+        vprint("CERT" + str(cert_bytes))
         private_key = default_backend().load_pem_private_key(cert_bytes, None)
         now = int(time.time())
         new_expiry = now + (9 * 60)
@@ -70,8 +70,8 @@ class Authenticator:
             "iss": self.app_id
         }
         jwt_key = jwt.encode(payload, private_key, algorithm="RS256")
-        print("JWT ENCODED", jwt_key)
-        print(jwt.decode(jwt_key, private_key, verify=False, algorithms=["RS256"]))
+        vprint(f"JWT ENCODED {jwt_key}")
+        vprint(jwt.decode(jwt_key, private_key, verify=False, algorithms=["RS256"]))
         self.jwt_token = jwt_key
         self.jwt_expiry = new_expiry
 
@@ -94,16 +94,16 @@ class Authenticator:
                       "application/vnd.github.v3+json",
             "Authorization": f"Bearer {self.jwt_token.decode()}",
         }
-        print(jwt_headers)
+        vprint(jwt_headers)
 
         # Get Installation Token
         installation_url = f"https://api.github.com/app/installations/{self.install_id}/access_tokens"
         r = requests.post(url=installation_url, headers=jwt_headers)
-        print(r.url)
+        vprint(r.url)
         # response
         pretty_request(r)
         parsed = json.loads(r.text)
         self.install_token = parsed["token"]
         self.install_expiry = int(dateutil.parser.parse((parsed["expires_at"])).timestamp())
-        print(self.install_token)
-        print(self.install_expiry)
+        vprint(self.install_token)
+        vprint(self.install_expiry)
