@@ -3,6 +3,7 @@ from django.views.generic.base import View
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from .helper import pretty_request
+from .checkFlow import CheckFlow
 
 # Create your views here.
 @csrf_exempt
@@ -18,8 +19,11 @@ def receiveHook(request):
 
     pretty_request(request)
 
+    event_type = request.headers["X-Github-Event"]
+    print(f"HOOK CALLED: {event_type}")
 
+    if "pull_request" in event_type:
+        print ("do pull stuff")
 
-    print("hook called")
-    #return HttpResponse("200")
+    return HttpResponse(status=201)
 
