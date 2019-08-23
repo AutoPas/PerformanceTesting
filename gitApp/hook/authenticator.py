@@ -36,7 +36,7 @@ class Authenticator:
             "Accept": "application/vnd.github.antiope-preview+json, "
                       "application/vnd.github.machine-man-preview+json, "
                       "application/vnd.github.v3+json",
-            "Authorization": "token {}".format(self.install_token),
+            "Authorization": f"token {self.install_token}",
         }
         return token_headers
 
@@ -92,7 +92,7 @@ class Authenticator:
             "Accept": "application/vnd.github.antiope-preview+json, "
                       "application/vnd.github.machine-man-preview+json, "
                       "application/vnd.github.v3+json",
-            "Authorization": "Bearer {}".format(self.jwt_token.decode()),
+            "Authorization": f"Bearer {self.jwt_token.decode()}",
         }
         print(jwt_headers)
 
