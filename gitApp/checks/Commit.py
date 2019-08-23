@@ -1,14 +1,12 @@
 from git import Repo
 import os
 import shutil
-from subprocess import run, PIPE
+from subprocess import run
 from glob import glob
 import time
 from datetime import datetime
-import csv
 import re
 from cpuinfo import get_cpu_info
-from mongoengine import NotUniqueError
 import matplotlib
 
 # Switch for GUI
@@ -16,7 +14,7 @@ matplotlib.use("Agg")
 #matplotlib.use("TkAgg")
 from matplotlib import pyplot as plt
 
-from model.Config import Config
+from gitApp.model.Config import Config
 
 class Commit:
 

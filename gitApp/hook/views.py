@@ -21,5 +21,5 @@ def receiveHook(request):
 
 
     print("hook called")
-    return HttpResponse("200")
+    #return HttpResponse("200")
 

@@ -5,19 +5,24 @@ import requests
 class CheckFlow:
 
     GIT_APP_ID = 39178
+    INSTALL_ID = 1600235
+    PEM = "kruegenertest.2019-08-21.private-key.pem"
 
     def __init__(self):
         print("new checkFlow instance")
 
+    def receiveHook(self, request):
+        pass
+
     def createCheck(self):
         # TODO: get install ID on install webhook automatically
-        INSTALL_ID = 1600235
+
         APP_URL = "https://api.github.com/app"
 
         user = "kruegener"
         token = "4efef70cab3f5941eab32a598178c7e2783db9e9"
 
-        cert_bytes = open("../kruegenertest.2019-08-21.private-key.pem", "r").read().encode()
+        cert_bytes = open(f"{self.PEM}", "r").read().encode()
 
         jwt_key = newJWT(cert_bytes, self.GIT_APP_ID)
 
@@ -30,7 +35,7 @@ class CheckFlow:
         print(jwt_headers)
 
         # Get Installation Token
-        INSTALLATION_URL = f"https://api.github.com/app/installations/{INSTALL_ID}/access_tokens"
+        INSTALLATION_URL = f"https://api.github.com/app/installations/{self.INSTALL_ID}/access_tokens"
         r = requests.post(url=INSTALLATION_URL, headers=jwt_headers)
         print(r.url)
         # response
