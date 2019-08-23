@@ -2,6 +2,7 @@ import json
 
 VERBOSE = True
 
+
 def vprint(message):
     if VERBOSE:
         print(message)

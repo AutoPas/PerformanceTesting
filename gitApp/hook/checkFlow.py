@@ -1,29 +1,56 @@
-from gitApp.hook.helper import pretty_request
 import json
 import requests
-from gitApp.hook.authenticator import Authenticator
+#from django.views.generic.base import WSGIRequest
+
+# TODO: FIX THIS MESS
+try:
+    from gitApp.hook.helper import pretty_request
+    from gitApp.hook.authenticator import Authenticator
+except:
+    from .helper import pretty_request
+    from .authenticator import Authenticator
+
 
 class CheckFlow:
 
     GIT_APP_ID = 39178
-    # TODO: get install ID on install webhook automatically / create setup file for rest
+    # TODO: get install ID on webhook automatically / create setup file for rest
     INSTALL_ID = 1600235
     PEM = "kruegenertest.2019-08-21.private-key.pem"
+    # TODO: Get them from url during installation
+    OWNER = "KRUEGENER"
+    REPO = "PushTest"
 
     def __init__(self):
         print("new checkFlow instance")
         self.auth = Authenticator(CheckFlow.PEM, CheckFlow.GIT_APP_ID, CheckFlow.INSTALL_ID)
+        self.repo = CheckFlow.REPO
+        self.owner = CheckFlow.OWNER
 
-    def receiveHook(self, request):
+    def receiveHook(self, request):# WSGIRequest):
         print("RUNNING CHECKS")
-        pass
+        body = json.loads(request.body)
+        pull = body["pull_request"]
+        installation = body["installation"]
+        print(pull["commits_url"])
+        self.getCommits(pull["commits_url"])
 
-    def createCheck(self):
+    def getCommits(self, url):
+        r = requests.get(url=url, headers=self.auth.getTokenHeader())
+        pretty_request(r)
+        print("COMMIT LIST:")
+        cis = r.json()
+        for c in cis:
+            sha = c["sha"]
+            print("NEW COMMIT", sha, c["commit"]["message"])
+            self.createCheck(sha)
+
+    def createCheck(self, sha):
 
         # Run API request with install token as auth
         params = {
-            "name": "Second Check",
-            "head_sha": "80b38c41e081a492a9d5fe3de6683ae34bce8b24",
+            "name": "Auto Check",
+            "head_sha": sha,
         }
         CHECK_RUN_URL = "https://api.github.com/repos/kruegener/PushTest/check-runs"
         r = requests.post(url=CHECK_RUN_URL, headers=self.auth.getTokenHeader(), json=params)
@@ -39,7 +66,9 @@ class CheckFlow:
                 "title": "Test X",
                 "summary": "something happened",
                 "text": "Look, more details for this commit\n"
-                        "",
+                        "aldfkjalsdjf"
+                        "======"
+                        "ff",
                 "images": [
                     {
                         "alt": "test image",
