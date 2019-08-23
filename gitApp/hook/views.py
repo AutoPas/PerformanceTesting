@@ -24,6 +24,8 @@ def receiveHook(request):
 
     if "pull_request" in event_type:
         print ("do pull stuff")
+        check = CheckFlow()
+        check.receiveHook(request)
 
     return HttpResponse(status=201)
 

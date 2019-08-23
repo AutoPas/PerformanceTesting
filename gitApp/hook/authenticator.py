@@ -6,8 +6,12 @@ import requests
 from cryptography.hazmat.backends import default_backend
 from .helper import *
 
-class Authenticator:
 
+class Authenticator:
+    """
+    Authenticator class:
+    creates, stores and updates JWT and INSTALLATION tokens for use in the Github App API calls
+    """
     # Expiry Thresholds in minutes
     INSTALL_EXP_THRESHOLD = 2
     JWT_EXP_THRESHOLD = 2

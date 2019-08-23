@@ -6,6 +6,7 @@ from gitApp.hook.authenticator import Authenticator
 class CheckFlow:
 
     GIT_APP_ID = 39178
+    # TODO: get install ID on install webhook automatically / create setup file for rest
     INSTALL_ID = 1600235
     PEM = "kruegenertest.2019-08-21.private-key.pem"
 
@@ -14,14 +15,10 @@ class CheckFlow:
         self.auth = Authenticator(CheckFlow.PEM, CheckFlow.GIT_APP_ID, CheckFlow.INSTALL_ID)
 
     def receiveHook(self, request):
-
+        print("RUNNING CHECKS")
         pass
 
     def createCheck(self):
-
-        # TODO: get install ID on install webhook automatically
-
-        self.auth.getTokenHeader()
 
         # Run API request with install token as auth
         params = {
