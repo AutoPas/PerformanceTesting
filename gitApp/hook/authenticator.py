@@ -82,7 +82,7 @@ class Authenticator:
         """
         now = int(time.time())
         if self.install_expiry < (now - Authenticator.INSTALL_EXP_THRESHOLD * 60):
-            vprint(f"INSTALL TOKEN expired {self.install_expiry} {now} {(now - Authenticator.INSTALL_EXP_THRESHOLD * 60)}")
+            vprint("INSTALL TOKEN expired")
             self._newInstallToken()
         else:
             vprint("INSTALL TOKEN valid")
@@ -98,8 +98,8 @@ class Authenticator:
         print(jwt_headers)
 
         # Get Installation Token
-        INSTALLATION_URL = f"https://api.github.com/app/installations/{self.install_id}/access_tokens"
-        r = requests.post(url=INSTALLATION_URL, headers=jwt_headers)
+        installation_url = f"https://api.github.com/app/installations/{self.install_id}/access_tokens"
+        r = requests.post(url=installation_url, headers=jwt_headers)
         print(r.url)
         # response
         pretty_request(r)
