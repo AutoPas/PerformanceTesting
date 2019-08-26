@@ -3,7 +3,7 @@ import requests
 import mongoengine as me
 import imp
 
-from hook.helper import pretty_request, initialStatus
+from hook.helper import pretty_request, initialStatus, codeStatus
 from hook.Authenticator import Authenticator
 from checks.Repository import Repository
 
@@ -30,6 +30,7 @@ class CheckFlow:
         self.auth = Authenticator(CheckFlow.PEM, CheckFlow.GIT_APP_ID)
         self.baseUrl = ""
         self.branch = ""
+        self.SHAUrls = {}
 
         # Initiate DB connection with settings from file
         dbPath = CheckFlow.DB
@@ -77,10 +78,16 @@ class CheckFlow:
         pretty_request(r)
         print("COMMIT LIST:")
         cis = r.json()
+        shas = []
         for c in cis:
-            sha = c["sha"]
-            print("NEW COMMIT", sha, c["commit"]["message"])
+            shas.append(c["sha"])
+        for sha in shas:
+            print("NEW COMMIT", sha)
             self._createCheck(sha)
+        for sha in shas:
+            print("TESTING COMMIT", sha)
+            self._runCheck(sha)
+
 
     def _createCheck(self, sha):
 
@@ -97,18 +104,27 @@ class CheckFlow:
 
         print(check_run_id_url)
 
-        # Update Status to in Progress
-        r = requests.patch(url=check_run_id_url, headers=self.auth.getTokenHeader(), json=initialStatus())
-        pretty_request(r)
+        self.SHAUrls[sha] = check_run_id_url
+
+    def _runCheck(self, sha):
 
         # RUN CHECK
         print(f"RUNNING CHECKS ON {sha}")
 
+        # Update Status to in Progress
+        r = requests.patch(url=self.SHAUrls[sha], headers=self.auth.getTokenHeader(), json=initialStatus())
+        pretty_request(r)
+
         try:
             codes, messages = self.repo.testSHA(sha)
             print("CODES", codes, messages)
+            r = requests.patch(
+                url=self.SHAUrls[sha],
+                headers=self.auth.getTokenHeader(),
+                json=codeStatus(codes, messages))
         except:
             print(f"TestSHA {sha} failed with exit")
+            return False
 
         if -1 in codes:
             print(f"TestSHA {sha} failed with code -1")

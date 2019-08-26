@@ -56,7 +56,7 @@ class Commit:
         returncode = cmake_output.returncode
         if returncode != 0:
             print("CMAKE failed with return code", returncode)
-            self.updateStatus(returncode, f"CMAKE failed:\n{cmake_output.stderr}")
+            self.updateStatus(-1, f"CMAKE failed:\n{cmake_output.stderr}")
             return False
             #exit(returncode)
         #print(cmake_output.stdout, cmake_output.stderr)
@@ -68,7 +68,7 @@ class Commit:
         make_returncode = make_output.returncode
         if make_returncode != 0:
             print("MAKE failed with return code", make_returncode)
-            self.updateStatus(make_returncode, f"CMAKE failed:\n{make_output.stderr}")
+            self.updateStatus(-1, f"CMAKE failed:\n{make_output.stderr}")
             return False
             #exit(make_returncode)
         #print(make_output.stdout, make_output.stderr)
