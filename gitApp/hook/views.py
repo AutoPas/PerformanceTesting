@@ -3,7 +3,7 @@ from django.views.generic.base import View
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from hook.helper import pretty_request
-from hook.checkFlow import CheckFlow
+from hook.CheckFlow import CheckFlow
 
 # Create your views here.
 @csrf_exempt

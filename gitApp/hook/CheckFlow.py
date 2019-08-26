@@ -3,7 +3,7 @@ import requests
 import mongoengine
 
 from hook.helper import pretty_request
-from hook.authenticator import Authenticator
+from hook.Authenticator import Authenticator
 
 
 class CheckFlow:

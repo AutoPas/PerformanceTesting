@@ -14,7 +14,7 @@ import imp
 import argparse
 import sys, os
 
-from gitApp.checks.Repository import Repository
+from checks.Repository import Repository
 
 if __name__ == "__main__":
 

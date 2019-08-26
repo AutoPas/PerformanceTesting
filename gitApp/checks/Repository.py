@@ -1,5 +1,5 @@
 from git import Repo
-from gitApp.checks.Commit import Commit
+from checks.Commit import Commit
 
 class Repository:
 

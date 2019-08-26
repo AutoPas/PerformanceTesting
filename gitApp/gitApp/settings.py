@@ -25,6 +25,7 @@ SECRET_KEY = 'd#@m$_euso-e75j=qrs99^m193dmfdjuy(fb&p$(gw6+1=@t!@'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# TODO: add proper host
 ALLOWED_HOSTS = ["smee.io"]
 
 
