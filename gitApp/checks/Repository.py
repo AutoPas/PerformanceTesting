@@ -8,6 +8,7 @@ class Repository:
         self.repo = Repo(gitPath)
         # Checkout branch
         self.repo.git.checkout(branch)
+        self.repo.git.pull()
         # get current head to reset later
         self.initialHead = self.repo.head.commit
         # Check for proper Repo
@@ -39,6 +40,8 @@ class Repository:
 
         # reset to previous state
         self.repo.head.reset(self.initialHead, index=True, working_tree=True)
+        return c.codes, c.statusMessages
+
 
     def testLast(self, last):
 
@@ -55,8 +58,8 @@ class Repository:
 
     def _testCommit(self, c: Commit):
 
-        # TODO: Re-Enable
-        c.build()
-        c.measure()
-        c.upload()
-        c.generatePlot()
+        if c.build():
+            if c.measure():
+                if c.upload():
+                    if c.generatePlot():
+                        print("done testing")

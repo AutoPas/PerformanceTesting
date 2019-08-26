@@ -7,6 +7,12 @@ from hook.helper import pretty_request, initialStatus
 from hook.Authenticator import Authenticator
 from checks.Repository import Repository
 
+"""
+Codes:
+    -1: failed
+    0: neutral
+    1: success
+"""
 
 class CheckFlow:
 
@@ -97,10 +103,17 @@ class CheckFlow:
 
         # RUN CHECK
         print(f"RUNNING CHECKS ON {sha}")
+
         try:
-            self.repo.testSHA(sha)
+            codes, messages = self.repo.testSHA(sha)
+            print("CODES", codes, messages)
         except:
-            print(f"TestSHA {sha} failed")
+            print(f"TestSHA {sha} failed with exit")
+
+        if -1 in codes:
+            print(f"TestSHA {sha} failed with code -1")
+        else:
+            print(f"TestSHA {sha} passed")
 
 
 if __name__ == '__main__':

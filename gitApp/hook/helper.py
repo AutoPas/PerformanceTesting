@@ -24,9 +24,10 @@ def pretty_request(request):
     jsonBody = json.loads(body)
     print(json.dumps(jsonBody, indent=4, sort_keys=True))
 
+
 def initialStatus():
     params = {
-        "status": "in_progress",
+        "status": "queued",
         # "conclusion": "success",
         "output": {
             "title": "Test X",

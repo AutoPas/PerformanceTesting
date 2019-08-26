@@ -1,7 +1,7 @@
 from git import Repo
 import os
 import shutil
-from subprocess import run
+from subprocess import run, PIPE
 from glob import glob
 import time
 from datetime import datetime
@@ -33,6 +33,13 @@ class Commit:
         self.buildDir = os.path.join(self.baseDir, self.buildDir)
         self.mdFlexDir = os.path.join(self.buildDir, "examples/md-flexible")
         print(self.baseDir)
+        # Status codes and messages
+        self.codes = []
+        self.statusMessages = []
+
+    def updateStatus(self, code, message):
+        self.codes.append(code)
+        self.statusMessages.append(message)
 
     def build(self):
 
@@ -45,25 +52,31 @@ class Commit:
 
         # run cmake
         print("Running CMAKE")
-        cmake_output = run(["cmake", "-DAUTOPAS_OPENMP=ON", "--target", "md-flexible", ".."])#, stdout=PIPE, stderr=PIPE)
-        if cmake_output.returncode != 0:
-            print("CMAKE failed with return code", cmake_output.returncode)
-            exit(cmake_output.returncode)
+        cmake_output = run(["cmake", "-DAUTOPAS_OPENMP=ON", "--target", "md-flexible", ".."], stdout=PIPE, stderr=PIPE)
+        returncode = cmake_output.returncode
+        if returncode != 0:
+            print("CMAKE failed with return code", returncode)
+            self.updateStatus(returncode, f"CMAKE failed:\n{cmake_output.stderr}")
+            return False
+            #exit(returncode)
         #print(cmake_output.stdout, cmake_output.stderr)
 
         # run make
         print("Running MAKE")
-        #make_output = run(["make", "-j", "4"], stdout=PIPE, stderr=PIPE)
         THREADS = os.environ["OMP_NUM_THREADS"]
-        make_output = run(["make", "md-flexible", "-B", "-j", THREADS])#, stdout=PIPE, stderr=PIPE)
-        if make_output.returncode != 0:
-            print("MAKE failed with return code", make_output.returncode)
-            exit(make_output.returncode)
+        make_output = run(["make", "md-flexible", "-B", "-j", THREADS], stdout=PIPE, stderr=PIPE)
+        make_returncode = make_output.returncode
+        if make_returncode != 0:
+            print("MAKE failed with return code", make_returncode)
+            self.updateStatus(make_returncode, f"CMAKE failed:\n{make_output.stderr}")
+            return False
+            #exit(make_returncode)
         #print(make_output.stdout, make_output.stderr)
 
         # change back to top level directory
         os.chdir(self.baseDir)
-
+        self.updateStatus(0, f"CMAKE passed")
+        return True
 
     def measure(self):
         # change to md-flexible folder
