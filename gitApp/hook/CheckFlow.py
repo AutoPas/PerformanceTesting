@@ -9,24 +9,19 @@ from hook.Authenticator import Authenticator
 class CheckFlow:
 
     GIT_APP_ID = 39178
-    # TODO: get install ID on webhook automatically / create setup file for rest
+    # TODO: Remove if not needed for debugging anymore
     INSTALL_ID = 1600235
-    PEM = "kruegenertest.2019-08-21.private-key.pem"
-    # TODO: Get them from url during installation
-    OWNER = "KRUEGENER"
-    REPO = "PushTest"
+    PEM = "gitApp/kruegenertest.2019-08-21.private-key.pem"
 
     def __init__(self):
         print("new checkFlow instance")
-        self.auth = Authenticator(CheckFlow.PEM, CheckFlow.GIT_APP_ID, CheckFlow.INSTALL_ID)
-        self.repo = CheckFlow.REPO
-        self.owner = CheckFlow.OWNER
+        self.auth = Authenticator(CheckFlow.PEM, CheckFlow.GIT_APP_ID)
 
     def receiveHook(self, request):# WSGIRequest):
         print("RUNNING CHECKS")
         body = json.loads(request.body)
+        self.auth.updateInstallID(int(body["installation"]["id"]))
         pull = body["pull_request"]
-        installation = body["installation"]
         print(pull["commits_url"])
         self._getCommits(pull["commits_url"])
 

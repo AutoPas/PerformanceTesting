@@ -47,7 +47,7 @@ class Repository:
             # reset to previous state
             self.repo.head.reset(self.initialHead, index=True, working_tree=True)
 
-    def _testCommit(self, c:Commit):
+    def _testCommit(self, c: Commit):
 
         # TODO: Re-Enable
         c.build()

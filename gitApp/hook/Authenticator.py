@@ -15,14 +15,19 @@ class Authenticator:
     INSTALL_EXP_THRESHOLD = 2
     JWT_EXP_THRESHOLD = 2
 
-    def __init__(self, pem, git_app_id, install_id):
+    def __init__(self, pem, git_app_id):
         self.pem = pem
         self.app_id = git_app_id
-        self.install_id = install_id
+        self.install_id = -1
         self.jwt_expiry = -1
         self.jwt_token = None
         self.install_expiry = -1
         self.install_token = None
+
+    def updateInstallID(self, id):
+        if id != self.install_id:
+            self.install_id = id
+            self.install_expiry = self.jwt_expiry = -1
 
     def getToken(self):
         """ Check expiry date of existing install token and create new one if needed, returns valid token."""
