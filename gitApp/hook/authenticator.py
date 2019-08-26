@@ -3,7 +3,7 @@ import dateutil.parser
 import jwt
 import requests
 from cryptography.hazmat.backends import default_backend
-from .helper import *
+from hook.helper import *
 
 
 class Authenticator:

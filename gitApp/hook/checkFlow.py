@@ -1,14 +1,9 @@
 import json
 import requests
-#from django.views.generic.base import WSGIRequest
+import mongoengine
 
-# TODO: FIX THIS MESS
-try:
-    from gitApp.hook.helper import pretty_request
-    from gitApp.hook.authenticator import Authenticator
-except:
-    from .helper import pretty_request
-    from .authenticator import Authenticator
+from hook.helper import pretty_request
+from hook.authenticator import Authenticator
 
 
 class CheckFlow:
@@ -33,9 +28,9 @@ class CheckFlow:
         pull = body["pull_request"]
         installation = body["installation"]
         print(pull["commits_url"])
-        self.getCommits(pull["commits_url"])
+        self._getCommits(pull["commits_url"])
 
-    def getCommits(self, url):
+    def _getCommits(self, url):
         r = requests.get(url=url, headers=self.auth.getTokenHeader())
         pretty_request(r)
         print("COMMIT LIST:")
@@ -43,9 +38,9 @@ class CheckFlow:
         for c in cis:
             sha = c["sha"]
             print("NEW COMMIT", sha, c["commit"]["message"])
-            self.createCheck(sha)
+            self._createCheck(sha)
 
-    def createCheck(self, sha):
+    def _createCheck(self, sha):
 
         # Run API request with install token as auth
         params = {
@@ -83,4 +78,4 @@ class CheckFlow:
 
 if __name__ == '__main__':
     run = CheckFlow()
-    run.createCheck()
+    run._createCheck()

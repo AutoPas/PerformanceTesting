@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from hook import views
 
 urlpatterns = [
     path('base/', views.base),
