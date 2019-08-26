@@ -25,17 +25,24 @@ class Authenticator:
         self.install_token = None
 
     def updateInstallID(self, id):
+        """
+        Update Installation ID of Github App to be used for auth (usually send with webhook)
+        """
         if id != self.install_id:
             self.install_id = id
             self.install_expiry = self.jwt_expiry = -1
 
     def getToken(self):
-        """ Check expiry date of existing install token and create new one if needed, returns valid token."""
+        """
+        Check expiry date of existing install token and create new one if needed, returns valid token.
+        """
         self._checkInstallToken()
         return self.install_token
 
     def getTokenHeader(self):
-        """ Returns fully formed header with valid installation token """
+        """
+        Returns fully formed header with valid installation token
+        """
         self.getToken()
         token_headers = {
             "Accept": "application/vnd.github.antiope-preview+json, "
@@ -92,6 +99,9 @@ class Authenticator:
             vprint("INSTALL TOKEN valid")
 
     def _newInstallToken(self):
+        """
+            Generates new Install Token valid for an hour to auth API requests
+        """
         self._checkJWT()
         jwt_headers = {
             "Accept": "application/vnd.github.antiope-preview+json, "
