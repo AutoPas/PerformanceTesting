@@ -6,6 +6,8 @@ class Repository:
     def __init__(self, gitPath, branch="master"):
         # Repo Object of already cloned Repo, expects a pulled and clean repo
         self.repo = Repo(gitPath)
+        # Checkout branch
+        self.repo.git.checkout(branch)
         # get current head to reset later
         self.initialHead = self.repo.head.commit
         # Check for proper Repo
@@ -14,6 +16,10 @@ class Repository:
         else:
             print("empty repo")
             exit(-1)
+
+    def checkoutBranch(self, branch):
+        print(f"Checking out {branch}")
+        self.repo.git.checkout(branch)
 
     def testNewest(self):
 

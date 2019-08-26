@@ -14,7 +14,7 @@ matplotlib.use("Agg")
 #matplotlib.use("TkAgg")
 from matplotlib import pyplot as plt
 
-from gitApp.model.Config import Config
+from model.Config import Config
 
 class Commit:
 
