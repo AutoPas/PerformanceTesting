@@ -62,12 +62,14 @@ class Commit:
             return False
             #exit(returncode)
         #print(cmake_output.stdout, cmake_output.stderr)
-
+        self.updateStatus(0, f"CMAKE succeeded:\n{cmake_output.stdout}")
         # run make
         print("Running MAKE")
 
         THREADS = os.environ["OMP_NUM_THREADS"]
-        make_output = run(["make", "md-flexible", "-B", "-j", THREADS], stdout=PIPE, stderr=PIPE)
+        # TODO: SET -B for PRODUCTION
+        #make_output = run(["make", "md-flexible", "-B", "-j", THREADS], stdout=PIPE, stderr=PIPE)
+        make_output = run(["make", "md-flexible", "-j", THREADS], stdout=PIPE, stderr=PIPE)
         make_returncode = make_output.returncode
         if make_returncode != 0:
             print("MAKE failed with return code", make_returncode)
@@ -80,7 +82,7 @@ class Commit:
 
         # change back to top level directory
         os.chdir(self.baseDir)
-        self.updateStatus(0, f"CMAKE passed")
+        self.updateStatus(0, f"CMAKE+MAKE passed")
         return True
 
     def measure(self):
@@ -98,7 +100,7 @@ class Commit:
         if measure_output.returncode != 0:
             print("MEASUREPERF failed with return code", measure_output.returncode)
             #print(measure_output.stdout, measure_output.stderr)
-            self.updateStatus(-1, f"MEASUREPERF failed:\n{measure_output.stderr}")
+            self.updateStatus(-1, f"MEASUREPERF failed:\nSTDOUT: .... {measure_output.stdout.decode('utf-8')[-1000:]}\nSTDERR:{measure_output.stderr.decode('utf-8')}")
             # change back to top level directory
             os.chdir(self.baseDir)
             return False
@@ -238,7 +240,7 @@ class Commit:
                 self.configs.append(c)
 
         os.chdir(self.baseDir)
-        self.updateStatus(1, "RESULT UPLOAD succeeded")
+        self.updateStatus(1, "RESULT UPLOAD succeeded\n")
         return True
 
     def generatePlot(self):
@@ -270,5 +272,5 @@ class Commit:
             plt.savefig(cont + ".png")
 
         os.chdir(self.baseDir)
-        self.updateStatus(1, "PLOTTING succeeded")
+        self.updateStatus(1, "PLOTTING succeeded\n")
         return True

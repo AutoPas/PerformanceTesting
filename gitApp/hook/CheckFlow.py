@@ -135,6 +135,7 @@ class CheckFlow:
                 url=self.SHAUrls[sha],
                 headers=self.auth.getTokenHeader(),
                 json=codeStatus(codes, messages))
+            pretty_request(r)
         except Exception as e:
             print(e)
             print(f"TestSHA {sha} failed with exit")
@@ -142,6 +143,7 @@ class CheckFlow:
                 url=self.SHAUrls[sha],
                 headers=self.auth.getTokenHeader(),
                 json=codeStatus([-1], ["exit() statement called"]))
+            pretty_request(r)
             return False
 
         if -1 in codes:
