@@ -1,7 +1,8 @@
-PyJWT
-cryptography
+asn1crypto==0.24.0
 certifi==2019.6.16
+cffi==1.12.3
 chardet==3.0.4
+cryptography==2.7
 cycler==0.10.0
 ddt==1.2.1
 Django==2.2.4
@@ -13,6 +14,8 @@ matplotlib==3.1.1
 mongoengine==0.18.2
 numpy==1.17.0
 py-cpuinfo==5.0.0
+pycparser==2.19
+PyJWT==1.7.1
 pymongo==3.9.0
 pyparsing==2.4.2
 python-dateutil==2.8.0

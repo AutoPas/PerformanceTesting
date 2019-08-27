@@ -68,7 +68,7 @@ def codeStatus(codes, messages):
         "conclusion": conclusion,
         "output": {
             "title": "Test X",
-            "summary": "Nothing happened yet",
+            "summary": "It's over",
             "text": f"Summary\n{text}",
             "images": [
                 {

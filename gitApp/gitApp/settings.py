@@ -26,7 +26,7 @@ SECRET_KEY = 'd#@m$_euso-e75j=qrs99^m193dmfdjuy(fb&p$(gw6+1=@t!@'
 DEBUG = True
 
 # TODO: add proper host
-ALLOWED_HOSTS = ["smee.io"]
+ALLOWED_HOSTS = ["smee.io", "localhost", "127.0.0.1"]
 
 
 # Application definition
