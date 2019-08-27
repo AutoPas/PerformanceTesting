@@ -27,7 +27,7 @@ def pretty_request(request):
 
 def initialStatus():
     params = {
-        "status": "queued",
+        "status": "in progress",
         # "conclusion": "success",
         "output": {
             "title": "Test X",

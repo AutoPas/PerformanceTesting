@@ -2,6 +2,7 @@ import json
 import requests
 import mongoengine as me
 import imp
+import os
 
 from hook.helper import pretty_request, initialStatus, codeStatus
 from hook.Authenticator import Authenticator
@@ -23,17 +24,23 @@ class CheckFlow:
     PEM = "gitApp/kruegenertest.2019-08-21.private-key.pem"
     DB = "gitApp/database.config"
     # TODO: CHANGE TO AUTOPAS
-    AUTOPAS = "../PushTest"
+    AUTOPAS = "../AutoPas"
+    THREADS = 4
 
     def __init__(self):
         print("new checkFlow instance")
         self.auth = Authenticator(CheckFlow.PEM, CheckFlow.GIT_APP_ID)
         self.baseUrl = ""
         self.branch = ""
+        self.baseSHA = ""
+        self.base = ""
+
         self.SHAUrls = {}
 
         # Initiate DB connection with settings from file
         dbPath = CheckFlow.DB
+        import os
+        print(os.getcwd())
         try:
             db = imp.load_source('db', dbPath)
         except:
@@ -64,6 +71,8 @@ class CheckFlow:
 
         # Checkout branch associated with pull request
         self.branch = pull["head"]["ref"]
+        self.base = pull["base"]["ref"]
+        self.baseSHA = pull["base"]["sha"]
         self.repo.checkoutBranch(self.branch)
         print(ci_url)
 
@@ -116,14 +125,23 @@ class CheckFlow:
         pretty_request(r)
 
         try:
+            # TODO: Where does the directory change mistake happen?
+            cwd = os.getcwd()
+            os.environ["OMP_NUM_THREADS"] = str(CheckFlow.THREADS)
             codes, messages = self.repo.testSHA(sha)
+            os.chdir(cwd)
             print("CODES", codes, messages)
             r = requests.patch(
                 url=self.SHAUrls[sha],
                 headers=self.auth.getTokenHeader(),
                 json=codeStatus(codes, messages))
-        except:
+        except Exception as e:
+            print(e)
             print(f"TestSHA {sha} failed with exit")
+            r = requests.patch(
+                url=self.SHAUrls[sha],
+                headers=self.auth.getTokenHeader(),
+                json=codeStatus([-1], ["exit() statement called"]))
             return False
 
         if -1 in codes:

@@ -57,18 +57,23 @@ class Commit:
         if returncode != 0:
             print("CMAKE failed with return code", returncode)
             self.updateStatus(-1, f"CMAKE failed:\n{cmake_output.stderr}")
+            # change back to top level directory
+            os.chdir(self.baseDir)
             return False
             #exit(returncode)
         #print(cmake_output.stdout, cmake_output.stderr)
 
         # run make
         print("Running MAKE")
+
         THREADS = os.environ["OMP_NUM_THREADS"]
         make_output = run(["make", "md-flexible", "-B", "-j", THREADS], stdout=PIPE, stderr=PIPE)
         make_returncode = make_output.returncode
         if make_returncode != 0:
             print("MAKE failed with return code", make_returncode)
             self.updateStatus(-1, f"CMAKE failed:\n{make_output.stderr}")
+            # change back to top level directory
+            os.chdir(self.baseDir)
             return False
             #exit(make_returncode)
         #print(make_output.stdout, make_output.stderr)
@@ -89,14 +94,20 @@ class Commit:
         shutil.copy(os.path.join(mainPath, "measurePerf_short.sh"), self.mdFlexDir)
 
         # export thread number and run test
-        measure_output = run(["./measurePerf_short.sh", "md-flexible"])#, stdout=PIPE, stderr=PIPE)
+        measure_output = run(["./measurePerf_short.sh", "md-flexible"], stdout=PIPE, stderr=PIPE)
         if measure_output.returncode != 0:
             print("MEASUREPERF failed with return code", measure_output.returncode)
             #print(measure_output.stdout, measure_output.stderr)
-            exit(measure_output.returncode)
+            self.updateStatus(-1, f"MEASUREPERF failed:\n{measure_output.stderr}")
+            # change back to top level directory
+            os.chdir(self.baseDir)
+            return False
+            #exit(measure_output.returncode)
 
         # change to top
         os.chdir(self.baseDir)
+        self.updateStatus(1, f"MEASUREPERF succeeded: {measure_output.stdout}")
+        return True
 
     def commaSplit(self, val):
         return val.split(",")[0]
@@ -227,6 +238,8 @@ class Commit:
                 self.configs.append(c)
 
         os.chdir(self.baseDir)
+        self.updateStatus(1, "RESULT UPLOAD succeeded")
+        return True
 
     def generatePlot(self):
 
@@ -257,3 +270,5 @@ class Commit:
             plt.savefig(cont + ".png")
 
         os.chdir(self.baseDir)
+        self.updateStatus(1, "PLOTTING succeeded")
+        return True

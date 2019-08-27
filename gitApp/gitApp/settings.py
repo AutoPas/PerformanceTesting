@@ -29,6 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["smee.io",
                  "localhost",
                  "127.0.0.1",
+                 "git",
                  ".moritzkruegener.com",
                  ".ngrok.io"]
 
