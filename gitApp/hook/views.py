@@ -31,7 +31,9 @@ def receiveHook(request):
 
     if "pull_request" in event_type:
         action = json.loads(request.body)["action"]
-        if action == "opened" or action == "synchronize":
+        if action == "opened" \
+                or action == "synchronize"\
+                or action == "reopened":
             print ("do pull stuff")
             check = CheckFlow()
             check.receiveHook(request)
