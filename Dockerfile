@@ -12,6 +12,7 @@ RUN git clone https://github.com/AutoPas/PerformanceTesting.git
 RUN pip3 install --no-cache-dir -r PerformanceTesting/requirements.txt
 
 # Copy GitHub App Certificate and Database configuration file
+# TODO: Move up to crash early if user doesnt provide files?
 COPY *.pem PerformanceTesting/gitApp
 COPY database.config PerformanceTesting/gitApp
 
