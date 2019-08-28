@@ -30,8 +30,8 @@ then
     mkdir ${outputDir}
     cd ${outputDir}
 
-    Mols=(   16    32    64   128  256  512 1024 2048  8192)
-    Reps=(10000 10000 10000 10000 1000 1000  200  100   20)
+    Mols=(   16    32    64   128)
+    Reps=(1000 1000 1000 1000)
 else
     Mols=(   16    32    64 )
     Reps=(   10    10    10 )
@@ -53,7 +53,8 @@ traversals__DirectSum=directSumTraversal
 traversals__LinkedCells=c08
 traversals__VerletLists=verlet-lists
 traversals__VerletCells=verletC18
-traversals__VerletCluster=c01
+# TODO: CHECKOUT VERLET-CLUSTERS SCHEMES: SOME DONT'T SUPPORT NEWTON AND CRASH OUT ON COMMITS
+traversals__VerletCluster=verlet-clusters-coloring
 
 # iterate over containers
 for container in LinkedCells VerletLists DirectSum VerletCluster VerletCells ;

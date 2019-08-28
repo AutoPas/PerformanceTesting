@@ -46,8 +46,12 @@ class Commit:
         print("BUILD/MD-FLEX DIR: ", self.buildDir, self.mdFlexDir)
 
         # remove old buildDir if present
-        shutil.rmtree(self.buildDir, ignore_errors=True)
-        os.mkdir(self.buildDir)
+        # TODO: RESET FOR PRODUCTION
+        #shutil.rmtree(self.buildDir, ignore_errors=True)
+        try:
+            os.mkdir(self.buildDir)
+        except FileExistsError:
+            print("build folder existet already. RESET FOR PRODUCTION")
         os.chdir(self.buildDir)
 
         # run cmake
@@ -67,7 +71,7 @@ class Commit:
         print("Running MAKE")
 
         THREADS = os.environ["OMP_NUM_THREADS"]
-        # TODO: SET -B for PRODUCTION
+        # TODO: SET -B for PRODUCTION, but should be clean anyway because of reset build folder
         #make_output = run(["make", "md-flexible", "-B", "-j", THREADS], stdout=PIPE, stderr=PIPE)
         make_output = run(["make", "md-flexible", "-j", THREADS], stdout=PIPE, stderr=PIPE)
         make_returncode = make_output.returncode
