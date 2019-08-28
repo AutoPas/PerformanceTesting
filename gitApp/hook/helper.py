@@ -48,13 +48,18 @@ def codeStatus(codes, messages):
 
     text = ""
 
+    # TODO: Save Full messages in database and serve on web page
+
     for i, code in enumerate(codes):
         if code == -1:
-            text += "FAILURE:\n"
-            text += messages[i]
+            text += "\n```diff\n- FAILURE:\n```\n"
+            text += messages[i][-5000:]
+        elif code == 0:
+            text += "\n```diff\nNEUTRAL:\n```\n"
+            text += messages[i][-500:]
         else:
-            text += "SUCCESS:\n"
-            text += messages[i]
+            text += "\n```diff\n+ SUCCESS:\n```\n"
+            text += messages[i][-500:]
 
     if -1 in codes:
         conclusion = "failure"

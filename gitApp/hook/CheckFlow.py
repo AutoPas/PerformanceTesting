@@ -128,6 +128,7 @@ class CheckFlow:
             # TODO: Where does the directory change mistake happen?
             cwd = os.getcwd()
             os.environ["OMP_NUM_THREADS"] = str(CheckFlow.THREADS)
+            # TODO: _IMPORTANT: Think about replicating that work flow here and actually make build / measure / upload their own check runs in the suite
             codes, messages = self.repo.testSHA(sha)
             os.chdir(cwd)
             print("CODES", codes, messages)

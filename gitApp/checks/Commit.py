@@ -66,7 +66,7 @@ class Commit:
             return False
             #exit(returncode)
         #print(cmake_output.stdout, cmake_output.stderr)
-        self.updateStatus(0, f"CMAKE succeeded:\n{cmake_output.stdout}")
+        self.updateStatus(1, f"CMAKE succeeded:\n{cmake_output.stdout}")
         # run make
         print("Running MAKE")
 
@@ -77,7 +77,7 @@ class Commit:
         make_returncode = make_output.returncode
         if make_returncode != 0:
             print("MAKE failed with return code", make_returncode)
-            self.updateStatus(-1, f"CMAKE failed:\n{make_output.stderr}")
+            self.updateStatus(-1, f"MAKE failed:\n{make_output.stderr}")
             # change back to top level directory
             os.chdir(self.baseDir)
             return False
@@ -86,7 +86,7 @@ class Commit:
 
         # change back to top level directory
         os.chdir(self.baseDir)
-        self.updateStatus(0, f"CMAKE+MAKE passed")
+        self.updateStatus(1, f"CMAKE+MAKE passed")
         return True
 
     def measure(self):
@@ -157,10 +157,14 @@ class Commit:
             iterations = self.newlineStrip(val).split(" ")
             iterations = [int(i) for i in iterations[1:]]
             c.iterations = iterations
+        elif "Tuning Strategy" in key:
+            c.tuningStrategy = self.newlineStrip(val)[1:]
         elif "Tuning Interval" in key:
             c.tuningInterval = int(self.newlineStrip(val))
         elif "Tuning Samples" in key:
             c.tuningSamples = int(self.newlineStrip(val))
+        elif "Tuning Max evidence" in key:
+            c.tuningMaxEvidence = int(self.newlineStrip(val))
         elif "epsilon" in key:
             c.epsilon = float(self.newlineStrip(val))
         elif "sigma" in key:
@@ -168,8 +172,10 @@ class Commit:
         else:
             print("UNPROCESSED COLON SEP PAIR")
             print(e)
-            exit(-1)
-
+            self.updateStatus(0, f"UNPROCESSED COLON SEP PAIR at Parsing step: {e}")
+            return True
+            #exit(-1)
+        return True
 
     def spaceSep(self, c:Config, line):
         sep = line.lstrip(" ").rstrip("\n").split(" ")
@@ -185,6 +191,7 @@ class Commit:
             m["Micros"] = float(sep[3])
             m["ItMicros"] = float(sep[4])
             c.measurements.append(m)
+        return True
 
     def upload(self):
 
@@ -235,9 +242,11 @@ class Commit:
                     for r in f:
                         r = re.sub("\s\s+", " ", r)
                         if ":" in r:
-                            self.colonSep(c, r)
+                            if not self.colonSep(c, r):
+                                return False
                         else:
-                            self.spaceSep(c, r)
+                            if not self.spaceSep(c, r):
+                                return False
 
                 c.save()
                 print(c)

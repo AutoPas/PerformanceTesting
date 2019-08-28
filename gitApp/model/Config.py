@@ -30,8 +30,10 @@ class Config(me.Document):
     particles = me.ListField()
     traversal = me.StringField()
     iterations = me.ListField()
+    tuningStrategy = me.StringField()
     tuningInterval = me.IntField()
     tuningSamples = me.IntField()
+    tuningMaxEvidence = me.IntField()
     epsilon = me.FloatField()
     sigma = me.FloatField()
 
