@@ -21,8 +21,8 @@ class CheckFlow:
     # TODO: Remove if not needed for debugging anymore
     INSTALL_ID = 1600235
     # TODO: Add to config file
-    PEM = "gitApp/kruegenertest.2019-08-21.private-key.pem"
-    DB = "gitApp/database.config"
+    PEM = "kruegenertest.2019-08-21.private-key.pem"
+    DB = "database.config"
     # TODO: CHANGE TO AUTOPAS
     AUTOPAS = "../AutoPas"
     THREADS = 4
@@ -130,6 +130,10 @@ class CheckFlow:
             os.environ["OMP_NUM_THREADS"] = str(CheckFlow.THREADS)
             # TODO: _IMPORTANT: Think about replicating that work flow here and actually make build / measure / upload their own check runs in the suite
             codes, messages = self.repo.testSHA(sha)
+            # TODO: CHANGE BACK TO FULL SHA TEST
+            # ONLY FOR DEBUGGING
+            #codes, messages = [0, 0, 0], ["test1", "test2", "---------------\n\n\n----------------------- VLRebuild: 10 VLSkin: 0.2 ------------------------\n\n\n----------------------- VLRebuild: 10 VLSkin: 0.2 ------------------------\n\n\n----------------------- VLRebuild: 10 VLSkin: 0.2 ------------------------\n\n\n----------------------- VLRebuild: 20 VLSkin: 0.3 ------------------------\n\n\n----------------------- VLRebuild: 20 VLSkin: 0.3 ------------------------\n\n\n----------------------- VLRebuild: 20 VLSkin: 0.3 ------------------------\n\n'"]
+
             os.chdir(cwd)
             print("CODES", codes, messages)
             r = requests.patch(
