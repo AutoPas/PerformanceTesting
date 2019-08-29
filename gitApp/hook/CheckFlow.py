@@ -15,6 +15,7 @@ Codes:
     1: success
 """
 
+
 class CheckFlow:
 
     GIT_APP_ID = 39178
@@ -43,7 +44,8 @@ class CheckFlow:
         print(os.getcwd())
         try:
             db = imp.load_source('db', dbPath)
-        except:
+        except Exception as e:
+            print(e)
             print("database.config MISSING. Create file based on: database.config.example")
             exit(-1)
 
@@ -54,7 +56,7 @@ class CheckFlow:
         # Initiate Repo
         self.repo = Repository(CheckFlow.AUTOPAS)
 
-    def receiveHook(self, request):# WSGIRequest):
+    def receiveHook(self, request):  # WSGIRequest):
         """ on receive of pull_request event """
 
         print("RUNNING CHECKS")
@@ -97,7 +99,6 @@ class CheckFlow:
             print("TESTING COMMIT", sha)
             self._runCheck(sha)
 
-
     def _createCheck(self, sha):
 
         # Run API request with install token as auth
@@ -128,11 +129,12 @@ class CheckFlow:
             # TODO: Where does the directory change mistake happen?
             cwd = os.getcwd()
             os.environ["OMP_NUM_THREADS"] = str(CheckFlow.THREADS)
-            # TODO: _IMPORTANT: Think about replicating that work flow here and actually make build / measure / upload their own check runs in the suite
+            # TODO: _IMPORTANT: Think about replicating that work flow here and actually make
+            #  build / measure / upload their own check runs in the suite or via updateStatus
             codes, headers, messages = self.repo.testSHA(sha)
             # TODO: CHANGE BACK TO FULL SHA TEST
             # ONLY FOR DEBUGGING
-            #codes, messages = [0, 0, 0], ["test1", "test2", "---------------\n\n\n----------------------- VLRebuild: 10 VLSkin: 0.2 ------------------------\n\n\n----------------------- VLRebuild: 10 VLSkin: 0.2 ------------------------\n\n\n----------------------- VLRebuild: 10 VLSkin: 0.2 ------------------------\n\n\n----------------------- VLRebuild: 20 VLSkin: 0.3 ------------------------\n\n\n----------------------- VLRebuild: 20 VLSkin: 0.3 ------------------------\n\n\n----------------------- VLRebuild: 20 VLSkin: 0.3 ------------------------\n\n'"]
+            # codes, headers, messages = [0, 0, 0], ["test1", "test2", "test3"], ["test1", "test2", "test3"]
 
             os.chdir(cwd)
             print("CODES", codes, messages)
@@ -155,8 +157,3 @@ class CheckFlow:
             print(f"TestSHA {sha} failed with code -1")
         else:
             print(f"TestSHA {sha} passed")
-
-
-if __name__ == '__main__':
-    run = CheckFlow()
-    run._createCheck()

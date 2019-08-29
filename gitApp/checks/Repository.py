@@ -1,6 +1,7 @@
 from git import Repo
 from checks.Commit import Commit
 
+
 class Repository:
 
     def __init__(self, gitPath, branch="master"):
@@ -41,7 +42,6 @@ class Repository:
         # reset to previous state
         self.repo.head.reset(self.initialHead, index=True, working_tree=True)
         return c.codes, c.headers, c.statusMessages
-
 
     def testLast(self, last):
 

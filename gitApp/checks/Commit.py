@@ -1,3 +1,6 @@
+from model.Config import Config
+from hook.helper import convertOutput
+
 from git import Repo
 import os
 import shutil
@@ -8,14 +11,12 @@ from datetime import datetime
 import re
 from cpuinfo import get_cpu_info
 import matplotlib
+from matplotlib import pyplot as plt
 
 # Switch for GUI
 matplotlib.use("Agg")
-#matplotlib.use("TkAgg")
-from matplotlib import pyplot as plt
+# matplotlib.use("TkAgg")
 
-from model.Config import Config
-from hook.helper import convertOutput
 
 class Commit:
 
@@ -29,6 +30,7 @@ class Commit:
         self.message = repo.head.commit.message
         self.sha = sha
         self.repo = repo
+        self.configs = []
         print("New commit:", self.sha, self.message, "\n")
         self.baseDir = repo.git_dir.strip(".git")
         self.buildDir = os.path.join(self.baseDir, self.buildDir)
@@ -50,7 +52,7 @@ class Commit:
 
         # remove old buildDir if present
         # TODO: RESET FOR PRODUCTION
-        #shutil.rmtree(self.buildDir, ignore_errors=True)
+        # shutil.rmtree(self.buildDir, ignore_errors=True)
         try:
             os.mkdir(self.buildDir)
         except FileExistsError:
@@ -67,8 +69,7 @@ class Commit:
             # change back to top level directory
             os.chdir(self.baseDir)
             return False
-            #exit(returncode)
-        #print(cmake_output.stdout, cmake_output.stderr)
+
         self.updateStatus(1, "CMAKE", f"CMAKE succeeded:\n{convertOutput(cmake_output.stdout)[-800:]}")
 
         # run make
@@ -76,7 +77,7 @@ class Commit:
 
         THREADS = os.environ["OMP_NUM_THREADS"]
         # TODO: SET -B for PRODUCTION, but should be clean anyway because of reset build folder
-        #make_output = run(["make", "md-flexible", "-B", "-j", THREADS], stdout=PIPE, stderr=PIPE)
+        # make_output = run(["make", "md-flexible", "-B", "-j", THREADS], stdout=PIPE, stderr=PIPE)
         make_output = run(["make", "md-flexible", "-j", THREADS], stdout=PIPE, stderr=PIPE)
         make_returncode = make_output.returncode
         if make_returncode != 0:
@@ -85,8 +86,7 @@ class Commit:
             # change back to top level directory
             os.chdir(self.baseDir)
             return False
-            #exit(make_returncode)
-        #print(make_output.stdout, make_output.stderr)
+
         self.updateStatus(1, "MAKE", f"MAKE succeeded:\n{convertOutput(make_output.stdout)[-800:]}")
 
         # change back to top level directory
@@ -108,25 +108,30 @@ class Commit:
         measure_output = run(["./measurePerf_short.sh", "md-flexible"], stdout=PIPE, stderr=PIPE)
         if measure_output.returncode != 0:
             print("MEASUREPERF failed with return code", measure_output.returncode)
-            #print(measure_output.stdout, measure_output.stderr)
-            self.updateStatus(-1, "PERFORMANCE MEASUREMENT", f"MEASUREPERF failed:\nSTDOUT: .... {convertOutput(measure_output.stdout)[-500:]}\nSTDERR:{convertOutput(measure_output.stderr)}")
+            self.updateStatus(-1,
+                              "PERFORMANCE MEASUREMENT",
+                              f"MEASUREPERF failed:\nSTDOUT: .... "
+                              f"{convertOutput(measure_output.stdout)[-500:]}\n"
+                              f"STDERR:{convertOutput(measure_output.stderr)}")
             # change back to top level directory
             os.chdir(self.baseDir)
             return False
-            #exit(measure_output.returncode)
 
         # change to top
         os.chdir(self.baseDir)
-        self.updateStatus(1, "PERFORMANCE MEASUREMENT", f"MEASUREPERF succeeded: \n...\n{convertOutput(measure_output.stdout)[-500:]}")
+        self.updateStatus(1, "PERFORMANCE MEASUREMENT", f"MEASUREPERF succeeded: \n...\n"
+                                                        f"{convertOutput(measure_output.stdout)[-500:]}")
         return True
 
-    def commaSplit(self, val):
+    @staticmethod
+    def commaSplit(val):
         return val.split(",")[0]
 
-    def newlineStrip(self, val):
+    @staticmethod
+    def newlineStrip(val):
         return val.rstrip(" \n")
 
-    def colonSep(self, c:Config, line):
+    def colonSep(self, c: Config, line):
         sep = line.split(":")
         e = [x for x in sep]
         key = e[0]
@@ -179,22 +184,23 @@ class Commit:
             print(e)
             self.updateStatus(0, "PARSING", f"UNPROCESSED COLON SEP PAIR at Parsing step: {e}")
             return True
-            #exit(-1)
         return True
 
-    def spaceSep(self, c:Config, line):
+    @staticmethod
+    def spaceSep(c: Config, line):
         sep = line.lstrip(" ").rstrip("\n").split(" ")
         if "Particles" in line or len(line) < 2:
             pass
         else:
-            m = {}
-            #print([s for s in sep])
+            m = {
+                "N": int(sep[0]),
+                "GFLOPs": float(sep[1]),
+                "MFUPs": float(sep[2]),
+                "Micros": float(sep[3]),
+                "ItMicros": float(sep[4])
+            }
+            # print([s for s in sep])
             # NumParticles || GFLOPs/s || MFUPs/s || Time[micros] || SingleIteration[micros]
-            m["N"] = int(sep[0])
-            m["GFLOPs"] = float(sep[1])
-            m["MFUPs"] = float(sep[2])
-            m["Micros"] = float(sep[3])
-            m["ItMicros"] = float(sep[4])
             c.measurements.append(m)
         return True
 
@@ -203,8 +209,6 @@ class Commit:
         print(self.mdFlexDir)
 
         measurements = glob(os.path.join(self.mdFlexDir, "measurePerf*/"))
-
-        self.configs = []
 
         # all measurement folders (should only be 1 usually)
         for i, folder in enumerate(measurements):
@@ -219,14 +223,14 @@ class Commit:
             # collect all configs
             configPaths = glob(os.path.join(measurements[i], "*.csv"))
             configNames = [os.path.basename(x) for x in configPaths]
-            #print(configPaths)
-            #print(configNames)
+            # print(configPaths)
+            # print(configNames)
             cpu = get_cpu_info()["brand"]
 
-            for i, conf in enumerate(configPaths):
+            for j, conf in enumerate(configPaths):
 
                 c = Config()
-                c.name = configNames[i]
+                c.name = configNames[j]
                 c.date = datetime.utcfromtimestamp(int(time.mktime(timestamp)))
                 c.commitSHA = self.sha
                 c.commitMessage = self.repo.commit(self.sha).message
@@ -243,7 +247,7 @@ class Commit:
                 #     print("Exact Configuration for system and commit + date already saved!")
                 #     continue
 
-                with open(configPaths[i]) as f:
+                with open(configPaths[j]) as f:
                     for r in f:
                         r = re.sub("\s\s+", " ", r)
                         if ":" in r:

@@ -1,5 +1,3 @@
-from django.shortcuts import render
-from django.views.generic.base import View
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from hook.helper import pretty_request

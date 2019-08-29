@@ -14,11 +14,12 @@ def pretty_request(request):
         return
 
     for k, v in request.headers.items():
-        print(k,v)
+        print(k, v)
 
     try:
         body = request.body.decode("utf-8")
-    except:
+    except Exception as e:
+        vprint(e)
         body = request.text
         print(request.url)
     jsonBody = json.loads(body)
@@ -28,16 +29,12 @@ def pretty_request(request):
 def initialStatus():
     params = {
         "status": "in_progress",
-        # "conclusion": "success",
         "output": {
             "title": "Test X",
             "summary": "Nothing happened yet",
             "text": "Look, more details for this commit\n",
             "images": [
-                {
-                    "alt": "test image",
-                    "image_url": "https://image.shutterstock.com/image-vector/example-sign-paper-origami-speech-260nw-1164503347.jpg"
-                }
+                {}
             ]
         }
     }
@@ -70,7 +67,7 @@ def codeStatus(codes, header, messages):
         conclusion = "success"
 
     params = {
-        #"status": "in_progress",
+        # "status": "in_progress",
         "conclusion": conclusion,
         "output": {
             "title": "Test X",
@@ -79,12 +76,15 @@ def codeStatus(codes, header, messages):
             "images": [
                 {
                     "alt": "test image",
-                    "image_url": "https://image.shutterstock.com/image-vector/example-sign-paper-origami-speech-260nw-1164503347.jpg"
+                    "image_url": "https://bit.ly/2ZlkScy"
                 }
             ]
         }
     }
     return params
 
+
 def convertOutput(out):
-    return str(out, "utf-8")
+    s = str(out, "utf-8")
+    vprint(s)
+    return s
