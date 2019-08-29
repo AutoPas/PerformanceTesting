@@ -90,23 +90,23 @@ class CheckFlow:
         pretty_request(r)
         print("COMMIT LIST:")
         cis = r.json()
-        shas = []
+        SHAs = [self.baseSHA]
+        testSHAs = []
         # Adding Base SHA of Pull Request to list
-        shas.append(self.baseSHA)
         for c in cis:
-            shas.append(c["sha"])
-        for sha in shas:
+            SHAs.append(c["sha"])
+        for sha in SHAs:
             # CHECKING IF ALREADY TESTED and order by newest
             shaConfigs = Config.objects(commitSHA=sha).order_by('-id')
             if shaConfigs.count() == 0:
                 print("NEW COMMIT", sha)
                 self._createCheck(sha)
+                testSHAs.append(sha)
             else:
                 print("Available Tests for SHA", shaConfigs.count())
                 print("COMMIT ALREADY TESTED", sha)
-                shas.remove(sha)
                 continue
-        for sha in shas:
+        for sha in testSHAs:
             print("TESTING COMMIT", sha)
             self._runCheck(sha)
 

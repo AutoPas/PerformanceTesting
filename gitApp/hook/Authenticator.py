@@ -69,7 +69,7 @@ class Authenticator:
         Creates new JWT for authentication based on private key and GIT APP ID
         """
         cert_bytes = open(f"{self.pem}", "r").read().encode()
-        vprint("CERT" + str(cert_bytes))
+        vprint("CERT\n" + str(cert_bytes, "utf-8")[:1000] + "...")
         private_key = default_backend().load_pem_private_key(cert_bytes, None)
         now = int(time.time())
         new_expiry = now + (9 * 60)
@@ -82,7 +82,7 @@ class Authenticator:
             "iss": self.app_id
         }
         jwt_key = jwt.encode(payload, private_key, algorithm="RS256")
-        vprint(f"JWT ENCODED {jwt_key}")
+        vprint(f"JWT ENCODED {str(jwt_key, 'utf-8')[:1000]} ...")
         vprint(jwt.decode(jwt_key, private_key, verify=False, algorithms=["RS256"]))
         self.jwt_token = jwt_key
         self.jwt_expiry = new_expiry
