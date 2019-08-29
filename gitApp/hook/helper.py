@@ -67,7 +67,7 @@ def codeStatus(codes, header, messages):
         # "status": "in_progress",
         "conclusion": conclusion,
         "output": {
-            "title": "Test X",
+            "title": "Results",
             "summary": "It's over",
             "text": f"# Summary\n{text}",
             "images": [

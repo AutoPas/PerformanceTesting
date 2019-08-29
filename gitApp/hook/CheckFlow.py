@@ -18,7 +18,6 @@ Codes:
 
 
 class CheckFlow:
-
     GIT_APP_ID = 39178
     # TODO: Remove if not needed for debugging anymore
     INSTALL_ID = 1600235
@@ -37,7 +36,8 @@ class CheckFlow:
         self.baseSHA = ""
         self.base = ""
 
-        self.SHAUrls = {}
+        self.RunUrls = {}
+        self.CompareUrls = {}
 
         # Initiate DB connection with settings from file
         dbPath = CheckFlow.DB
@@ -91,7 +91,6 @@ class CheckFlow:
         print("COMMIT LIST:")
         cis = r.json()
         SHAs = [self.baseSHA]
-        testSHAs = []
         # Adding Base SHA of Pull Request to list
         for c in cis:
             SHAs.append(c["sha"])
@@ -100,21 +99,24 @@ class CheckFlow:
             shaConfigs = Config.objects(commitSHA=sha).order_by('-id')
             if shaConfigs.count() == 0:
                 print("NEW COMMIT", sha)
-                self._createCheck(sha)
-                testSHAs.append(sha)
+                self.RunUrls[sha] = self._createCheckRun(sha, "Performance Run")
+                if sha is not self.baseSHA:
+                    self.CompareUrls[sha] = self._createCheckRun(sha, "Performance Comparison")
             else:
                 print("Available Tests for SHA", shaConfigs.count())
                 print("COMMIT ALREADY TESTED", sha)
                 continue
-        for sha in testSHAs:
+        for sha in self.RunUrls.keys():
             print("TESTING COMMIT", sha)
             self._runCheck(sha)
+            if sha in self.CompareUrls.keys():
+                self._comparePerformance(sha)
 
-    def _createCheck(self, sha):
+    def _createCheckRun(self, sha, name):
 
         # Run API request with install token as auth
         params = {
-            "name": "Auto Check",
+            "name": name,
             "head_sha": sha,
         }
         CHECK_RUN_URL = f"{self.baseUrl}/check-runs"
@@ -122,10 +124,8 @@ class CheckFlow:
         pretty_request(r)
         response = r.json()
         check_run_id_url = response["url"]
-
         print(check_run_id_url)
-
-        self.SHAUrls[sha] = check_run_id_url
+        return check_run_id_url
 
     def _runCheck(self, sha):
 
@@ -133,24 +133,21 @@ class CheckFlow:
         print(f"RUNNING CHECKS ON {sha}")
 
         # Update Status to in Progress
-        r = requests.patch(url=self.SHAUrls[sha], headers=self.auth.getTokenHeader(), json=initialStatus())
+        r = requests.patch(url=self.RunUrls[sha], headers=self.auth.getTokenHeader(), json=initialStatus())
         pretty_request(r)
 
         try:
-            # TODO: Where does the directory change mistake happen?
             cwd = os.getcwd()
             os.environ["OMP_NUM_THREADS"] = str(CheckFlow.THREADS)
             # TODO: _IMPORTANT: Think about replicating that work flow here and actually make
             #  build / measure / upload their own check runs in the suite or via updateStatus
             codes, headers, messages = self.repo.testSHA(sha)
             # TODO: CHANGE BACK TO FULL SHA TEST
-            # ONLY FOR DEBUGGING
-            # codes, headers, messages = [0, 0, 0], ["test1", "test2", "test3"], ["test1", "test2", "test3"]
 
             os.chdir(cwd)
             print("CODES", codes, messages)
             r = requests.patch(
-                url=self.SHAUrls[sha],
+                url=self.RunUrls[sha],
                 headers=self.auth.getTokenHeader(),
                 json=codeStatus(codes, headers, messages))
             pretty_request(r)
@@ -158,13 +155,56 @@ class CheckFlow:
             print(e)
             print(f"TestSHA {sha} failed with exit")
             r = requests.patch(
-                url=self.SHAUrls[sha],
+                url=self.RunUrls[sha],
                 headers=self.auth.getTokenHeader(),
                 json=codeStatus([-1], "GENERAL", ["exit() statement called"]))
             pretty_request(r)
             return False
 
-        if -1 in codes:
-            print(f"TestSHA {sha} failed with code -1")
-        else:
-            print(f"TestSHA {sha} passed")
+    def _comparePerformance(self, sha):
+
+        assert (sha is not self.baseSHA)
+
+        print(f"Comparing Performance for {sha}")
+        # Update Status to in Progress
+        r = requests.patch(url=self.CompareUrls[sha], headers=self.auth.getTokenHeader(), json=initialStatus())
+        pretty_request(r)
+
+        baseConfigs = Config.objects(commitSHA=self.baseSHA).order_by('-id')
+        shaConfigs = Config.objects(commitSHA=sha).order_by('-id')
+
+        # Type Hint for QuerySet
+        cr: Config
+        for cr in shaConfigs:
+            # Compare results from sha config (cr) and base config (bcr)
+            # TODO: rerun tests if exact match is not available ( include system)
+            bcr = baseConfigs.filter(
+                # CONFIG FIELDS
+                container=cr.container,
+                # Verlet
+                rebuildFreq=cr.rebuildFreq,
+                skinRadius=cr.skinRadius,
+                # General
+                layout=cr.layout,
+                functor=cr.functor,
+                newton=cr.newton,
+                cutoff=cr.cutoff,
+                cellSizeFactor=cr.cellSizeFactor,
+                generator=cr.generator,
+                boxLength=cr.boxLength,
+                particles=cr.particles,
+                traversal=cr.traversal,
+                iterations=cr.iterations,
+                tuningStrategy=cr.tuningStrategy,
+                tuningInterval=cr.tuningInterval,
+                tuningSamples=cr.tuningSamples,
+                tuningMaxEvidence=cr.tuningMaxEvidence,
+                epsilon=cr.epsilon,
+                sigma=cr.sigma
+            )
+            try:
+                bcr.first()
+                print(bcr)
+            except Exception as e:
+                print(e)
+                print("Couldn't find matching config")
