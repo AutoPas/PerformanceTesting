@@ -7,6 +7,7 @@ import os
 from hook.helper import pretty_request, initialStatus, codeStatus
 from hook.Authenticator import Authenticator
 from checks.Repository import Repository
+from model.Config import Config
 
 """
 Codes:
@@ -90,11 +91,21 @@ class CheckFlow:
         print("COMMIT LIST:")
         cis = r.json()
         shas = []
+        # Adding Base SHA of Pull Request to list
+        shas.append(self.baseSHA)
         for c in cis:
             shas.append(c["sha"])
         for sha in shas:
-            print("NEW COMMIT", sha)
-            self._createCheck(sha)
+            # CHECKING IF ALREADY TESTED and order by newest
+            shaConfigs = Config.objects(commitSHA=sha).order_by('-id')
+            if shaConfigs.count() == 0:
+                print("NEW COMMIT", sha)
+                self._createCheck(sha)
+            else:
+                print("Available Tests for SHA", shaConfigs.count())
+                print("COMMIT ALREADY TESTED", sha)
+                shas.remove(sha)
+                continue
         for sha in shas:
             print("TESTING COMMIT", sha)
             self._runCheck(sha)
