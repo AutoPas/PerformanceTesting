@@ -40,7 +40,7 @@ class Repository:
 
         # reset to previous state
         self.repo.head.reset(self.initialHead, index=True, working_tree=True)
-        return c.codes, c.statusMessages
+        return c.codes, c.headers, c.statusMessages
 
 
     def testLast(self, last):

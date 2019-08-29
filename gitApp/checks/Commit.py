@@ -15,6 +15,7 @@ matplotlib.use("Agg")
 from matplotlib import pyplot as plt
 
 from model.Config import Config
+from hook.helper import convertOutput
 
 class Commit:
 
@@ -33,12 +34,14 @@ class Commit:
         self.buildDir = os.path.join(self.baseDir, self.buildDir)
         self.mdFlexDir = os.path.join(self.buildDir, "examples/md-flexible")
         print(self.baseDir)
-        # Status codes and messages
+        # Status codes, headers and messages
         self.codes = []
+        self.headers = []
         self.statusMessages = []
 
-    def updateStatus(self, code, message):
+    def updateStatus(self, code, header, message):
         self.codes.append(code)
+        self.headers.append(header)
         self.statusMessages.append(message)
 
     def build(self):
@@ -60,13 +63,14 @@ class Commit:
         returncode = cmake_output.returncode
         if returncode != 0:
             print("CMAKE failed with return code", returncode)
-            self.updateStatus(-1, f"CMAKE failed:\n{cmake_output.stderr}")
+            self.updateStatus(-1, "CMAKE", f"CMAKE failed:\n{convertOutput(cmake_output.stderr)}")
             # change back to top level directory
             os.chdir(self.baseDir)
             return False
             #exit(returncode)
         #print(cmake_output.stdout, cmake_output.stderr)
-        self.updateStatus(1, f"CMAKE succeeded:\n{cmake_output.stdout}")
+        self.updateStatus(1, "CMAKE", f"CMAKE succeeded:\n{convertOutput(cmake_output.stdout)[-800:]}")
+
         # run make
         print("Running MAKE")
 
@@ -77,16 +81,17 @@ class Commit:
         make_returncode = make_output.returncode
         if make_returncode != 0:
             print("MAKE failed with return code", make_returncode)
-            self.updateStatus(-1, f"MAKE failed:\n{make_output.stderr}")
+            self.updateStatus(-1, "MAKE", f"MAKE failed:\n{convertOutput(make_output.stderr)}")
             # change back to top level directory
             os.chdir(self.baseDir)
             return False
             #exit(make_returncode)
         #print(make_output.stdout, make_output.stderr)
+        self.updateStatus(1, "MAKE", f"MAKE succeeded:\n{convertOutput(make_output.stdout)[-800:]}")
 
         # change back to top level directory
         os.chdir(self.baseDir)
-        self.updateStatus(1, f"CMAKE+MAKE passed")
+        self.updateStatus(1, "BUILD", f"CMAKE+MAKE passed")
         return True
 
     def measure(self):
@@ -104,7 +109,7 @@ class Commit:
         if measure_output.returncode != 0:
             print("MEASUREPERF failed with return code", measure_output.returncode)
             #print(measure_output.stdout, measure_output.stderr)
-            self.updateStatus(-1, f"MEASUREPERF failed:\nSTDOUT: .... {measure_output.stdout.decode('utf-8')[-1000:]}\nSTDERR:{measure_output.stderr.decode('utf-8')}")
+            self.updateStatus(-1, "PERFORMANCE MEASUREMENT", f"MEASUREPERF failed:\nSTDOUT: .... {convertOutput(measure_output.stdout)[-500:]}\nSTDERR:{convertOutput(measure_output.stderr)}")
             # change back to top level directory
             os.chdir(self.baseDir)
             return False
@@ -112,7 +117,7 @@ class Commit:
 
         # change to top
         os.chdir(self.baseDir)
-        self.updateStatus(1, f"MEASUREPERF succeeded: {measure_output.stdout}")
+        self.updateStatus(1, "PERFORMANCE MEASUREMENT", f"MEASUREPERF succeeded: \n...\n{convertOutput(measure_output.stdout)[-500:]}")
         return True
 
     def commaSplit(self, val):
@@ -172,7 +177,7 @@ class Commit:
         else:
             print("UNPROCESSED COLON SEP PAIR")
             print(e)
-            self.updateStatus(0, f"UNPROCESSED COLON SEP PAIR at Parsing step: {e}")
+            self.updateStatus(0, "PARSING", f"UNPROCESSED COLON SEP PAIR at Parsing step: {e}")
             return True
             #exit(-1)
         return True
@@ -248,12 +253,17 @@ class Commit:
                             if not self.spaceSep(c, r):
                                 return False
 
-                c.save()
+                try:
+                    c.save()
+                except Exception as e:
+                    self.updateStatus(-1, "UPLOAD", str(e))
+                    return False
+
                 print(c)
                 self.configs.append(c)
 
         os.chdir(self.baseDir)
-        self.updateStatus(1, "RESULT UPLOAD succeeded\n")
+        self.updateStatus(1, "UPLOAD", "RESULT UPLOAD succeeded\n")
         return True
 
     def generatePlot(self):
@@ -261,29 +271,33 @@ class Commit:
         configs = self.configs
         containers = ["DirectSum", "LinkedCells", "VerletListsCells", "VerletClusterLists", "VerletLists"]
         figs = {}
-        # Create figs
-        for cont in containers:
-            figs[cont] = plt.figure(cont, figsize=(16, 9))
-            plt.xlabel("Particles")
-            plt.ylabel("MFUP/s")
+        try:
+            # Create figs
+            for cont in containers:
+                figs[cont] = plt.figure(cont, figsize=(16, 9))
+                plt.xlabel("Particles")
+                plt.ylabel("MFUP/s")
 
-        for c in configs:
-            data = c.measurements
-            N = [d["N"] for d in data]
-            MFUPs = [d["MFUPs"] for d in data]
+            for c in configs:
+                data = c.measurements
+                N = [d["N"] for d in data]
+                MFUPs = [d["MFUPs"] for d in data]
 
-            plt.figure(c.container)
-            name = c.name.lstrip("runtimes_").rstrip(".csv")
-            plt.semilogx(N, MFUPs, label=name)
-            plt.xticks(N, N)
-            plt.legend()
+                plt.figure(c.container)
+                name = c.name.lstrip("runtimes_").rstrip(".csv")
+                plt.semilogx(N, MFUPs, label=name)
+                plt.xticks(N, N)
+                plt.legend()
 
-        os.chdir(self.mdFlexDir)
+            os.chdir(self.mdFlexDir)
 
-        for cont in containers:
-            plt.figure(cont)
-            plt.savefig(cont + ".png")
+            for cont in containers:
+                plt.figure(cont)
+                plt.savefig(cont + ".png")
+        except Exception as e:
+            self.updateStatus(-1, "PLOTTING", str(e))
+            return False
 
         os.chdir(self.baseDir)
-        self.updateStatus(1, "PLOTTING succeeded\n")
+        self.updateStatus(1, "PLOTTING", "PLOTTING succeeded\n")
         return True

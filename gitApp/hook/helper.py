@@ -44,22 +44,23 @@ def initialStatus():
     return params
 
 
-def codeStatus(codes, messages):
+def codeStatus(codes, header, messages):
 
     text = ""
 
     # TODO: Save Full messages in database and serve on web page
 
     for i, code in enumerate(codes):
+        text += f"\n## {header[i]}\n"
         if code == -1:
             text += "\n```diff\n- FAILURE:\n```\n"
-            text += messages[i][-5000:]
+            text += "...\n" + messages[i][-5000:]
         elif code == 0:
             text += "\n```diff\nNEUTRAL:\n```\n"
-            text += messages[i][-500:]
+            text += "...\n" + messages[i][-500:]
         else:
             text += "\n```diff\n+ SUCCESS:\n```\n"
-            text += messages[i][-500:]
+            text += "...\n" + messages[i][-500:]
 
     if -1 in codes:
         conclusion = "failure"
@@ -74,7 +75,7 @@ def codeStatus(codes, messages):
         "output": {
             "title": "Test X",
             "summary": "It's over",
-            "text": f"Summary\n{text}",
+            "text": f"# Summary\n{text}",
             "images": [
                 {
                     "alt": "test image",
@@ -84,3 +85,6 @@ def codeStatus(codes, messages):
         }
     }
     return params
+
+def convertOutput(out):
+    return str(out, "utf-8")

@@ -129,7 +129,7 @@ class CheckFlow:
             cwd = os.getcwd()
             os.environ["OMP_NUM_THREADS"] = str(CheckFlow.THREADS)
             # TODO: _IMPORTANT: Think about replicating that work flow here and actually make build / measure / upload their own check runs in the suite
-            codes, messages = self.repo.testSHA(sha)
+            codes, headers, messages = self.repo.testSHA(sha)
             # TODO: CHANGE BACK TO FULL SHA TEST
             # ONLY FOR DEBUGGING
             #codes, messages = [0, 0, 0], ["test1", "test2", "---------------\n\n\n----------------------- VLRebuild: 10 VLSkin: 0.2 ------------------------\n\n\n----------------------- VLRebuild: 10 VLSkin: 0.2 ------------------------\n\n\n----------------------- VLRebuild: 10 VLSkin: 0.2 ------------------------\n\n\n----------------------- VLRebuild: 20 VLSkin: 0.3 ------------------------\n\n\n----------------------- VLRebuild: 20 VLSkin: 0.3 ------------------------\n\n\n----------------------- VLRebuild: 20 VLSkin: 0.3 ------------------------\n\n'"]
@@ -139,7 +139,7 @@ class CheckFlow:
             r = requests.patch(
                 url=self.SHAUrls[sha],
                 headers=self.auth.getTokenHeader(),
-                json=codeStatus(codes, messages))
+                json=codeStatus(codes, headers, messages))
             pretty_request(r)
         except Exception as e:
             print(e)
@@ -147,7 +147,7 @@ class CheckFlow:
             r = requests.patch(
                 url=self.SHAUrls[sha],
                 headers=self.auth.getTokenHeader(),
-                json=codeStatus([-1], ["exit() statement called"]))
+                json=codeStatus([-1], "GENERAL", ["exit() statement called"]))
             pretty_request(r)
             return False
 
