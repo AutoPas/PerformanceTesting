@@ -3,8 +3,9 @@ import requests
 import mongoengine as me
 import imp
 import os
+import numpy as np
 
-from hook.helper import pretty_request, initialStatus, codeStatus
+from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus
 from hook.Authenticator import Authenticator
 from checks.Repository import Repository
 from model.Config import Config
@@ -175,36 +176,107 @@ class CheckFlow:
 
         # Type Hint for QuerySet
         cr: Config
+        bcr: Config
+        codes = []
+        header = []
+        messages = []
+        images = []
         for cr in shaConfigs:
             # Compare results from sha config (cr) and base config (bcr)
             # TODO: rerun tests if exact match is not available ( include system)
-            bcr = baseConfigs.filter(
-                # CONFIG FIELDS
-                container=cr.container,
-                # Verlet
-                rebuildFreq=cr.rebuildFreq,
-                skinRadius=cr.skinRadius,
-                # General
-                layout=cr.layout,
-                functor=cr.functor,
-                newton=cr.newton,
-                cutoff=cr.cutoff,
-                cellSizeFactor=cr.cellSizeFactor,
-                generator=cr.generator,
-                boxLength=cr.boxLength,
-                particles=cr.particles,
-                traversal=cr.traversal,
-                iterations=cr.iterations,
-                tuningStrategy=cr.tuningStrategy,
-                tuningInterval=cr.tuningInterval,
-                tuningSamples=cr.tuningSamples,
-                tuningMaxEvidence=cr.tuningMaxEvidence,
-                epsilon=cr.epsilon,
-                sigma=cr.sigma
-            )
-            try:
-                bcr.first()
-                print(bcr)
-            except Exception as e:
-                print(e)
-                print("Couldn't find matching config")
+            bcr = self._getRecentRun(cr, baseConfigs)
+            if bcr is None:
+                r = requests.patch(
+                    url=self.CompareUrls[sha],
+                    headers=self.auth.getTokenHeader(),
+                    json=codeStatus([-1], "MATCH CONFIGS",
+                                    f"Couldn't find matching base run config in database for {str(cr)}"))
+                pretty_request(r)
+            else:
+                code, d = self._compareConfig(bcr, cr)
+                codes.append(code)
+                header.append(str(cr))
+                messages.append(f"Smin: {d[0]}, Smax: {d[1]}, Savg: {d[2]}")
+
+        print("COMPARISON RESULTS:", codes, header, messages)
+        r = requests.patch(
+            url=self.CompareUrls[sha],
+            headers=self.auth.getTokenHeader(),
+            json=speedupStatus(codes, header, messages, []))
+        pretty_request(r)
+
+    def _getRecentRun(self, cr, baseConfigs):
+        # TODO: include system
+        bcr = baseConfigs.filter(
+            # CONFIG FIELDS
+            container=cr.container,
+            # Verlet
+            rebuildFreq=cr.rebuildFreq,
+            skinRadius=cr.skinRadius,
+            # General
+            layout=cr.layout,
+            functor=cr.functor,
+            newton=cr.newton,
+            cutoff=cr.cutoff,
+            cellSizeFactor=cr.cellSizeFactor,
+            generator=cr.generator,
+            boxLength=cr.boxLength,
+            particles=cr.particles,
+            traversal=cr.traversal,
+            iterations=cr.iterations,
+            tuningStrategy=cr.tuningStrategy,
+            tuningInterval=cr.tuningInterval,
+            tuningSamples=cr.tuningSamples,
+            tuningMaxEvidence=cr.tuningMaxEvidence,
+            epsilon=cr.epsilon,
+            sigma=cr.sigma
+        )
+        try:
+            recent = bcr.first()
+            print(recent)
+            return recent
+        except Exception as e:
+            print(e)
+            print("Couldn't find matching config")
+            return None
+
+    def _compareConfig(self, bcr, cr):
+        baseMeasurements = bcr.measurements
+        commitMeasurements = cr.measurements
+
+        assert(len(baseMeasurements) == len(commitMeasurements))
+
+        configCodes = []
+        speedUps = []
+
+        for bm, cm in zip(baseMeasurements, commitMeasurements):
+            code, speedup = self._calcSpeedup(bm, cm)
+            configCodes.append(code)
+            speedUps.append(speedup)
+
+        sMin = np.min(speedUps)
+        sMax = np.max(speedUps)
+        sAvg = np.average(speedUps)
+
+        if -1 in configCodes:
+            return -1, [sMin, sMax, sAvg]
+        elif 0 in configCodes:
+            return 0, [sMin, sMax, sAvg]
+        else:
+            return 1, [sMin, sMax, sAvg]
+
+    def _calcSpeedup(self, bm, cm):
+        bmit = bm["ItMicros"]
+        cmit = cm["ItMicros"]
+        speedup = cmit / bmit
+        print("Iteration Times:", bmit, cmit)
+        T_FAIL = 1.05
+        T_NEUTRAL = 0.95
+        if speedup > T_FAIL:
+            code = -1
+        elif speedup > T_NEUTRAL:
+            code = 0
+        else:
+            code = 1
+
+        return code, speedup
