@@ -30,12 +30,9 @@ def initialStatus():
     params = {
         "status": "in_progress",
         "output": {
-            "title": "Test X",
-            "summary": "Nothing happened yet",
-            "text": "Look, more details for this commit\n",
-            "images": [
-                {}
-            ]
+            "title": "Test Suite",
+            "summary": "Working on it",
+            "text": "Waiting for results ...\n",
         }
     }
     return params
