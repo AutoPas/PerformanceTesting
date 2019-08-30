@@ -1,6 +1,7 @@
 import json
 import requests
 import mongoengine as me
+from pymongo import errors
 import imp
 import os
 import numpy as np
@@ -158,7 +159,7 @@ class CheckFlow:
             r = requests.patch(
                 url=self.RunUrls[sha],
                 headers=self.auth.getTokenHeader(),
-                json=codeStatus([-1], "GENERAL", ["exit() statement called"]))
+                json=codeStatus([-1], ["GENERAL"], ["exit() statement called"]))
             pretty_request(r)
             return False
 
@@ -171,8 +172,18 @@ class CheckFlow:
         r = requests.patch(url=self.CompareUrls[sha], headers=self.auth.getTokenHeader(), json=initialStatus())
         pretty_request(r)
 
-        baseConfigs = Config.objects(commitSHA=self.baseSHA).order_by('-id')
-        shaConfigs = Config.objects(commitSHA=sha).order_by('-id')
+        try:
+            baseConfigs = Config.objects(commitSHA=self.baseSHA).order_by('-id')
+            shaConfigs = Config.objects(commitSHA=sha).order_by('-id')
+        except errors.ServerSelectionTimeoutError as e:
+            print(e)
+            r = requests.patch(
+                url=self.CompareUrls[sha],
+                headers=self.auth.getTokenHeader(),
+                json=codeStatus([-1], ["QUERY DATABASE"],
+                                [f"Couldn't query database. TimedOut {e}"]))
+            pretty_request(r)
+            return False
 
         # Type Hint for QuerySet
         cr: Config
@@ -189,8 +200,8 @@ class CheckFlow:
                 r = requests.patch(
                     url=self.CompareUrls[sha],
                     headers=self.auth.getTokenHeader(),
-                    json=codeStatus([-1], "MATCH CONFIGS",
-                                    f"Couldn't find matching base run config in database for {str(cr)}"))
+                    json=codeStatus([-1], ["MATCH CONFIGS"],
+                                    [f"Couldn't find matching base run config in database for {str(cr)}"]))
                 pretty_request(r)
             else:
                 code, d = self._compareConfig(bcr, cr)
