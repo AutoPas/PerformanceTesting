@@ -24,8 +24,12 @@ def receiveHook(request):
 
     pretty_request(request)
 
-    event_type = request.headers["X-Github-Event"]
-    print(f"HOOK CALLED: {event_type}")
+    try:
+        event_type = request.headers["X-Github-Event"]
+        print(f"HOOK CALLED: {event_type}")
+    except Exception as e:
+        print(e)
+        return HttpResponse("Not a X-Github-Event type request.")
 
     #TODO: HANDLE RE-REQUEST EVENTS for single runs and entire suits
 

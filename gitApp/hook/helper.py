@@ -22,8 +22,11 @@ def pretty_request(request):
         vprint(e)
         body = request.text
         print(request.url)
-    jsonBody = json.loads(body)
-    print(json.dumps(jsonBody, indent=4, sort_keys=True))
+    try:
+        jsonBody = json.loads(body)
+        print(json.dumps(jsonBody, indent=4, sort_keys=True))
+    except:
+        print(request)
 
 
 def initialStatus():
