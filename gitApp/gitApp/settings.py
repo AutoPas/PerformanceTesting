@@ -31,7 +31,8 @@ ALLOWED_HOSTS = ["smee.io",
                  "127.0.0.1",
                  "git",
                  ".moritzkruegener.com",
-                 ".ngrok.io"]
+                 ".ngrok.io",
+                 ".in.tum.de"]
 
 
 # Application definition

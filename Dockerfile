@@ -27,8 +27,8 @@ EXPOSE 3000/udp
 
 # TODO: Run Performance Testing server, instead of via remote interpreter
 # TODO: RUN PULL AND UPDATE BEFORE STARTING SERVER VIA CMD
-# RUN/CMD python3 manage.py runserver 0.0.0.0:3000
+CMD python3 manage.py runserver 0.0.0.0:3000
 
 # TODO: optionally add Healthchecks
 
-CMD [ "/bin/bash" ]
+#CMD [ "/bin/bash" ]
