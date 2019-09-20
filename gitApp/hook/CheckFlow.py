@@ -20,7 +20,8 @@ Codes:
 
 
 class CheckFlow:
-    GIT_APP_ID = 39178
+    #GIT_APP_ID = 39178
+    GIT_APP_ID = os.environ["GITHUBAPPID"]
     # TODO: Remove if not needed for debugging anymore
     INSTALL_ID = 1600235
     # TODO: Add to config file
