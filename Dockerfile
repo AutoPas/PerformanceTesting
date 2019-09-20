@@ -22,14 +22,14 @@ RUN mv *.pem PerformanceTesting/gitApp/
 RUN mv database.config PerformanceTesting/gitApp/
 
 # Expose Ports of django server
-EXPOSE 3000/tcp
-EXPOSE 3000/udp
+EXPOSE 8080/tcp
+EXPOSE 8080/udp
 
 WORKDIR /usr/src/app/PerformanceTesting/gitApp
 
 # TODO: Run Performance Testing server, instead of via remote interpreter
 # TODO: RUN PULL AND UPDATE BEFORE STARTING SERVER VIA CMD
-CMD python3 manage.py runserver 0.0.0.0:3000
+CMD python3 manage.py runserver 0.0.0.0:8080
 
 # TODO: optionally add Healthchecks
 
