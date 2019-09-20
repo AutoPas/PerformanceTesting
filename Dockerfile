@@ -29,6 +29,9 @@ WORKDIR /usr/src/app/PerformanceTesting/gitApp
 
 # TODO: Run Performance Testing server, instead of via remote interpreter
 # TODO: RUN PULL AND UPDATE BEFORE STARTING SERVER VIA CMD
+
+ENV GITHUBAPPID 41626
+
 RUN ["python3", "manage.py", "migrate"]
 
 ENTRYPOINT ["python3", "manage.py", "runserver", "0.0.0.0:8080"]
