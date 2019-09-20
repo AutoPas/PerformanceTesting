@@ -25,6 +25,8 @@ RUN mv database.config PerformanceTesting/gitApp/
 EXPOSE 3000/tcp
 EXPOSE 3000/udp
 
+WORKDIR /usr/src/app/PerformanceTesting/gitApp
+
 # TODO: Run Performance Testing server, instead of via remote interpreter
 # TODO: RUN PULL AND UPDATE BEFORE STARTING SERVER VIA CMD
 CMD python3 manage.py runserver 0.0.0.0:3000
