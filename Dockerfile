@@ -31,7 +31,7 @@ WORKDIR /usr/src/app/PerformanceTesting/gitApp
 # TODO: RUN PULL AND UPDATE BEFORE STARTING SERVER VIA CMD
 RUN ["python3", "manage.py", "migrate"]
 
-CMD ["python3", "manage.py", "runserver", "0.0.0.0:8080"]
+ENTRYPOINT ["python3", "manage.py", "runserver", "0.0.0.0:8080"]
 
 # TODO: optionally add Healthchecks
 
