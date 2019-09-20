@@ -3,7 +3,7 @@ FROM autopas/autopas-build-gcc
 WORKDIR /usr/src/app
 
 # Copy GitHub App Certificate and Database configuration file, moved up top to crash early if not found
-COPY *.pem .
+COPY *.pem private-key.pem
 COPY database.config .
 
 RUN apt-get update

@@ -24,7 +24,7 @@ class CheckFlow:
     # TODO: Remove if not needed for debugging anymore
     INSTALL_ID = 1600235
     # TODO: Add to config file
-    PEM = "kruegenertest.2019-08-21.private-key.pem"
+    PEM = "private-key.pem"
     DB = "database.config"
     # TODO: CHANGE TO AUTOPAS
     AUTOPAS = "../AutoPas"
