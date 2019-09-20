@@ -34,7 +34,7 @@ ENV GITHUBAPPID 41626
 
 RUN ["python3", "manage.py", "migrate"]
 
-ENTRYPOINT ["python3", "manage.py", "runserver", "0.0.0.0:8080"]
+ENTRYPOINT ["python3", "manage.py", "runserver", "0.0.0.0:8080", "--noreload"]
 
 # TODO: optionally add Healthchecks
 
