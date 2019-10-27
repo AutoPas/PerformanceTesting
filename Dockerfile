@@ -36,7 +36,7 @@ RUN ["python3", "manage.py", "migrate"]
 
 #ENTRYPOINT ["python3", "manage.py", "runserver", "0.0.0.0:8080", "--noreload"]
 
-ENTRYPOINT ["uwsgi", "--ini uwsgi_config.ini"]
+ENTRYPOINT ["./entry.sh"]
 
 # TODO: optionally add Healthchecks
 
