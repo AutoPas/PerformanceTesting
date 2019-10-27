@@ -8,8 +8,7 @@ class Repository:
         # Repo Object of already cloned Repo, expects a pulled and clean repo
         self.repo = Repo(gitPath)
         # Checkout branch
-        self.repo.git.checkout(branch)
-        self.repo.git.pull()
+        self.checkoutBranch(branch)
         # get current head to reset later
         self.initialHead = self.repo.head.commit
         # Check for proper Repo
@@ -20,8 +19,16 @@ class Repository:
             exit(-1)
 
     def checkoutBranch(self, branch):
+        # reset any current changes
+        self.repo.git.reset('--hard')
         print(f"Checking out {branch}")
         self.repo.git.checkout(branch)
+        # reset any changes there (only if it wasn't checked out)
+        self.repo.git.reset('--hard')
+        # remove any extra non-tracked files (.pyc, etc)
+        self.repo.git.clean('-xdf')
+        # pull in the changes from from the remote
+        self.repo.remotes.origin.pull()
 
     def testNewest(self):
 
