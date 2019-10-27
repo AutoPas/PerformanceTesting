@@ -7,5 +7,5 @@
 uwsgi --ini uwsgi_config.ini
 
 # keep alive, if no -t on docker run
-sleep infinity
+watch 'tail ../log/gitApp.log'
 #/bin/bash
