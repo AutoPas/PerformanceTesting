@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # update PerformanceTesting repo
-git pull
+#git pull
 
 # start uwsgi processes
 uwsgi --ini uwsgi_config.ini
