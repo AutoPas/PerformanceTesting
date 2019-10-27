@@ -36,6 +36,7 @@ RUN ["python3", "manage.py", "migrate"]
 
 #ENTRYPOINT ["python3", "manage.py", "runserver", "0.0.0.0:8080", "--noreload"]
 
+RUN ["chmod", "u+x", "entry.sh"]
 ENTRYPOINT ["./entry.sh"]
 
 # TODO: optionally add Healthchecks
