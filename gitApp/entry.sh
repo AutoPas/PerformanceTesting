@@ -7,4 +7,5 @@ git pull
 uwsgi --ini uwsgi_config.ini
 
 # keep alive, if no -t on docker run
-sleep infinity
+#sleep infinity
+/bin/bash
