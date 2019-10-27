@@ -34,7 +34,9 @@ ENV GITHUBAPPID 41626
 
 RUN ["python3", "manage.py", "migrate"]
 
-ENTRYPOINT ["python3", "manage.py", "runserver", "0.0.0.0:8080", "--noreload"]
+#ENTRYPOINT ["python3", "manage.py", "runserver", "0.0.0.0:8080", "--noreload"]
+
+ENTRYPOINT ["uwsgi", "--ini uwsgi_config.ini"]
 
 # TODO: optionally add Healthchecks
 
