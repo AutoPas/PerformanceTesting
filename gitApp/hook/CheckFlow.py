@@ -28,7 +28,7 @@ class CheckFlow:
     PEM = "private-key.pem"
     DB = "database.config"
     # TODO: CHANGE TO AUTOPAS
-    AUTOPAS = "../AutoPas"
+    AUTOPAS = "../../AutoPas"
     THREADS = 4
 
     def __init__(self):
