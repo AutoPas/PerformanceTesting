@@ -37,6 +37,8 @@ RUN ["python3", "manage.py", "migrate"]
 
 #ENTRYPOINT ["python3", "manage.py", "runserver", "0.0.0.0:8080", "--noreload"]
 
+# allow write for the git and test scripts
+RUN ["chmod", "-R", "777", "/usr/src/app"]
 RUN ["chmod", "u+x", "entry.sh"]
 ENTRYPOINT ["./entry.sh"]
 
