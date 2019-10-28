@@ -83,7 +83,8 @@ class CheckFlow:
         print(ci_url)
 
         # Run checks on commits url
-        self._checkCommits(ci_url)
+        # TODO: THIS DEACTIVATES ALL CHECK RUNS => REACTIVATE WHEN MOVE TO UWSGI DONE
+        #self._checkCommits(ci_url)
 
     def _checkCommits(self, url):
         """
