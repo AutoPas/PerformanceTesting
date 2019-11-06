@@ -35,7 +35,9 @@ class Commit:
         self.baseDir = repo.git_dir.strip(".git")
         self.buildDir = os.path.join(self.baseDir, self.buildDir)
         self.mdFlexDir = os.path.join(self.buildDir, "examples/md-flexible")
-        print(self.baseDir)
+        print("BASE DIR:", self.baseDir)
+        print("BUILD DIR:", self.buildDir)
+        print("MDFLEX DIR:", self.mdFlexDir)
         # Status codes, headers and messages
         self.codes = []
         self.headers = []
@@ -55,7 +57,7 @@ class Commit:
         try:
             os.mkdir(self.buildDir)
         except FileExistsError:
-            print("build folder existet already. RESET FOR PRODUCTION")
+            print("build folder existed already. RESET FOR PRODUCTION")
         os.chdir(self.buildDir)
 
         # run cmake
@@ -96,8 +98,10 @@ class Commit:
         os.chdir(self.mdFlexDir)
 
         # main.py path
-        mainPath = os.path.dirname(os.path.abspath(__file__))
-        print(mainPath)
+        # issues with using the __file__ method when deploying via uwsgi
+        # mainPath = os.path.abspath(os.path.dirname(__file__))
+        mainPath = os.path.join(self.baseDir, "..", "PerformanceTesting/gitApp/checks")
+        print("measure_perf directory:", mainPath)
         # short test script copy to build folder
         shutil.copy(os.path.join(mainPath, "measurePerf_short.sh"), self.mdFlexDir)
 

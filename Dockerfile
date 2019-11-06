@@ -12,7 +12,7 @@ RUN apt-get install -y python3-pip
 # TODO: Git update AutoPas automatically inside of Testing code
 # Cloning Performance Testing Repo (should then itself update AutoPas)
 RUN git clone https://github.com/AutoPas/AutoPas.git
-RUN echo "cache buster 9"
+RUN echo "cache buster 10"
 RUN git clone https://github.com/AutoPas/PerformanceTesting.git
 
 # install PerformanceTesting requirements

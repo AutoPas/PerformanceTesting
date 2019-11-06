@@ -63,6 +63,7 @@ class Repository:
             # reset to previous state
             self.repo.head.reset(self.initialHead, index=True, working_tree=True)
 
+
     def _testCommit(self, c: Commit):
 
         if c.build():
