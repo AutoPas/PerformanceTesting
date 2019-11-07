@@ -32,6 +32,8 @@ WORKDIR /usr/src/app/PerformanceTesting/gitApp
 # TODO: RUN PULL AND UPDATE BEFORE STARTING SERVER VIA CMD
 
 ENV GITHUBAPPID 41626
+# TODO: Might be overwritten globally from CheckFlow, but unclear
+ENV OMP_NUM_THREADS 8
 
 RUN ["python3", "manage.py", "migrate"]
 

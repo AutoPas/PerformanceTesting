@@ -143,6 +143,7 @@ class CheckFlow:
         try:
             cwd = os.getcwd()
             os.environ["OMP_NUM_THREADS"] = str(CheckFlow.THREADS)
+            print("Running Threads:", os.environ["OMP_NUM_THREADS"])
             # TODO: _IMPORTANT: Think about replicating that work flow here and actually make
             #  build / measure / upload their own check runs in the suite or via updateStatus
             codes, headers, messages = self.repo.testSHA(sha)
