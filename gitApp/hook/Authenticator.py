@@ -4,7 +4,7 @@ import jwt
 import requests
 import os
 from cryptography.hazmat.backends import default_backend
-from gitApp.gitApp.settings import BASE_DIR
+from gitApp.settings import BASE_DIR
 from hook.helper import *
 
 

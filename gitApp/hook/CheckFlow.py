@@ -10,7 +10,7 @@ from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus
 from hook.Authenticator import Authenticator
 from checks.Repository import Repository
 from model.Config import Config
-from gitApp.gitApp.settings import BASE_DIR
+from gitApp.settings import BASE_DIR
 
 """
 Codes:
