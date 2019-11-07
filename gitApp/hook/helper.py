@@ -131,6 +131,6 @@ def convertOutput(out):
         s = str(out, "utf-8")
         vprint(s)
     except Exception as e:
-        s = 'ERROR CONVERTING SYS OUT'
+        s = f'ERROR CONVERTING SYS OUT:\n{e}\n{out}'
         print('output conversion failed', e, out)
     return s

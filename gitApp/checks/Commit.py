@@ -207,7 +207,7 @@ class Commit:
 
     def upload(self):
 
-        print(self.mdFlexDir)
+        print("uploading", self.mdFlexDir)
 
         measurements = glob(os.path.join(self.mdFlexDir, "measurePerf*/"))
 

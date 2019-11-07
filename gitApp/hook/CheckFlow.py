@@ -162,7 +162,7 @@ class CheckFlow:
             r = requests.patch(
                 url=self.RunUrls[sha],
                 headers=self.auth.getTokenHeader(),
-                json=codeStatus([-1], ["GENERAL"], ["exit() statement called"]))
+                json=codeStatus([-1], ["GENERAL"], [f"exit() statement called\n{e}"]))
             pretty_request(r)
             return False
 
