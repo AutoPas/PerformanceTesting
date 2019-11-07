@@ -127,6 +127,10 @@ def speedupStatus(codes, header, messages, images):
 
 
 def convertOutput(out):
-    s = str(out, "utf-8")
-    vprint(s)
+    try:
+        s = str(out, "utf-8")
+        vprint(s)
+    except Exception as e:
+        s = 'ERROR CONVERTING SYS OUT'
+        print('output conversion failed', e, out)
     return s

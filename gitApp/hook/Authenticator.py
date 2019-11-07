@@ -2,7 +2,9 @@ import time
 import dateutil.parser
 import jwt
 import requests
+import os
 from cryptography.hazmat.backends import default_backend
+from gitApp.gitApp.settings import BASE_DIR
 from hook.helper import *
 
 
@@ -68,7 +70,8 @@ class Authenticator:
         """
         Creates new JWT for authentication based on private key and GIT APP ID
         """
-        cert_bytes = open(f"{self.pem}", "r").read().encode()
+        pem_file = os.path.join(BASE_DIR, self.pem)
+        cert_bytes = open(f"{pem_file}", "r").read().encode()
         vprint("CERT\n" + str(cert_bytes, "utf-8")[:1000] + "...")
         private_key = default_backend().load_pem_private_key(cert_bytes, None)
         now = int(time.time())

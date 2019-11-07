@@ -10,6 +10,7 @@ from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus
 from hook.Authenticator import Authenticator
 from checks.Repository import Repository
 from model.Config import Config
+from gitApp.gitApp.settings import BASE_DIR
 
 """
 Codes:
@@ -43,8 +44,7 @@ class CheckFlow:
         self.CompareUrls = {}
 
         # Initiate DB connection with settings from file
-        dbPath = CheckFlow.DB
-        import os
+        dbPath = os.path.join(BASE_DIR, CheckFlow.DB)
         print(os.getcwd())
         try:
             db = imp.load_source('db', dbPath)
@@ -58,7 +58,7 @@ class CheckFlow:
         me.connect(db.collection, username=db.user, password=db.password, host=("mongodb://" + db.server))
 
         # Initiate Repo
-        self.repo = Repository(CheckFlow.AUTOPAS)
+        self.repo = Repository(os.path.join(BASE_DIR, CheckFlow.AUTOPAS))
 
     def receiveHook(self, request):  # WSGIRequest):
         """ on receive of pull_request event """
