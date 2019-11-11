@@ -226,7 +226,11 @@ class Commit:
             configNames = [os.path.basename(x) for x in configPaths]
             # print(configPaths)
             # print(configNames)
-            cpu = get_cpu_info()["brand"]
+            try:
+                cpu = get_cpu_info()["brand"]
+            except Exception as e:
+                print(f"Couldn't determine CPU brand: {e}")
+                cpu = "N/A"
 
             for j, conf in enumerate(configPaths):
 

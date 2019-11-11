@@ -66,9 +66,13 @@ class Repository:
 
         try:
             if c.build():
+                print(f"{c.sha}: BUILD DONE")
                 if c.measure():
+                    print(f"{c.sha}: MEASUREMENT DONE")
                     if c.upload():
+                        print(f"{c.sha}: UPLOAD DONE")
                         if c.generatePlot():
+                            print(f"{c.sha}: PLOTS DONE")
                             print("done testing")
         except Exception as e:
             print(f"_testCommit {c.sha} failed with {e}")
