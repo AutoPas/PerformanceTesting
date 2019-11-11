@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from hook.helper import pretty_request
-from hook.CheckFlow import CheckFlow
+from hook.CheckFlow import CheckFlow, getLock, releaseLock
 import json
 
 # Create your views here.
@@ -38,9 +38,23 @@ def receiveHook(request):
         if action == "opened" \
                 or action == "synchronize"\
                 or action == "reopened":
-            print ("do pull stuff")
-            check = CheckFlow()
-            check.receiveHook(request)
+
+            # lock to prevent more than one test suite running on a node
+            # uses local db.sqlite3 for locking the uwsgi threads
+            if getLock():
+
+                try:
+                    print("do pull stuff")
+                    check = CheckFlow()
+                    check.receiveHook(request)
+                except Exception as e:
+                    print(f"CheckFlow failed with {e}")
+
+                releaseLock()
+
+            else:
+                # TODO: Implement queue to store request and run after lock becomes free
+                print("COULDN'T AQUIRE LOCK IN TIME. ABORTING. TODO: Implement queue")
 
     return HttpResponse(status=201)
 

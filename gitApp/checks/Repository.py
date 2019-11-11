@@ -1,7 +1,6 @@
 from git import Repo
 from checks.Commit import Commit
 
-
 class Repository:
 
     def __init__(self, gitPath, branch="master"):
@@ -63,11 +62,14 @@ class Repository:
             # reset to previous state
             self.repo.head.reset(self.initialHead, index=True, working_tree=True)
 
-
     def _testCommit(self, c: Commit):
 
-        if c.build():
-            if c.measure():
-                if c.upload():
-                    if c.generatePlot():
-                        print("done testing")
+        try:
+            if c.build():
+                if c.measure():
+                    if c.upload():
+                        if c.generatePlot():
+                            print("done testing")
+        except Exception as e:
+            print(f"_testCommit {c.sha} failed with {e}")
+

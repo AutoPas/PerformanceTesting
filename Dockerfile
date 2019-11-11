@@ -9,10 +9,9 @@ COPY database.config .
 RUN apt-get update
 RUN apt-get install -y python3-pip
 
-# TODO: Git update AutoPas automatically inside of Testing code
-# Cloning Performance Testing Repo (should then itself update AutoPas)
+# Cloning Performance Testing Repo and AutoPas (should then update AutoPas, during deployment)
 RUN git clone https://github.com/AutoPas/AutoPas.git
-RUN echo "cache buster 14"
+RUN echo "cache buster 15"
 RUN git clone https://github.com/AutoPas/PerformanceTesting.git
 
 # install PerformanceTesting requirements
@@ -32,10 +31,14 @@ WORKDIR /usr/src/app/PerformanceTesting/gitApp
 # TODO: RUN PULL AND UPDATE BEFORE STARTING SERVER VIA CMD
 
 ENV GITHUBAPPID 41626
-# TODO: Might be overwritten globally from CheckFlow, but unclear
+# TODO: Might be overwritten globally from CheckFlow, but unclear for all workers
 ENV OMP_NUM_THREADS 8
 
+# Initialize database
+RUN ["python3", "manage.py", "makemigrations"]
 RUN ["python3", "manage.py", "migrate"]
+# TODO: safe solution for user adding, only useful for lock checking
+#RUN... echo "from django.contrib.auth.models import User; User.objects.create_superuser('admin', 'admin@example.com', 'pass')" | python3 manage.py shell
 
 #ENTRYPOINT ["python3", "manage.py", "runserver", "0.0.0.0:8080", "--noreload"]
 

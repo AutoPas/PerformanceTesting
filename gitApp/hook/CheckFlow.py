@@ -11,6 +11,9 @@ from hook.Authenticator import Authenticator
 from checks.Repository import Repository
 from model.Config import Config
 from gitApp.settings import BASE_DIR
+from hook.models import NodeLock
+import platform
+import time
 
 """
 Codes:
@@ -20,6 +23,52 @@ Codes:
 """
 
 
+def getLock():
+    # time in seconds trying to aquire the lock before aborting
+    retry_threshold = 60 * 1
+    node_name = platform.node()
+    print("GETTING LOCK FOR NODE: ", node_name)
+
+    locks = NodeLock.objects.filter(node=node_name)
+    num_locks = len(locks)
+    assert (num_locks <= 1)
+
+    if num_locks == 0:
+        lock = NodeLock(node=node_name, isLocked=True)
+    else:
+        lock = locks[0]
+        if not lock.isLocked:
+            lock.isLocked = True
+        else:
+            print("TRYING TO RUN TESTS ON LOCKED NODE")
+            # all() refreshes the already returned queryset
+            timer = 0
+            while locks.all()[0].isLocked:
+                print("STILL LOCKED")
+                refreshTime = 10
+                time.sleep(refreshTime)
+                timer += refreshTime
+                if timer > retry_threshold:
+                    print(f"LOCK NOT AVAILABLE AFTER {retry_threshold} SECONDS, aborting")
+                    return False
+
+            lock.isLocked = True
+
+    lock.save()
+    print(f"AQUIRED LOCK ON {node_name}")
+    return True
+
+
+def releaseLock():
+    node_name = platform.node()
+    print("RELEASING LOCK FOR NODE: ", node_name)
+
+    locks = NodeLock.objects.filter(node=node_name)
+    assert (len(locks) == 1)
+    lock = locks[0]
+    lock.isLocked = False
+    lock.save()
+
 class CheckFlow:
     #GIT_APP_ID = 39178
     GIT_APP_ID = os.environ["GITHUBAPPID"]
@@ -28,7 +77,7 @@ class CheckFlow:
     # TODO: Add to config file
     PEM = "private-key.pem"
     DB = "database.config"
-    # TODO: CHANGE TO AUTOPAS
+
     AUTOPAS = "../../AutoPas"
     THREADS = 4
 
@@ -84,7 +133,7 @@ class CheckFlow:
 
         # Run checks on commits url
         # TODO: THIS ACTIVATES ALL CHECK RUNS
-        # self._checkCommits(ci_url)
+        self._checkCommits(ci_url)
 
     def _checkCommits(self, url):
         """
