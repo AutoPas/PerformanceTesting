@@ -1,6 +1,7 @@
 import mongoengine as me
 
-class Config(me.Document):
+
+class Config(me.DynamicDocument):
 
     name = me.StringField()
     date = me.DateTimeField()
@@ -13,6 +14,9 @@ class Config(me.Document):
     # Unique combination of Name + SHA + System + Date to prevent reupload
     # sparse allows for empty unique key
     unique = me.StringField(unique=True, sparse=True)
+
+    # TODO: dynamic fields, so don't have to manually add them here if output of measure_Perf changes
+    '''
 
     # CONFIG FIELDS
     container = me.StringField()
@@ -36,6 +40,8 @@ class Config(me.Document):
     tuningMaxEvidence = me.IntField()
     epsilon = me.FloatField()
     sigma = me.FloatField()
+
+    '''
 
     # Measurements
     measurements = me.ListField()

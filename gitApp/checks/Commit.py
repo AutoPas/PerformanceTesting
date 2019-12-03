@@ -12,6 +12,7 @@ import re
 from cpuinfo import get_cpu_info
 import matplotlib
 from matplotlib import pyplot as plt
+from warnings import warn
 
 # Switch for GUI
 matplotlib.use("Agg")
@@ -132,7 +133,9 @@ class Commit:
     def newlineStrip(val):
         return val.rstrip(" \n")
 
+    @FutureWarning
     def colonSep(self, c: Config, line):
+        """WARNING: Deprecated"""
         sep = line.split(":")
         e = [x for x in sep]
         key = e[0]
@@ -188,7 +191,9 @@ class Commit:
         return True
 
     @staticmethod
+    @FutureWarning
     def spaceSep(c: Config, line):
+        """WARNING: Deprecated"""
         sep = line.lstrip(" ").rstrip("\n").split(" ")
         if "Particles" in line or len(line) < 2:
             pass
@@ -255,12 +260,18 @@ class Commit:
                 with open(configPaths[j]) as f:
                     for r in f:
                         r = re.sub("\s\s+", " ", r)
+
+                        # TODO: test dynamic fields
                         if ":" in r:
-                            if not self.colonSep(c, r):
+                            if not self.colonRegex(c, r):
                                 return False
+                            # if not self.colonSep(c, r):
+                            #    return False
                         else:
-                            if not self.spaceSep(c, r):
+                            if not self.spaceRegex(c, r):
                                 return False
+                            # if not self.spaceSep(c, r):
+                            #    return False
 
                 try:
                     c.save()
@@ -310,3 +321,56 @@ class Commit:
         os.chdir(self.baseDir)
         self.updateStatus(1, "PLOTTING", "PLOTTING succeeded\n")
         return True
+
+    def colonRegex(self, c: Config, line: str):
+        """
+        Parses lines containing ':' and adds dynamic fields to mongo document
+
+        :param c: Current config
+        :param line: Line to parse
+        :return: True/False on success
+        """
+        try:
+            pattern = re.compile('(\S+.*\S+)\s*:\s+(.*)')
+            key, value = pattern.findall(line)
+
+            # TODO: Optionally try casting to float and int
+            # Add dynamic field to the config model
+            c[key] = value
+            return True
+
+        except Exception as e:
+            warn(f'Colon Seperation in upload failed with: {e}')
+            self.updateStatus(0, "PARSING", f"UNPROCESSED COLON SEP PAIR at Parsing step: {line, e}")
+            return False
+
+    def spaceRegex(self, c: Config, line: str):
+        """
+        Parses lines containing spaces seperation, here the number of particles and the measurements
+
+        :param c: Config
+        :param line: String line
+        :return: True/False depending on success
+        """
+
+        try:
+            pattern = re.compile('\s*(\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s*')
+
+            res = pattern.findall(line)
+            if len(res) == 0:
+                pass
+
+            m = {
+                "N": int(res[0]),
+                "GFLOPs": float(res[1]),
+                "MFUPs": float(res[2]),
+                "Micros": float(res[3]),
+                "ItMicros": float(res[4])
+            }
+            c.measurements.append(m)
+
+            return True
+        except Exception as e:
+            warn(f'spaceRegex failed with {line, e}')
+            self.updateStatus(0, "PARSING", f"UNPROCESSED SPACE SEP PAIR at Parsing step: {line, e}")
+            return False
