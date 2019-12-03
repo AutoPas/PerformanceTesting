@@ -133,7 +133,7 @@ class CheckFlow:
 
         # Run checks on commits url
         # TODO: THIS ACTIVATES ALL CHECK RUNS
-        # self._checkCommits(ci_url)
+        self._checkCommits(ci_url)
 
     def _checkCommits(self, url):
         """
