@@ -18,16 +18,23 @@ class Repository:
             exit(-1)
 
     def checkoutBranch(self, branch):
+        # fetch commits and branches
+        print(f"Fetching")
+        self.repo.git.fetch()
         # reset any current changes
+        print(f"Resetting last branch")
         self.repo.git.reset('--hard')
         print(f"Checking out {branch}")
         self.repo.git.checkout(branch)
         # reset any changes there (only if it wasn't checked out)
+        print(f"Resetting {branch}")
         self.repo.git.reset('--hard')
         # remove any extra non-tracked files (.pyc, etc)
+        print(f"Cleaning {branch}")
         self.repo.git.clean('-xdf')
         # pull in the changes from from the remote
-        self.repo.remotes.origin.pull()
+        # print(f"Pulling {branch}")
+        # self.repo.git.pull()
 
     def testNewest(self):
 
@@ -76,4 +83,5 @@ class Repository:
                             print("done testing")
         except Exception as e:
             print(f"_testCommit {c.sha} failed with {e}")
+            c.updateStatus(-1, 'GENERAL', f"failed with {e}")
 
