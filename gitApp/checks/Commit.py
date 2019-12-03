@@ -103,11 +103,29 @@ class Commit:
         # mainPath = os.path.abspath(os.path.dirname(__file__))
         mainPath = os.path.join(self.baseDir, "..", "PerformanceTesting/gitApp/checks")
         print("measure_perf directory:", mainPath)
-        # short test script copy to build folder
-        shutil.copy(os.path.join(mainPath, "measurePerf_short.sh"), self.mdFlexDir)
+
+        # TODO: TEST changing number of particles / reps for testing and deploy
+        # open file
+        f_measure = open(os.path.join(self.mdFlexDir, 'measurePerf.sh'), 'w+')
+        # replace the standard numbers
+        molPattern = re.compile('Mols=\(.*\)')
+        repPattern = re.compile('Reps=\(.*\)')
+        # new particle settings
+        mol = 'Mols=(   16  32  64  128 256 512 1024    2048    32768)'
+        # new rep settings
+        reps = 'Reps=(  1000    1000    1000    1000    1000    1000    200    100  20)'
+        # replacing the old
+        new_measure = re.sub(molPattern, mol, f_measure.read())
+        new_measure = re.sub(repPattern, reps, new_measure)
+        # writing the new
+        f_measure.write(new_measure)
+        f_measure.close()
+
+        # Deprecated: short test script copy to build folder
+        # shutil.copy(os.path.join(mainPath, "measurePerf_short.sh"), self.mdFlexDir)
 
         # export thread number and run test
-        measure_output = run(["./measurePerf_short.sh", "md-flexible"], stdout=PIPE, stderr=PIPE)
+        measure_output = run(["./measurePerf.sh", "md-flexible"], stdout=PIPE, stderr=PIPE)
         if measure_output.returncode != 0:
             print("MEASUREPERF failed with return code", measure_output.returncode)
             self.updateStatus(-1,
