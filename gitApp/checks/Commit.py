@@ -106,18 +106,21 @@ class Commit:
 
         # TODO: TEST changing number of particles / reps for testing and deploy
         # open file
-        f_measure = open(os.path.join(self.mdFlexDir, 'measurePerf.sh'), 'w+')
+        f_measure = open(os.path.join(self.mdFlexDir, 'measurePerf.sh'), 'r+')
+        raw = f_measure.read()
         # replace the standard numbers
         molPattern = re.compile('Mols=\(.*\)')
         repPattern = re.compile('Reps=\(.*\)')
         # new particle settings
         mol = 'Mols=(   16  32  64  128 256 512 1024    2048    32768)'
         # new rep settings
-        reps = 'Reps=(  1000    1000    1000    1000    1000    1000    200    100  20)'
+        reps = 'Reps=(  100    100    100    100    100    100    50    20  20)'
         # replacing the old
-        new_measure = re.sub(molPattern, mol, f_measure.read())
+        new_measure = re.sub(molPattern, mol, raw)
         new_measure = re.sub(repPattern, reps, new_measure)
         # writing the new
+        f_measure.close()
+        f_measure = open(os.path.join(self.mdFlexDir, 'measurePerf.sh'), 'w+')
         f_measure.write(new_measure)
         f_measure.close()
 
