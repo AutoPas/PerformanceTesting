@@ -352,7 +352,7 @@ class Commit:
         :return: True/False on success
         """
         try:
-            pattern = re.compile('(\S+.*\S+)\s*:\s+(.*)')
+            pattern = re.compile('(\S+.*\S+)\s*:\s*(.*)', re.DOTALL)
             key, value = pattern.findall(line)
 
             # TODO: Optionally try casting to float and int
