@@ -21,30 +21,17 @@ RUN pip3 install --no-cache-dir -r PerformanceTesting/requirements.txt
 RUN mv *.pem PerformanceTesting/gitApp/
 RUN mv database.config PerformanceTesting/gitApp/
 
-# Expose Ports of django server
-# EXPOSE 8080/tcp
-# EXPOSE 8080/udp
-
 WORKDIR /usr/src/app/PerformanceTesting/gitApp
 
-# TODO: Run Performance Testing server, instead of via remote interpreter
-# TODO: RUN PULL AND UPDATE BEFORE STARTING SERVER VIA CMD
 
 ENV GITHUBAPPID 41626
 # TODO: Might be overwritten globally from CheckFlow, but unclear for all workers
 ENV OMP_NUM_THREADS 8
 
-# Initialize database
-RUN ["python3", "manage.py", "makemigrations"]
-RUN ["python3", "manage.py", "migrate"]
-# TODO: safe solution for user adding, only useful for lock checking
-#RUN... echo "from django.contrib.auth.models import User; User.objects.create_superuser('admin', 'admin@example.com', 'pass')" | python3 manage.py shell
-
-#ENTRYPOINT ["python3", "manage.py", "runserver", "0.0.0.0:8080", "--noreload"]
 
 # allow write for the git and test scripts
 RUN ["chmod", "-R", "777", "/usr/src/app"]
-RUN ["chmod", "u+x", "entry.sh"]
+# RUN ["chmod", "u+x", "entry.sh"]
 # ENTRYPOINT ["./entry.sh"]
 
 # TODO: optionally add Healthchecks

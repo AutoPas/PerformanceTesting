@@ -10,7 +10,7 @@ RUN apt-get update
 RUN apt-get install -y python3-pip
 
 # Cloning Performance Testing Repo and AutoPas (should then update AutoPas, during deployment)
-RUN git clone https://github.com/AutoPas/AutoPas.git
+# RUN git clone https://github.com/AutoPas/AutoPas.git
 RUN echo "cache buster 19"
 RUN git clone https://github.com/AutoPas/PerformanceTesting.git
 
@@ -31,8 +31,7 @@ WORKDIR /usr/src/app/PerformanceTesting/gitApp
 # TODO: RUN PULL AND UPDATE BEFORE STARTING SERVER VIA CMD
 
 ENV GITHUBAPPID 41626
-# TODO: Might be overwritten globally from CheckFlow, but unclear for all workers
-ENV OMP_NUM_THREADS 8
+# ENV OMP_NUM_THREADS 8
 
 # Initialize database
 RUN ["python3", "manage.py", "makemigrations"]
