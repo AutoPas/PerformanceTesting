@@ -6,6 +6,7 @@
 
 # Database configs
 database.config
+database_server.config
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
