@@ -69,8 +69,8 @@ def releaseLock():
     lock.isLocked = False
     lock.save()
 
+
 class CheckFlow:
-    #GIT_APP_ID = 39178
     GIT_APP_ID = os.environ["GITHUBAPPID"]
     # TODO: Remove if not needed for debugging anymore
     INSTALL_ID = 1600235
@@ -344,15 +344,16 @@ class CheckFlow:
 
         return code, speedup
 
+
 if __name__ == '__main__':
 
     CheckFlow.AUTOPAS = "../../AutoPas"
     check = CheckFlow()
-    sha = "9e733e6e5b2d310732aaacf094dd8937c3fed8a0"
+    single_sha = "9e733e6e5b2d310732aaacf094dd8937c3fed8a0"
     check.baseSHA = "75a49a209512a85843fd26a973cc1718444e64a6"
     check.baseUrl = "https://api.github.com/repos/kruegener/AutoPas"
     check.auth.updateInstallID(1692178)
-    check.CompareUrls[sha] = check._createCheckRun(sha, "Comp Test")
-    check._comparePerformance(sha)
+    check.CompareUrls[single_sha] = check._createCheckRun(single_sha, "Comp Test")
+    check._comparePerformance(single_sha)
 
 
