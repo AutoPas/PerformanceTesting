@@ -13,6 +13,7 @@ from cpuinfo import get_cpu_info
 import matplotlib
 from matplotlib import pyplot as plt
 from warnings import warn
+import numpy as np
 
 # Switch for GUI
 matplotlib.use("Agg")
@@ -135,79 +136,81 @@ class Commit:
         return True
 
 
-    def upload(self):
-
+    def parse_and_upload(self):
 
         # TODO: Move to new measurement script via self.measurement_output
         print("uploading", self.mdFlexDir)
 
-        measurements = glob(os.path.join(self.mdFlexDir, "measurePerf*/"))
+        try:
+            cpu = get_cpu_info()["brand"]
+        except Exception as e:
+            print(f"Couldn't determine CPU brand: {e}")
+            cpu = "N/A"
+        run_timestamp = datetime.utcnow()
 
-        # all measurement folders (should only be 1 usually)
-        for i, folder in enumerate(measurements):
-            folder = os.path.basename(os.path.dirname(folder))
-            folder = folder.lstrip("measurePerf_")
-            timestamp = time.strptime(folder, "%Y-%m-%d_%H-%M-%S")
-            print(timestamp)
+        coarse_pattern = re.compile(r'Collected times for\s+{(.*)}\s:\s\[(.*)\]')
+        config_pattern = re.compile(r'([^,]+): ([^,]+)')
+        times_pattern = re.compile(r'(\d+)')
+        config_runs = coarse_pattern.findall(self.measure_output.stdout.decode('utf-8'))
 
-            # change into measurement folder
-            os.chdir(measurements[i])
+        for run in config_runs:
 
-            # collect all configs
-            configPaths = glob(os.path.join(measurements[i], "*.csv"))
-            configNames = [os.path.basename(x) for x in configPaths]
-            # print(configPaths)
-            # print(configNames)
+            db_entry = Config()
+            db_entry.name = 'performance via single tuning phase'  # TODO: Keep name field?
+            db_entry.date = run_timestamp
+            db_entry.commitSHA = self.sha
+            db_entry.commitMessage = self.repo.commit(self.sha).message
+            db_entry.commitDate = self.repo.commit(self.sha).authored_datetime
+
+            # Assumes tests were run on this system
+            db_entry.system = cpu
+
+            # TODO: Decide if uniqueness is enforced (Change spare in model to False)
+            # db_entry.unique = db_entry.name + db_entry.commitSHA + db_entry.system + str(db_entry.date)
+            # try:
+            #     db_entry.save()
+            # except NotUniqueError:
+            #     print("Exact Configuration for system and commit + date already saved!")
+            #     continue
+
+            # Filter all config parameters
+            config = config_pattern.findall(run[0])
+
+            # Parsing output
             try:
-                cpu = get_cpu_info()["brand"]
+                # Parsing Config keys and values
+                for pair in config:
+                    key = pair[0].replace(' ', '')  # Replace spaces
+                    key = 'dynamic_' + key  # Adding prefix to clearly show dynamic field creation in DB
+                    quantity = pair[1].replace(' ', '')  # Replace spaces
+
+                    try:  # Try converting to float if appropriate
+                        quantity = float(quantity)
+                    except ValueError:
+                        pass
+
+                    print(key, quantity)
+                    db_entry[key] = quantity
+
+                # Parsing times
+                times = times_pattern.findall(run[1])
+                times = [float(t) for t in times]
+                db_entry.measurements = times
+                db_entry.meanTime = np.mean(times)  # Mean running Time
+                db_entry.minTime = np.min(times)  # Min running Time
             except Exception as e:
-                print(f"Couldn't determine CPU brand: {e}")
-                cpu = "N/A"
+                print(f'Parsing of measurement failed {e}')
+                self.updateStatus(-1, "PARSING", str(e))
+                return False
 
-            for j, conf in enumerate(configPaths):
+            try:
+                db_entry.save()
+            except Exception as e:
+                self.updateStatus(-1, "UPLOAD", str(e))
+                return False
 
-                c = Config()
-                c.name = configNames[j]
-                c.date = datetime.utcfromtimestamp(int(time.mktime(timestamp)))
-                c.commitSHA = self.sha
-                c.commitMessage = self.repo.commit(self.sha).message
-                c.commitDate = self.repo.commit(self.sha).authored_datetime
-
-                # Assumes tests were run on this system
-                c.system = cpu
-
-                # TODO: Decide if uniqueness is enforced (Change spare in model to False)
-                # c.unique = c.name + c.commitSHA + c.system + str(c.date)
-                # try:
-                #     c.save()
-                # except NotUniqueError:
-                #     print("Exact Configuration for system and commit + date already saved!")
-                #     continue
-
-                with open(configPaths[j]) as f:
-                    for r in f:
-                        r = re.sub("\s\s+", " ", r)
-
-                        # TODO: test dynamic fields
-                        if ":" in r:
-                            if not self.colonRegex(c, r):
-                                return False
-                            # if not self.colonSep(c, r):
-                            #    return False
-                        else:
-                            if not self.spaceRegex(c, r):
-                                return False
-                            # if not self.spaceSep(c, r):
-                            #    return False
-
-                try:
-                    c.save()
-                except Exception as e:
-                    self.updateStatus(-1, "UPLOAD", str(e))
-                    return False
-
-                print(c)
-                self.configs.append(c)
+            print(db_entry)
+            self.configs.append(db_entry)
 
         os.chdir(self.baseDir)
         self.updateStatus(1, "UPLOAD", "RESULT UPLOAD succeeded\n")
