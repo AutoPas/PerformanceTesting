@@ -43,6 +43,7 @@ class Commit:
         self.codes = []
         self.headers = []
         self.statusMessages = []
+        self.measure_output = None
 
     def updateStatus(self, code, header, message):
         self.codes.append(code)
@@ -95,8 +96,6 @@ class Commit:
         return True
 
     def measure(self):
-        # change to md-flexible folder
-        os.chdir(self.mdFlexDir)
 
         # main.py path
         # issues with using the __file__ method when deploying via uwsgi
@@ -104,38 +103,27 @@ class Commit:
         mainPath = os.path.join(self.baseDir, "..", "PerformanceTesting/gitApp/checks")
         print("measure_perf directory:", mainPath)
 
-        # TODO: TEST changing number of particles / reps for testing and deploy
-        # open file
-        f_measure = open(os.path.join(self.mdFlexDir, 'measurePerf.sh'), 'r+')
-        raw = f_measure.read()
-        # replace the standard numbers
-        molPattern = re.compile('Mols=\(.*\)')
-        repPattern = re.compile('Reps=\(.*\)')
-        # new particle settings
-        mol = 'Mols=(   16  32  64  128 256 512 1024    2048    32768)'
-        # new rep settings
-        reps = 'Reps=(  100    100    100    100    100    100    50    20  20)'
-        # replacing the old
-        new_measure = re.sub(molPattern, mol, raw)
-        new_measure = re.sub(repPattern, reps, new_measure)
-        # writing the new
-        f_measure.close()
-        f_measure = open(os.path.join(self.mdFlexDir, 'measurePerf.sh'), 'w+')
-        f_measure.write(new_measure)
-        f_measure.close()
+        # change to md-flexible folder
+        os.chdir(self.mdFlexDir)
 
-        # Deprecated: short test script copy to build folder
-        # shutil.copy(os.path.join(mainPath, "measurePerf_short.sh"), self.mdFlexDir)
-
-        # export thread number and run test
-        measure_output = run(["./measurePerf.sh", "md-flexible"], stdout=PIPE, stderr=PIPE)
-        if measure_output.returncode != 0:
-            print("MEASUREPERF failed with return code", measure_output.returncode)
+        deltaT = 0.0
+        tuningPhases = 1
+        generator = 'uniform'
+        particles = 1000
+        # Running one tuning session
+        self.measure_output = run(['./md-flexible',
+                              '--deltaT', f'{deltaT}',
+                              '--tuning-phases', f'{tuningPhases}',
+                              '--log-level', 'debug',
+                              '--particle-generator', f'{generator}',
+                              '--particles-total', f'{particles}'], stdout=PIPE, stderr=PIPE)
+        if self.measure_output.returncode != 0:
+            print("MEASUREPERF failed with return code", self.measure_output.returncode)
             self.updateStatus(-1,
                               "PERFORMANCE MEASUREMENT",
                               f"MEASUREPERF failed:\nSTDOUT: .... "
-                              f"{convertOutput(measure_output.stdout)[-500:]}\n"
-                              f"STDERR:{convertOutput(measure_output.stderr)}")
+                              f"{convertOutput(self.measure_output.stdout)[-500:]}\n"
+                              f"STDERR:{convertOutput(self.measure_output.stderr)}")
             # change back to top level directory
             os.chdir(self.baseDir)
             return False
@@ -143,96 +131,14 @@ class Commit:
         # change to top
         os.chdir(self.baseDir)
         self.updateStatus(1, "PERFORMANCE MEASUREMENT", f"MEASUREPERF succeeded: \n...\n"
-                                                        f"{convertOutput(measure_output.stdout)[-500:]}")
+                                                        f"{convertOutput(self.measure_output.stdout)[-500:]}")
         return True
 
-    @staticmethod
-    def commaSplit(val):
-        return val.split(",")[0]
-
-    @staticmethod
-    def newlineStrip(val):
-        return val.rstrip(" \n")
-
-    @FutureWarning
-    def colonSep(self, c: Config, line):
-        """WARNING: Deprecated"""
-        sep = line.split(":")
-        e = [x for x in sep]
-        key = e[0]
-        val = e[1]
-
-        if "Container" in key:
-            c.container = self.commaSplit(val).lstrip(" ")
-        elif "Verlet rebuild frequency" in key:
-            c.rebuildFreq = float(self.newlineStrip(val))
-        elif "Verlet skin radius" in key:
-            c.skinRadius = float(self.newlineStrip(val))
-        elif "Layout" in key:
-            c.layout = self.commaSplit(val)
-        elif "Functor" in key:
-            c.functor = self.newlineStrip(val)
-        elif "Newton3" in key:
-            c.newton = self.commaSplit(val)
-        elif "Cutoff" in key:
-            c.cutoff = self.newlineStrip(val)
-        elif "Cell size factor" in key:
-            c.cellSizeFactor = self.newlineStrip(val)
-        elif "Particle Generator" in key:
-            c.generator = self.newlineStrip(val)
-        elif "Box length" in key:
-            c.boxLength = float(self.newlineStrip(val))
-        elif "total" in key:
-            particles = self.newlineStrip(val).split(" ")
-            particles = [int(p) for p in particles[1:]]
-            c.particles = particles
-        elif "traversals" in key:
-            c.traversal = self.commaSplit(val)
-        elif "Iterations" in key:
-            iterations = self.newlineStrip(val).split(" ")
-            iterations = [int(i) for i in iterations[1:]]
-            c.iterations = iterations
-        elif "Tuning Strategy" in key:
-            c.tuningStrategy = self.newlineStrip(val)[1:]
-        elif "Tuning Interval" in key:
-            c.tuningInterval = int(self.newlineStrip(val))
-        elif "Tuning Samples" in key:
-            c.tuningSamples = int(self.newlineStrip(val))
-        elif "Tuning Max evidence" in key:
-            c.tuningMaxEvidence = int(self.newlineStrip(val))
-        elif "epsilon" in key:
-            c.epsilon = float(self.newlineStrip(val))
-        elif "sigma" in key:
-            c.sigma = float(self.newlineStrip(val))
-        else:
-            print("UNPROCESSED COLON SEP PAIR")
-            print(e)
-            self.updateStatus(0, "PARSING", f"UNPROCESSED COLON SEP PAIR at Parsing step: {e}")
-            return True
-        return True
-
-    @staticmethod
-    @FutureWarning
-    def spaceSep(c: Config, line):
-        """WARNING: Deprecated"""
-        sep = line.lstrip(" ").rstrip("\n").split(" ")
-        if "Particles" in line or len(line) < 2:
-            pass
-        else:
-            m = {
-                "N": int(sep[0]),
-                "GFLOPs": float(sep[1]),
-                "MFUPs": float(sep[2]),
-                "Micros": float(sep[3]),
-                "ItMicros": float(sep[4])
-            }
-            # print([s for s in sep])
-            # NumParticles || GFLOPs/s || MFUPs/s || Time[micros] || SingleIteration[micros]
-            c.measurements.append(m)
-        return True
 
     def upload(self):
 
+
+        # TODO: Move to new measurement script via self.measurement_output
         print("uploading", self.mdFlexDir)
 
         measurements = glob(os.path.join(self.mdFlexDir, "measurePerf*/"))
@@ -342,56 +248,3 @@ class Commit:
         os.chdir(self.baseDir)
         self.updateStatus(1, "PLOTTING", "PLOTTING succeeded\n")
         return True
-
-    def colonRegex(self, c: Config, line: str):
-        """
-        Parses lines containing ':' and adds dynamic fields to mongo document
-
-        :param c: Current config
-        :param line: Line to parse
-        :return: True/False on success
-        """
-        try:
-            pattern = re.compile('(\S+.*\S+)\s*:\s*(.*)', re.DOTALL)
-            key, value = pattern.findall(line)
-
-            # TODO: Optionally try casting to float and int
-            # Add dynamic field to the config model
-            c[key] = value
-            return True
-
-        except Exception as e:
-            warn(f'Colon Seperation in upload failed with: {e}')
-            self.updateStatus(0, "PARSING", f"UNPROCESSED COLON SEP PAIR at Parsing step: {line, e}")
-            return False
-
-    def spaceRegex(self, c: Config, line: str):
-        """
-        Parses lines containing spaces seperation, here the number of particles and the measurements
-
-        :param c: Config
-        :param line: String line
-        :return: True/False depending on success
-        """
-
-        try:
-            pattern = re.compile('\s*(\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s*')
-
-            res = pattern.findall(line)
-            if len(res) == 0:
-                pass
-
-            m = {
-                "N": int(res[0]),
-                "GFLOPs": float(res[1]),
-                "MFUPs": float(res[2]),
-                "Micros": float(res[3]),
-                "ItMicros": float(res[4])
-            }
-            c.measurements.append(m)
-
-            return True
-        except Exception as e:
-            warn(f'spaceRegex failed with {line, e}')
-            self.updateStatus(0, "PARSING", f"UNPROCESSED SPACE SEP PAIR at Parsing step: {line, e}")
-            return False
