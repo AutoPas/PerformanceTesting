@@ -76,7 +76,7 @@ class Repository:
                 print(f"{c.sha}: BUILD DONE")
                 if c.measure():
                     print(f"{c.sha}: MEASUREMENT DONE")
-                    if c.upload():
+                    if c.parse_and_upload():
                         print(f"{c.sha}: UPLOAD DONE")
                         if c.generatePlot():
                             print(f"{c.sha}: PLOTS DONE")
