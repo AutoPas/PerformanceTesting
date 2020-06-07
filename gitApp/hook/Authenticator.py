@@ -4,6 +4,7 @@ import jwt
 import requests
 import os
 from cryptography.hazmat.backends import default_backend
+
 from gitApp.settings import BASE_DIR
 from hook.helper import *
 
@@ -72,7 +73,7 @@ class Authenticator:
         """
         pem_file = os.path.join(BASE_DIR, self.pem)
         cert_bytes = open(f"{pem_file}", "r").read().encode()
-        vprint("CERT\n" + str(cert_bytes, "utf-8")[:1000] + "...")
+        vprint("CERT\n" + str(cert_bytes, "utf-8")[:1000] + "...")  # TODO: Remove
         private_key = default_backend().load_pem_private_key(cert_bytes, None)
         now = int(time.time())
         new_expiry = now + (9 * 60)
