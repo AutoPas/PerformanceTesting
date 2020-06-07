@@ -349,11 +349,13 @@ if __name__ == '__main__':
 
     CheckFlow.AUTOPAS = "../../AutoPas"
     check = CheckFlow()
-    single_sha = "9e733e6e5b2d310732aaacf094dd8937c3fed8a0"
-    check.baseSHA = "75a49a209512a85843fd26a973cc1718444e64a6"
-    check.baseUrl = "https://api.github.com/repos/kruegener/AutoPas"
-    check.auth.updateInstallID(1692178)
-    check.CompareUrls[single_sha] = check._createCheckRun(single_sha, "Comp Test")
-    check._comparePerformance(single_sha)
+    single_sha = "3ca1622626af6627d263971bc3351d208d72ec0e"
+    check.baseSHA = "cb22dd6e28ad8d4f25b076562e4bf861613b3153"
+    check.baseUrl = "https://api.github.com/repos/AutoPas/AutoPas"
+    check.auth.updateInstallID(2027548)
+    #check.CompareUrls[single_sha] = check._createCheckRun(single_sha, "DEBUG TEST")
+    check.RunUrls[single_sha] = check._createCheckRun(single_sha, "DEBUG TEST")
+    check._runCheck(single_sha)
+    #check._comparePerformance(single_sha)
 
 
