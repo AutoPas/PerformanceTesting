@@ -15,7 +15,7 @@ class Config(me.DynamicDocument):
     # sparse allows for empty unique key
     unique = me.StringField(unique=True, sparse=True)
 
-    # TODO: dynamic fields, so don't have to manually add them here if output of measure_Perf changes
+    # Instead using dynamic fields, so don't have to manually add them here if output of measure_Perf changes
     '''
 
     # CONFIG FIELDS
@@ -45,6 +45,8 @@ class Config(me.DynamicDocument):
 
     # Measurements
     measurements = me.ListField()
+    meanTime = me.FloatField()
+    minTime = me.FloatField()
 
     def __str__(self):
         output = f"Name: {self.name} Date: {self.date}"
