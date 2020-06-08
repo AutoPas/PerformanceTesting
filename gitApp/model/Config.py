@@ -15,6 +15,9 @@ class Config(me.DynamicDocument):
     # sparse allows for empty unique key
     unique = me.StringField(unique=True, sparse=True)
 
+    # Test setup
+    setup = me.DictField()
+
     # Instead using dynamic fields, so don't have to manually add them here if output of measure_Perf changes
     '''
 

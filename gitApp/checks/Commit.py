@@ -45,6 +45,7 @@ class Commit:
         self.headers = []
         self.statusMessages = []
         self.measure_output = None
+        self.perfSetup = {}
 
     def updateStatus(self, code, header, message):
         self.codes.append(code)
@@ -107,17 +108,19 @@ class Commit:
         # change to md-flexible folder
         os.chdir(self.mdFlexDir)
 
-        deltaT = 0.0
-        tuningPhases = 1
-        generator = 'uniform'
-        particles = 1000
+        self.perfSetup = {
+            'deltaT': 0.0,
+            'tuningPhases': 1,
+            'generator': 'uniform',
+            'particles': 1000
+        }
         # Running one tuning session
         self.measure_output = run(['./md-flexible',
-                              '--deltaT', f'{deltaT}',
-                              '--tuning-phases', f'{tuningPhases}',
+                              '--deltaT', f'{self.perfSetup["deltaT"]}',
+                              '--tuning-phases', f'{self.perfSetup["tuningPhases"]}',
                               '--log-level', 'debug',
-                              '--particle-generator', f'{generator}',
-                              '--particles-total', f'{particles}'], stdout=PIPE, stderr=PIPE)
+                              '--particle-generator', f'{self.perfSetup["generator"]}',
+                              '--particles-total', f'{self.perfSetup["particles"]}'], stdout=PIPE, stderr=PIPE)
         if self.measure_output.returncode != 0:
             print("MEASUREPERF failed with return code", self.measure_output.returncode)
             self.updateStatus(-1,
@@ -164,6 +167,9 @@ class Commit:
 
             # Assumes tests were run on this system
             db_entry.system = cpu
+
+            # Saving Setup used in perf script
+            db_entry.setup = self.perfSetup
 
             # TODO: Decide if uniqueness is enforced (Change spare in model to False)
             # db_entry.unique = db_entry.name + db_entry.commitSHA + db_entry.system + str(db_entry.date)
