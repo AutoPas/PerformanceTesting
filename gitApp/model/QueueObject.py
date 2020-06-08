@@ -1,0 +1,15 @@
+import mongoengine as me
+
+
+class QueueObject(me.Document):
+
+    commitSHA = me.StringField(sparse=False, unique=True)
+    running = me.BooleanField()  # If currently worked on
+
+    # Urls to communicate with API
+    runUrl = me.URLField()
+    compareUrl = me.URLField()
+
+    def __str__(self):
+        output = f"Name: {self.commitSHA} Running: {self.running}"
+        return output
