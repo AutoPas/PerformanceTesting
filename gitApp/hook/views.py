@@ -34,17 +34,27 @@ def receiveHook(request):
     #TODO: HANDLE RE-REQUEST EVENTS for single runs and entire suits
 
     if "pull_request" in event_type:
-        action = json.loads(request.body)["action"]
+        request_json = json.loads(request.body)
+        action = request_json["action"]
+
+        # TODO: Re-enable these triggers
         if action == "opened" \
                 or action == "synchronize"\
                 or action == "reopened":
+            print('DEBUG: NOT RUNNING FOR ALL PULL REQUESTS')
 
-            try:
-                print("do pull stuff")
-                check = CheckFlow()
-                check.receiveHook(request)
-            except Exception as e:
-                print(f"CheckFlow failed with {e}")
+        if action == "labeled":
+            labels = request_json['pull_request']['labels']
+            for l in labels:
+                if l['name'] == 'test-performance':
+                    print('\n\n\nLABEL-TRIGGER\n\n\n')
+                    try:
+                        check = CheckFlow()
+                        check.receiveHook(request)
+                    except Exception as e:
+                        print(f"CheckFlow failed with {e}")
+
+                    continue
 
 
     return HttpResponse(status=201)
