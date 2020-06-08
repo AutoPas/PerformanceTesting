@@ -5,7 +5,11 @@ import requests
 import os
 from cryptography.hazmat.backends import default_backend
 
-from gitApp.settings import BASE_DIR
+try:
+    from gitApp.settings import BASE_DIR
+except ModuleNotFoundError:
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    BASE_DIR = os.path.join('../gitApp', BASE_DIR)
 from hook.helper import *
 
 

@@ -8,7 +8,11 @@ import numpy as np
 import platform
 import time
 
-from gitApp.settings import BASE_DIR
+try:
+    from gitApp.settings import BASE_DIR
+except ModuleNotFoundError:
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    BASE_DIR = os.path.join('../gitApp', BASE_DIR)
 from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus
 from hook.Authenticator import Authenticator
 from checks.Repository import Repository
