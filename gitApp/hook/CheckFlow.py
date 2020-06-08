@@ -17,6 +17,7 @@ from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus
 from hook.Authenticator import Authenticator
 from checks.Repository import Repository
 from model.Config import Config
+from model.QueueObject import QueueObject
 
 """
 Codes:
@@ -99,8 +100,8 @@ class CheckFlow:
         pretty_request(r)
         print("COMMIT LIST:")
         cis = r.json()
-        SHAs = [self.baseSHA]
-        # Adding Base SHA of Pull Request to list
+        SHAs = [self.baseSHA]  # Adding additional SHA from master
+        # Full list
         for c in cis:
             SHAs.append(c["sha"])
         for sha in SHAs:
@@ -108,13 +109,26 @@ class CheckFlow:
             shaConfigs = Config.objects(commitSHA=sha).order_by('-id')
             if shaConfigs.count() == 0:
                 print("NEW COMMIT", sha)
-                self.RunUrls[sha] = self._createCheckRun(sha, "Performance Run")
+                queue = QueueObject()
+                queue.commitSHA = sha
+                try:
+                    queue.save()
+                except me.NotUniqueError:
+                    continue  # SHA is already queed
+                queue.runUrl = self._createCheckRun(sha, "Performance Run")
                 if sha is not self.baseSHA:
-                    self.CompareUrls[sha] = self._createCheckRun(sha, "Performance Comparison")
+                    queue.compareUrl = self._createCheckRun(sha, "Performance Comparison")
+                queue.running = False
+                queue.save()
             else:
                 print("Available Tests for SHA", shaConfigs.count())
                 print("COMMIT ALREADY TESTED", sha)
                 continue
+
+        # Early Exit
+        # TODO: Spawn pod and run queue
+        return 0
+
         for sha in self.RunUrls.keys():
             print("TESTING COMMIT", sha)
             self._runCheck(sha)
@@ -152,7 +166,6 @@ class CheckFlow:
             # TODO: _IMPORTANT: Think about replicating that work flow here and actually make
             #  build / measure / upload their own check runs in the suite or via updateStatus
             codes, headers, messages = self.repo.testSHA(sha)
-            # TODO: CHANGE BACK TO FULL SHA TEST
 
             os.chdir(cwd)
             print("CODES", codes, messages)
