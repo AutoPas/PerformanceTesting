@@ -5,15 +5,14 @@ from pymongo import errors
 import imp
 import os
 import numpy as np
+import platform
+import time
 
+from gitApp.settings import BASE_DIR
 from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus
 from hook.Authenticator import Authenticator
 from checks.Repository import Repository
 from model.Config import Config
-from gitApp.settings import BASE_DIR
-from hook.models import NodeLock
-import platform
-import time
 
 """
 Codes:
@@ -21,53 +20,6 @@ Codes:
     0: neutral
     1: success
 """
-
-
-def getLock():
-    # time in seconds trying to aquire the lock before aborting
-    retry_threshold = 60 * 1
-    node_name = platform.node()
-    print("GETTING LOCK FOR NODE: ", node_name)
-
-    locks = NodeLock.objects.filter(node=node_name)
-    num_locks = len(locks)
-    assert (num_locks <= 1)
-
-    if num_locks == 0:
-        lock = NodeLock(node=node_name, isLocked=True)
-    else:
-        lock = locks[0]
-        if not lock.isLocked:
-            lock.isLocked = True
-        else:
-            print("TRYING TO RUN TESTS ON LOCKED NODE")
-            # all() refreshes the already returned queryset
-            timer = 0
-            while locks.all()[0].isLocked:
-                print("STILL LOCKED")
-                refreshTime = 10
-                time.sleep(refreshTime)
-                timer += refreshTime
-                if timer > retry_threshold:
-                    print(f"LOCK NOT AVAILABLE AFTER {retry_threshold} SECONDS, aborting")
-                    return False
-
-            lock.isLocked = True
-
-    lock.save()
-    print(f"AQUIRED LOCK ON {node_name}")
-    return True
-
-
-def releaseLock():
-    node_name = platform.node()
-    print("RELEASING LOCK FOR NODE: ", node_name)
-
-    locks = NodeLock.objects.filter(node=node_name)
-    assert (len(locks) == 1)
-    lock = locks[0]
-    lock.isLocked = False
-    lock.save()
 
 
 class CheckFlow:
