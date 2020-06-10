@@ -5,6 +5,8 @@ class QueueObject(me.Document):
 
     commitSHA = me.StringField(sparse=False, unique=True)
     running = me.BooleanField()  # If currently worked on
+    installID = me.IntField()
+    status = me.StringField()  # To save errors etc.
 
     # Urls to communicate with API
     runUrl = me.URLField()
