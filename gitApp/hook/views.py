@@ -41,7 +41,7 @@ def receiveHook(request):
         if action == "opened" \
                 or action == "synchronize"\
                 or action == "reopened":
-            print('DEBUG: NOT RUNNING FOR ALL PULL REQUESTS')
+            print('\n\n\nDEBUG: NOT RUNNING FOR ALL PULL REQUESTS\n\n\n')
 
         if action == "labeled":
             labels = request_json['pull_request']['labels']
