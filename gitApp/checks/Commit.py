@@ -1,4 +1,5 @@
 from model.Config import Config
+from model.Results import Results
 from hook.helper import convertOutput
 
 from git import Repo
@@ -156,28 +157,37 @@ class Commit:
         times_pattern = re.compile(r'(\d+)')
         config_runs = coarse_pattern.findall(self.measure_output.stdout.decode('utf-8'))
 
+        db_entry = Config()
+        db_entry.name = 'performance via single tuning phase'  # TODO: Keep name field?
+        db_entry.date = run_timestamp
+        db_entry.commitSHA = self.sha
+        db_entry.commitMessage = self.repo.commit(self.sha).message
+        db_entry.commitDate = self.repo.commit(self.sha).authored_datetime
+
+        # Assumes tests were run on this system
+        db_entry.system = cpu
+
+        # Saving Setup used in perf script
+        db_entry.setup = self.perfSetup
+
+        # TODO: Decide if uniqueness is enforced (Change spare in model to False)
+        # db_entry.unique = db_entry.name + db_entry.commitSHA + db_entry.system + str(db_entry.date)
+        # try:
+        #     db_entry.save()
+        # except NotUniqueError:
+        #     print("Exact Configuration for system and commit + date already saved!")
+        #     continue
+        try:
+            db_entry.save()
+        except Exception as e:
+            self.updateStatus(-1, "UPLOAD", str(e))
+            return False
+        print(db_entry)
+
         for run in config_runs:
 
-            db_entry = Config()
-            db_entry.name = 'performance via single tuning phase'  # TODO: Keep name field?
-            db_entry.date = run_timestamp
-            db_entry.commitSHA = self.sha
-            db_entry.commitMessage = self.repo.commit(self.sha).message
-            db_entry.commitDate = self.repo.commit(self.sha).authored_datetime
-
-            # Assumes tests were run on this system
-            db_entry.system = cpu
-
-            # Saving Setup used in perf script
-            db_entry.setup = self.perfSetup
-
-            # TODO: Decide if uniqueness is enforced (Change spare in model to False)
-            # db_entry.unique = db_entry.name + db_entry.commitSHA + db_entry.system + str(db_entry.date)
-            # try:
-            #     db_entry.save()
-            # except NotUniqueError:
-            #     print("Exact Configuration for system and commit + date already saved!")
-            #     continue
+            results = Results()
+            results.config = db_entry
 
             # Filter all config parameters
             config = config_pattern.findall(run[0])
@@ -196,27 +206,25 @@ class Commit:
                         pass
 
                     print(key, quantity)
-                    db_entry[key] = quantity
+                    results[key] = quantity
 
                 # Parsing times
                 times = times_pattern.findall(run[1])
                 times = [float(t) for t in times]
-                db_entry.measurements = times
-                db_entry.meanTime = np.mean(times)  # Mean running Time
-                db_entry.minTime = np.min(times)  # Min running Time
+                results.measurements = times
+                results.meanTime = np.mean(times)  # Mean running Time
+                results.minTime = np.min(times)  # Min running Time
             except Exception as e:
                 print(f'Parsing of measurement failed {e}')
                 self.updateStatus(-1, "PARSING", str(e))
                 return False
 
             try:
-                db_entry.save()
+                results.save()
             except Exception as e:
                 self.updateStatus(-1, "UPLOAD", str(e))
                 return False
-
-            print(db_entry)
-            self.configs.append(db_entry)
+            print(results)
 
         os.chdir(self.baseDir)
         self.updateStatus(1, "UPLOAD", "RESULT UPLOAD succeeded\n")
