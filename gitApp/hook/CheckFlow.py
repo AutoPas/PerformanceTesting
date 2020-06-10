@@ -5,8 +5,6 @@ from pymongo import errors
 import imp
 import os
 import numpy as np
-import platform
-import time
 
 try:
     from gitApp.settings import BASE_DIR
