@@ -39,6 +39,7 @@ class Worker:
                     self.checkflow.comparePerformance(sha, nextUp.compareUrl)  # Run comparison
             nextUp.status = "completed"
             nextUp.save()
+            nextUp.delete()  # Bit unnecessary to change status earlier, but hey
         except Exception as exc:
             nextUp.status = str(exc)
             nextUp.save()
