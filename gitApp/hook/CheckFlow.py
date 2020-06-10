@@ -27,8 +27,6 @@ Codes:
 
 class CheckFlow:
     GIT_APP_ID = os.environ["GITHUBAPPID"]
-    # TODO: Remove if not needed for debugging anymore
-    INSTALL_ID = 1600235
     # TODO: Add to config file
     PEM = "private-key.pem"
     DB = "database.config"
@@ -43,9 +41,6 @@ class CheckFlow:
         self.branch = ""
         self.baseSHA = ""
         self.base = ""
-
-        self.RunUrls = {}
-        self.CompareUrls = {}
 
         # Initiate DB connection with settings from file
         dbPath = os.path.join(BASE_DIR, CheckFlow.DB)
@@ -67,6 +62,8 @@ class CheckFlow:
     def receiveHook(self, request):  # WSGIRequest):
         """ on receive of pull_request event """
 
+        # TODO: Add commits to Work queue and spawn worker
+
         print("RUNNING CHECKS")
         body = json.loads(request.body)
         # Update Repo installation ID for Github App auth
@@ -83,6 +80,7 @@ class CheckFlow:
         self.branch = pull["head"]["ref"]
         self.base = pull["base"]["ref"]
         self.baseSHA = pull["base"]["sha"]
+        # TODO: Needed here?
         self.repo.checkoutBranch(self.branch)
         print(ci_url)
 
@@ -109,10 +107,12 @@ class CheckFlow:
                 print("NEW COMMIT", sha)
                 queue = QueueObject()
                 queue.commitSHA = sha
+                queue.installID = self.auth.install_id
                 try:
                     queue.save()
                 except me.NotUniqueError:
-                    continue  # SHA is already queed
+                    print('SHA is already queued')
+                    continue
                 queue.runUrl = self._createCheckRun(sha, "Performance Run")
                 if sha is not self.baseSHA:
                     queue.compareUrl = self._createCheckRun(sha, "Performance Comparison")
@@ -123,15 +123,9 @@ class CheckFlow:
                 print("COMMIT ALREADY TESTED", sha)
                 continue
 
-        # Early Exit
-        # TODO: Spawn pod and run queue
+        # TODO: Spawn pod and to run queue
         return 0
 
-        for sha in self.RunUrls.keys():
-            print("TESTING COMMIT", sha)
-            self._runCheck(sha)
-            if sha in self.CompareUrls.keys():
-                self._comparePerformance(sha)
 
     def _createCheckRun(self, sha, name):
 
@@ -148,13 +142,13 @@ class CheckFlow:
         print(check_run_id_url)
         return check_run_id_url
 
-    def _runCheck(self, sha):
+    def runCheck(self, sha, runUrl):
 
         # RUN CHECK
-        print(f"RUNNING CHECKS ON {sha}")
+        print(f"RUNNING CHECKS ON {sha} {runUrl}")
 
         # Update Status to in Progress
-        r = requests.patch(url=self.RunUrls[sha], headers=self.auth.getTokenHeader(), json=initialStatus())
+        r = requests.patch(url=runUrl, headers=self.auth.getTokenHeader(), json=initialStatus())
         pretty_request(r)
 
         try:
@@ -168,36 +162,41 @@ class CheckFlow:
             os.chdir(cwd)
             print("CODES", codes, messages)
             r = requests.patch(
-                url=self.RunUrls[sha],
+                url=runUrl,
                 headers=self.auth.getTokenHeader(),
                 json=codeStatus(codes, headers, messages))
             pretty_request(r)
+            if -1 in codes:
+                return False
+            else:
+                return True
         except Exception as e:
             print(e)
             print(f"TestSHA {sha} failed with exit")
             r = requests.patch(
-                url=self.RunUrls[sha],
+                url=runUrl,
                 headers=self.auth.getTokenHeader(),
                 json=codeStatus([-1], ["GENERAL"], [f"exit() statement called\n{e}"]))
             pretty_request(r)
             return False
 
-    def _comparePerformance(self, sha):
+    def comparePerformance(self, sha, compareUrl):
 
         assert (sha is not self.baseSHA)
 
-        print(f"Comparing Performance for {sha}")
+        print(f"Comparing Performance for {sha} {compareUrl}")
         # Update Status to in Progress
-        r = requests.patch(url=self.CompareUrls[sha], headers=self.auth.getTokenHeader(), json=initialStatus())
+        r = requests.patch(url=compareUrl, headers=self.auth.getTokenHeader(), json=initialStatus())
         pretty_request(r)
 
         try:
+            # TODO: get baseSHA from Config?
             baseConfigs = Config.objects(commitSHA=self.baseSHA).order_by('-id')
             shaConfigs = Config.objects(commitSHA=sha).order_by('-id')
         except errors.ServerSelectionTimeoutError as e:
             print(e)
             r = requests.patch(
-                url=self.CompareUrls[sha],
+                url=compareUrl,
                 headers=self.auth.getTokenHeader(),
                 json=codeStatus([-1], ["QUERY DATABASE"],
                                 [f"Couldn't query database. TimedOut {e}"]))
@@ -217,7 +216,7 @@ class CheckFlow:
             bcr = self._getRecentRun(cr, baseConfigs)
             if bcr is None:
                 r = requests.patch(
-                    url=self.CompareUrls[sha],
+                    url=compareUrl,
                     headers=self.auth.getTokenHeader(),
                     json=codeStatus([-1], ["MATCH CONFIGS"],
                                     [f"Couldn't find matching base run config in database for {str(cr)}"]))
@@ -230,13 +229,13 @@ class CheckFlow:
 
         print("COMPARISON RESULTS:", codes, header, messages)
         r = requests.patch(
-            url=self.CompareUrls[sha],
+            url=compareUrl,
             headers=self.auth.getTokenHeader(),
             json=speedupStatus(codes, header, messages, []))
         pretty_request(r)
 
     def _getRecentRun(self, cr, baseConfigs):
-        # TODO: include system
+        # TODO: change to dynamic db entry
         bcr = baseConfigs.filter(
             # CONFIG FIELDS
             container=cr.container,
@@ -271,6 +270,7 @@ class CheckFlow:
             return None
 
     def _compareConfig(self, bcr, cr):
+        # TODO: DOCUMENTATION / ADJUST TO NEW SYSTEM
         baseMeasurements = bcr.measurements
         commitMeasurements = cr.measurements
 
@@ -296,6 +296,7 @@ class CheckFlow:
             return 1, [sMin, sMax, sAvg]
 
     def _calcSpeedup(self, bm, cm):
+        # TODO: ADJUST TO NEW SYSTEM
         bmit = bm["ItMicros"]
         cmit = cm["ItMicros"]
         speedup = cmit / bmit
@@ -321,8 +322,8 @@ if __name__ == '__main__':
     check.baseUrl = "https://api.github.com/repos/AutoPas/AutoPas"
     check.auth.updateInstallID(2027548)
     #check.CompareUrls[single_sha] = check._createCheckRun(single_sha, "DEBUG TEST")
-    check.RunUrls[single_sha] = check._createCheckRun(single_sha, "DEBUG TEST")
-    check._runCheck(single_sha)
+    runUrl = check._createCheckRun(single_sha, "DEBUG TEST")
+    check.runCheck(single_sha, runUrl)
     #check._comparePerformance(single_sha)
 
 
