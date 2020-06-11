@@ -4,6 +4,7 @@ import mongoengine as me
 from pymongo import errors
 import imp
 import os
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -52,7 +53,7 @@ class CheckFlow:
         except Exception as e:
             print(e)
             print("database.config MISSING. Create file based on: database.config.example")
-            exit(-1)
+            sys.exit(-1)
 
         # Connect to MongoDB
         print("DB settings: ", db.collection, db.user, db.server)  # , db.password)
