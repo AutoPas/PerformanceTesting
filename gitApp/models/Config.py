@@ -18,8 +18,17 @@ class Config(me.Document):
     # Test setup
     setup = me.DictField()
 
+    # Image Link
+    imgurLink = me.URLField()
+    # Delete Hash
+    deleteHash = me.StringField()
+
     def __str__(self):
-        output = f"Name: {self.name} {self.commitSHA} Date: {self.date}"
+        output = f"Name: {self.commitMessage}\n" \
+                 f"SHA: {self.commitSHA}\n" \
+                 f"Date: {self.date}\n" \
+                 f"Systen: {self.system}\n" \
+                 f"Setup: {self.setup}"
         return output
 
     # Setup indexing for faster querying
