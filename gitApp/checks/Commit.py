@@ -17,6 +17,7 @@ import matplotlib
 from matplotlib import pyplot as plt
 from warnings import warn
 import numpy as np
+import mongoengine as me
 
 # Switch for GUI
 matplotlib.use("Agg")
@@ -298,3 +299,10 @@ class Commit:
 
         os.chdir(self.baseDir)
         return True
+
+
+
+if __name__ == '__main__':
+    me.connect('performancedb', host='localhost:30017', username=os.environ['USERNAME'], password=os.environ['PASSWORD'])
+    c = Commit(Repo('../../../AutoPas'), 'cb22dd6e28ad8d4f25b076562e4bf861613b3153')
+    c.generatePlot()
