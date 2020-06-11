@@ -20,7 +20,7 @@ class Worker:
         nextUp: QueueObject
         queue = QueueObject.objects(running=False)
         if len(queue) != 0:
-            nextUp = queue.first()
+            nextUp = queue.order_by('_id').first()  # Should work through queue by FIFO
             del queue
         else:
             return True
