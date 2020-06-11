@@ -197,9 +197,11 @@ class CheckFlow:
         base = Config.objects(commitSHA=baseSHA).order_by('-date').first()  # Get freshest config
         test = Config.objects(commitSHA=sha, system=base.system, setup=base.setup).order_by('-date').first()  # Get freshest config
 
-        _ = self._compareConfigs(base, test)
+        fig, *_ = self._compareConfigs(base, test)
 
-        return True
+        # TODO: Save and upload + update checkrun with speeup summary
+
+        return False
 
 
     def _compareConfigs(self, base: Config, test: Config):
@@ -258,7 +260,7 @@ class CheckFlow:
         plt.show()
 
         print(f"{missing_results_counter} not matched out of {len(baseResults)}")
-        return 1
+        return fig, minSpeeds, meanSpeeds
 
     def _compareResults(self, base: Results, test: Results):
         """
