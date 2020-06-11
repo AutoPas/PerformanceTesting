@@ -1,5 +1,6 @@
 from models.QueueObject import QueueObject
 from checks.CheckFlow import CheckFlow
+import sys
 
 
 class Worker:
@@ -52,9 +53,9 @@ if __name__ == '__main__':
     try:
         w = Worker()
         w.checkQueue()
-        exit(0)
+        sys.exit(0)
     except Exception as e:
         print('\n\n\n\n WORKER FAILED \n\n\n\n')
         print(e)
         print('\n\n\n\n WORKER FAILED \n\n\n\n')
-        exit(-1)
+        sys.exit(-1)
