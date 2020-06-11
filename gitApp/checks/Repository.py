@@ -54,7 +54,7 @@ class Repository:
 
         # reset to previous state
         self.repo.head.reset(self.initialHead, index=True, working_tree=True)
-        return c.codes, c.headers, c.statusMessages
+        return c.codes, c.headers, c.statusMessages, c.images
 
     def testLast(self, last):
 
