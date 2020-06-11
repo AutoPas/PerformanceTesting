@@ -157,14 +157,14 @@ class CheckFlow:
             print("Running Threads:", os.environ["OMP_NUM_THREADS"])
             # TODO: _IMPORTANT: Think about replicating that work flow here and actually make
             #  build / measure / upload their own check runs in the suite or via updateStatus
-            codes, headers, messages = self.repo.testSHA(sha)
+            codes, headers, messages, images = self.repo.testSHA(sha)
 
             os.chdir(cwd)
             print("CODES", codes, messages)
             r = requests.patch(
                 url=runUrl,
                 headers=self.auth.getTokenHeader(),
-                json=codeStatus(codes, headers, messages))
+                json=codeStatus(codes, headers, messages, images))
             pretty_request(r)
             if -1 in codes:
                 return False
