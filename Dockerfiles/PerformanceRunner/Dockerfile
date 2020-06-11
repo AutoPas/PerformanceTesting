@@ -25,9 +25,10 @@ RUN mv database.config PerformanceTesting/gitApp/
 WORKDIR /usr/src/app/PerformanceTesting/gitApp
 
 
-ENV GITHUBAPPID 41626
-# TODO: Might be overwritten globally from CheckFlow, but unclear for all workers
-ENV OMP_NUM_THREADS 8
+# ENV IMGURCLIENTID XXXX
+# ENV GITHUBAPPID XXXXX
+# TODO: Might be overwritten globally from CheckFlow
+ENV OMP_NUM_THREADS 12
 
 
 # allow write for the git and test scripts
