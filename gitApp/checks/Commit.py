@@ -46,13 +46,16 @@ class Commit:
         self.codes = []
         self.headers = []
         self.statusMessages = []
+        self.images = []
         self.measure_output = None
         self.perfSetup = {}
 
-    def updateStatus(self, code, header, message):
+    def updateStatus(self, code, header, message, image=None):
         self.codes.append(code)
         self.headers.append(header)
         self.statusMessages.append(message)
+        if image is not None:
+            self.images.append(image)
 
     def build(self):
 
@@ -231,37 +234,67 @@ class Commit:
         return True
 
     def generatePlot(self):
+        """
+        Quick overview plot for commit
+        :return:
+        """
 
-        configs = self.configs
-        containers = ["DirectSum", "LinkedCells", "VerletListsCells", "VerletClusterLists", "VerletLists"]
-        figs = {}
         try:
-            # Create figs
-            for cont in containers:
-                figs[cont] = plt.figure(cont, figsize=(16, 9))
-                plt.xlabel("Particles")
-                plt.ylabel("MFUP/s")
 
-            for c in configs:
-                data = c.measurements
-                N = [d["N"] for d in data]
-                MFUPs = [d["MFUPs"] for d in data]
+            imgur = ImgurUploader()
 
-                plt.figure(c.container)
-                name = c.name.lstrip("runtimes_").rstrip(".csv")
-                plt.semilogx(N, MFUPs, label=name)
-                plt.xticks(N, N)
+            confs = Config.objects(commitSHA=self.sha)
+            images = []
+
+            # Multiple Plots if more than one config was run
+            conf: Config
+            for conf in confs:
+                results = Results.objects(config=conf)
+
+                means = np.array([r.meanTime for r in results])
+                mins = np.array([r.minTime for r in results])
+
+                def get_dyn_keys(res: Results):
+                    out = ''
+                    all_attr = res.__dict__
+                    keys = all_attr['_fields_ordered']
+                    for k in keys:
+                        if 'dynamic_' in k:
+                            out += k.replace('dynamic_', '') + ": "
+                            out += str(all_attr[k]) + ' '
+                    out.rstrip(' ')
+                    return out
+
+                labels = np.array([get_dyn_keys(r).expandtabs() for r in results])
+
+                # Sort by minimum time
+                sort_keys = np.argsort(mins)[::-1]
+                sorted_means = means[sort_keys]
+                sorted_mins = mins[sort_keys]
+                sorted_labels = labels[sort_keys]
+
+                fig = plt.figure(figsize=(15, len(means)/4))
+                plt.gca().set_title(conf)
+                plt.barh(np.arange(len(means)), sorted_means, label='mean')
+                plt.barh(np.arange(len(means)), sorted_mins, label='min')
                 plt.legend()
+                plt.xlabel('nanoseconds')
+                plt.yticks(np.arange(len(means)), sorted_labels)
+                plt.tight_layout()
 
-            os.chdir(self.mdFlexDir)
+                # Upload figure
+                buf = io.BytesIO()
+                fig.savefig(buf, format='png')
+                buf.seek(0)
+                link, hash = imgur.upload(buf.read())
+                conf.imgurLink = link
+                conf.deleteHash = hash
+                conf.save()
 
-            for cont in containers:
-                plt.figure(cont)
-                plt.savefig(cont + ".png")
+                self.updateStatus(1, "PLOTTING", "PLOTTING succeeded\n", link)
+
         except Exception as e:
-            self.updateStatus(-1, "PLOTTING", str(e))
-            return False
+            self.updateStatus(-1, "PLOTTING", f"PLOTTING failed\n{e}")
 
         os.chdir(self.baseDir)
-        self.updateStatus(1, "PLOTTING", "PLOTTING succeeded\n")
         return True
