@@ -29,13 +29,12 @@ class Commit:
     buildDir = "build"
     mdFlexDir = ""
 
-    def __init__(self, repo: Repo, sha):
+    def __init__(self, repo: Repo, sha: str):
         # Reset Dir to specified commit
         repo.head.reset(sha, index=True, working_tree=True)
         self.message = repo.head.commit.message
         self.sha = sha
         self.repo = repo
-        self.configs = []
         print("New commit:", self.sha, self.message, "\n")
         self.baseDir = repo.git_dir.strip(".git")
         self.buildDir = os.path.join(self.baseDir, self.buildDir)
@@ -144,7 +143,6 @@ class Commit:
 
     def parse_and_upload(self):
 
-        # TODO: Move to new measurement script via self.measurement_output
         print("uploading", self.mdFlexDir)
 
         try:
@@ -172,7 +170,7 @@ class Commit:
         # Saving Setup used in perf script
         db_entry.setup = self.perfSetup
 
-        # TODO: Decide if uniqueness is enforced (Change spare in model to False)
+        # TODO: Decide if uniqueness is enforced (Change spare in models to False)
         # db_entry.unique = db_entry.name + db_entry.commitSHA + db_entry.system + str(db_entry.date)
         # try:
         #     db_entry.save()
