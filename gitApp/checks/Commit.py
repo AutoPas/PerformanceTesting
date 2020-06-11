@@ -1,9 +1,11 @@
 from models.Config import Config
 from models.Results import Results
 from hook.helper import convertOutput
+from checks.ImgurUploader import ImgurUploader
 
 from git import Repo
 import os
+import io
 import shutil
 from subprocess import run, PIPE
 from glob import glob
