@@ -1,5 +1,5 @@
 import mongoengine as me
-from model.Config import Config
+from models.Config import Config
 
 
 class Results(me.DynamicDocument):

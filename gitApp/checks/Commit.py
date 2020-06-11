@@ -1,5 +1,5 @@
-from model.Config import Config
-from model.Results import Results
+from models.Config import Config
+from models.Results import Results
 from hook.helper import convertOutput
 
 from git import Repo

@@ -1,8 +1,5 @@
-import mongoengine as me
-
-from model.QueueObject import QueueObject
-from model.Config import Config
-from hook.CheckFlow import CheckFlow
+from models.QueueObject import QueueObject
+from checks.CheckFlow import CheckFlow
 
 
 class Worker:

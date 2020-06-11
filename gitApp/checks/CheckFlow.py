@@ -12,10 +12,10 @@ except ModuleNotFoundError:
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     BASE_DIR = os.path.join('../gitApp', BASE_DIR)
 from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus
-from hook.Authenticator import Authenticator
+from checks.Authenticator import Authenticator
 from checks.Repository import Repository
-from model.Config import Config
-from model.QueueObject import QueueObject
+from models.Config import Config
+from models.QueueObject import QueueObject
 
 """
 Codes:
