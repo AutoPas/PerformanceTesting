@@ -15,3 +15,9 @@ class QueueObject(me.Document):
     def __str__(self):
         output = f"Name: {self.commitSHA} Running: {self.running}"
         return output
+
+    meta = {
+        'indexes': [
+            'commitSHA'
+        ]
+    }

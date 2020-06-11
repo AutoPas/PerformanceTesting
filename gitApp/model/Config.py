@@ -21,3 +21,10 @@ class Config(me.Document):
     def __str__(self):
         output = f"Name: {self.name} {self.commitSHA} Date: {self.date}"
         return output
+
+    # Setup indexing for faster querying
+    meta = {
+        'indexes': [
+            'commitSHA'
+        ]
+    }
