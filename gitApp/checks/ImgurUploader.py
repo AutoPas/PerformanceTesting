@@ -59,4 +59,5 @@ class ImgurUploader:
 
 if __name__ == '__main__':
     img = ImgurUploader()
-    img.upload(open('2019.png', 'rb').read())
+    with open('2019.png', 'rb') as f:
+        img.upload(f.read())
