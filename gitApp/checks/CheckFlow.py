@@ -5,17 +5,19 @@ from pymongo import errors
 import imp
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 
 try:
     from gitApp.settings import BASE_DIR
 except ModuleNotFoundError:
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     BASE_DIR = os.path.join('../gitApp', BASE_DIR)
-from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus
+from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus, get_dyn_keys
 from checks.Authenticator import Authenticator
 from checks.Repository import Repository
 from models.Config import Config
 from models.QueueObject import QueueObject
+from models.Results import Results
 
 """
 Codes:
@@ -182,135 +184,92 @@ class CheckFlow:
 
     def comparePerformance(self, sha, compareUrl):
 
-        assert (sha is not self.baseSHA)
-
         print(f"Comparing Performance for {sha} {compareUrl}")
         # Update Status to in Progress
         r = requests.patch(url=compareUrl, headers=self.auth.getTokenHeader(), json=initialStatus())
         pretty_request(r)
 
-        try:
-            # TODO: get baseSHA from Config?
-            baseConfigs = Config.objects(commitSHA=self.baseSHA).order_by('-id')
-            shaConfigs = Config.objects(commitSHA=sha).order_by('-id')
-        except errors.ServerSelectionTimeoutError as e:
-            print(e)
-            r = requests.patch(
-                url=compareUrl,
-                headers=self.auth.getTokenHeader(),
-                json=codeStatus([-1], ["QUERY DATABASE"],
-                                [f"Couldn't query database. TimedOut {e}"]))
-            pretty_request(r)
-            return False
+        # TODO: What if involved in more than one PR
+        pr = r.json()['pull_requests'][0]
+        baseSHA = pr['base']['sha']
 
-        # Type Hint for QuerySet
-        cr: Config
-        bcr: Config
-        codes = []
-        header = []
-        messages = []
-        images = []
-        for cr in shaConfigs:
-            # Compare results from sha config (cr) and base config (bcr)
-            # TODO: rerun tests if exact match is not available ( include system)
-            bcr = self._getRecentRun(cr, baseConfigs)
-            if bcr is None:
-                r = requests.patch(
-                    url=compareUrl,
-                    headers=self.auth.getTokenHeader(),
-                    json=codeStatus([-1], ["MATCH CONFIGS"],
-                                    [f"Couldn't find matching base run config in database for {str(cr)}"]))
-                pretty_request(r)
-            else:
-                code, d = self._compareConfig(bcr, cr)
-                codes.append(code)
-                header.append(str(cr))
-                messages.append(f"Smin: {d[0]}, Smax: {d[1]}, Savg: {d[2]}")
+        # TODO: What if multiple configs are all of interest, and not just the newest
+        base = Config.objects(commitSHA=baseSHA).order_by('-date').first()  # Get freshest config
+        test = Config.objects(commitSHA=sha, system=base.system, setup=base.setup).order_by('-date').first()  # Get freshest config
 
-        print("COMPARISON RESULTS:", codes, header, messages)
-        r = requests.patch(
-            url=compareUrl,
-            headers=self.auth.getTokenHeader(),
-            json=speedupStatus(codes, header, messages, []))
-        pretty_request(r)
+        _ = self._compareConfigs(base, test)
 
-    def _getRecentRun(self, cr, baseConfigs):
-        # TODO: change to dynamic db entry
-        bcr = baseConfigs.filter(
-            # CONFIG FIELDS
-            container=cr.container,
-            # Verlet
-            rebuildFreq=cr.rebuildFreq,
-            skinRadius=cr.skinRadius,
-            # General
-            layout=cr.layout,
-            functor=cr.functor,
-            newton=cr.newton,
-            cutoff=cr.cutoff,
-            cellSizeFactor=cr.cellSizeFactor,
-            generator=cr.generator,
-            boxLength=cr.boxLength,
-            particles=cr.particles,
-            traversal=cr.traversal,
-            iterations=cr.iterations,
-            tuningStrategy=cr.tuningStrategy,
-            tuningInterval=cr.tuningInterval,
-            tuningSamples=cr.tuningSamples,
-            tuningMaxEvidence=cr.tuningMaxEvidence,
-            epsilon=cr.epsilon,
-            sigma=cr.sigma
-        )
-        try:
-            recent = bcr.first()
-            print(recent)
-            return recent
-        except Exception as e:
-            print(e)
-            print("Couldn't find matching config")
-            return None
+        return True
 
-    def _compareConfig(self, bcr, cr):
-        # TODO: DOCUMENTATION / ADJUST TO NEW SYSTEM
-        baseMeasurements = bcr.measurements
-        commitMeasurements = cr.measurements
 
-        assert(len(baseMeasurements) == len(commitMeasurements))
+    def _compareConfigs(self, base: Config, test: Config):
+        """
+        Given two configs, find all overlapping results and compare them
 
-        configCodes = []
-        speedUps = []
+        :param base: PR Base SHA config
+        :param test: Commit in PR to compare to base
+        :return:
+        """
 
-        for bm, cm in zip(baseMeasurements, commitMeasurements):
-            code, speedup = self._calcSpeedup(bm, cm)
-            configCodes.append(code)
-            speedUps.append(speedup)
+        # Use base as common denominator and look for results containing the keys in base
+        baseResults = Results.objects(config=base)
+        testResults = Results.objects(config=test)
 
-        sMin = np.min(speedUps)
-        sMax = np.max(speedUps)
-        sAvg = np.average(speedUps)
+        missing_results_counter = 0
+        labels = []
+        minSpeeds = []
+        meanSpeeds = []
 
-        if -1 in configCodes:
-            return -1, [sMin, sMax, sAvg]
-        elif 0 in configCodes:
-            return 0, [sMin, sMax, sAvg]
-        else:
-            return 1, [sMin, sMax, sAvg]
+        for baseRes in baseResults:
+            # Build dynamic keys dict
+            dynamicFields = [key for key in baseRes.__dict__['_fields_ordered'] if 'dynamic_' in key]
+            query = dict()
+            for field in dynamicFields:
+                query[field] = baseRes[field]
 
-    def _calcSpeedup(self, bm, cm):
-        # TODO: ADJUST TO NEW SYSTEM
-        bmit = bm["ItMicros"]
-        cmit = cm["ItMicros"]
-        speedup = cmit / bmit
-        print("Iteration Times:", bmit, cmit)
-        T_FAIL = 1.05
-        T_NEUTRAL = 0.95
-        if speedup > T_FAIL:
-            code = -1
-        elif speedup > T_NEUTRAL:
-            code = 0
-        else:
-            code = 1
+            # Get Results with matching settings (filter existing queryset)
+            testRes = testResults.filter(**query)
+            if len(testRes) == 0:
+                missing_results_counter += 1
+                continue
+            testRes = testRes.order_by('-_id').first()  # Get newest matching if there's more than one
 
-        return code, speedup
+            minSpeedup, meanSpeedup = self._compareResults(baseRes, testRes)
+            minSpeeds.append(minSpeedup)
+            meanSpeeds.append(meanSpeedup)
+            labels.append(get_dyn_keys(testRes))
+
+        sort_keys = np.argsort(minSpeeds)
+        sorted_min_speedsup = np.array(minSpeeds)[sort_keys]
+        sorted_mean_speedsup = np.array(meanSpeeds)[sort_keys]
+        sorted_labels = np.array(labels)[sort_keys]
+
+        colors = ['g' if speed <= 1.1 else 'r' for speed in sorted_min_speedsup]
+
+        fig = plt.figure(figsize=(15, len(labels)/4))
+        plt.title('Speedup')
+        plt.barh(np.arange(len(labels)), sorted_min_speedsup, color=colors, alpha=.5, label='Speedup: minimum runtime')
+        plt.barh(np.arange(len(labels)), sorted_mean_speedsup, color='gray', alpha=.5, label='Speedup: mean runtime')
+        plt.axvline(1, c='r', label='no change')
+        plt.yticks(np.arange(len(labels)), sorted_labels)
+        plt.legend()
+        plt.grid(which='both', axis='x')
+        plt.xlim(0, 2)
+        plt.show()
+
+        print(f"{missing_results_counter} not matched out of {len(baseResults)}")
+        return 1
+
+    def _compareResults(self, base: Results, test: Results):
+        """
+        Compare invididual matching results
+
+        :param base:
+        :param test:
+        :return: Speedups
+        """
+        return base.minTime / test.minTime, base.meanTime / test.meanTime
+
 
 
 if __name__ == '__main__':
@@ -322,8 +281,8 @@ if __name__ == '__main__':
     check.baseUrl = "https://api.github.com/repos/AutoPas/AutoPas"
     check.auth.updateInstallID(2027548)
     #check.CompareUrls[single_sha] = check._createCheckRun(single_sha, "DEBUG TEST")
-    runUrl = check._createCheckRun(single_sha, "DEBUG TEST")
-    check.runCheck(single_sha, runUrl)
-    #check._comparePerformance(single_sha)
+    #runUrl = check._createCheckRun(single_sha, "DEBUG TEST")
+    #check.runCheck(single_sha, runUrl)
+    check.comparePerformance(single_sha, 'https://api.github.com/repos/AutoPas/AutoPas/check-runs/762824540')
 
 
