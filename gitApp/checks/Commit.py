@@ -1,6 +1,6 @@
 from models.Config import Config
 from models.Results import Results
-from hook.helper import convertOutput
+from hook.helper import convertOutput, get_dyn_keys
 from checks.ImgurUploader import ImgurUploader
 
 from git import Repo
@@ -254,17 +254,6 @@ class Commit:
 
                 means = np.array([r.meanTime for r in results])
                 mins = np.array([r.minTime for r in results])
-
-                def get_dyn_keys(res: Results):
-                    out = ''
-                    all_attr = res.__dict__
-                    keys = all_attr['_fields_ordered']
-                    for k in keys:
-                        if 'dynamic_' in k:
-                            out += k.replace('dynamic_', '') + ": "
-                            out += str(all_attr[k]) + ' '
-                    out.rstrip(' ')
-                    return out
 
                 labels = np.array([get_dyn_keys(r).expandtabs() for r in results])
 
