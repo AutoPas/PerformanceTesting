@@ -28,10 +28,8 @@ EXPOSE 8080/udp
 
 WORKDIR /usr/src/app/PerformanceTesting/gitApp
 
-# TODO: Run Performance Testing server, instead of via remote interpreter
-# TODO: RUN PULL AND UPDATE BEFORE STARTING SERVER VIA CMD
-
-ENV GITHUBAPPID 41626
+# ENV IMGURCLIENTID XXXX
+# ENV GITHUBAPPID XXXXX
 # ENV OMP_NUM_THREADS 8
 
 # Initialize database

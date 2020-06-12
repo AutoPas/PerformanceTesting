@@ -1,8 +1,11 @@
-from model.Config import Config
-from hook.helper import convertOutput
+from mongoDocuments.Config import Config
+from mongoDocuments.Results import Results
+from hook.helper import convertOutput, get_dyn_keys
+from checks.ImgurUploader import ImgurUploader
 
 from git import Repo
 import os
+import io
 import shutil
 from subprocess import run, PIPE
 from glob import glob
@@ -13,6 +16,8 @@ from cpuinfo import get_cpu_info
 import matplotlib
 from matplotlib import pyplot as plt
 from warnings import warn
+import numpy as np
+import mongoengine as me
 
 # Switch for GUI
 matplotlib.use("Agg")
@@ -20,18 +25,16 @@ matplotlib.use("Agg")
 
 
 class Commit:
-
     baseDir = ""
     buildDir = "build"
     mdFlexDir = ""
 
-    def __init__(self, repo: Repo, sha):
+    def __init__(self, repo: Repo, sha: str):
         # Reset Dir to specified commit
         repo.head.reset(sha, index=True, working_tree=True)
         self.message = repo.head.commit.message
         self.sha = sha
         self.repo = repo
-        self.configs = []
         print("New commit:", self.sha, self.message, "\n")
         self.baseDir = repo.git_dir.strip(".git")
         self.buildDir = os.path.join(self.baseDir, self.buildDir)
@@ -43,11 +46,16 @@ class Commit:
         self.codes = []
         self.headers = []
         self.statusMessages = []
+        self.images = []
+        self.measure_output = None
+        self.perfSetup = {}
 
-    def updateStatus(self, code, header, message):
+    def updateStatus(self, code, header, message, image=None):
         self.codes.append(code)
         self.headers.append(header)
         self.statusMessages.append(message)
+        if image is not None:
+            self.images.append(image)
 
     def build(self):
 
@@ -95,8 +103,6 @@ class Commit:
         return True
 
     def measure(self):
-        # change to md-flexible folder
-        os.chdir(self.mdFlexDir)
 
         # main.py path
         # issues with using the __file__ method when deploying via uwsgi
@@ -104,38 +110,31 @@ class Commit:
         mainPath = os.path.join(self.baseDir, "..", "PerformanceTesting/gitApp/checks")
         print("measure_perf directory:", mainPath)
 
-        # TODO: TEST changing number of particles / reps for testing and deploy
-        # open file
-        f_measure = open(os.path.join(self.mdFlexDir, 'measurePerf.sh'), 'r+')
-        raw = f_measure.read()
-        # replace the standard numbers
-        molPattern = re.compile('Mols=\(.*\)')
-        repPattern = re.compile('Reps=\(.*\)')
-        # new particle settings
-        mol = 'Mols=(   16  32  64  128 256 512 1024    2048    32768)'
-        # new rep settings
-        reps = 'Reps=(  100    100    100    100    100    100    50    20  20)'
-        # replacing the old
-        new_measure = re.sub(molPattern, mol, raw)
-        new_measure = re.sub(repPattern, reps, new_measure)
-        # writing the new
-        f_measure.close()
-        f_measure = open(os.path.join(self.mdFlexDir, 'measurePerf.sh'), 'w+')
-        f_measure.write(new_measure)
-        f_measure.close()
+        # change to md-flexible folder
+        os.chdir(self.mdFlexDir)
 
-        # Deprecated: short test script copy to build folder
-        # shutil.copy(os.path.join(mainPath, "measurePerf_short.sh"), self.mdFlexDir)
+        particles = 1E4 if 'PRODUCTION' in os.environ else 1E3  # TODO: Specify real particle targets for production
 
-        # export thread number and run test
-        measure_output = run(["./measurePerf.sh", "md-flexible"], stdout=PIPE, stderr=PIPE)
-        if measure_output.returncode != 0:
-            print("MEASUREPERF failed with return code", measure_output.returncode)
+        self.perfSetup = {
+            'deltaT': 0.0,
+            'tuningPhases': 1,
+            'generator': 'uniform',
+            'particles': particles
+        }
+        # Running one tuning session
+        self.measure_output = run(['./md-flexible',
+                                   '--deltaT', f'{self.perfSetup["deltaT"]}',
+                                   '--tuning-phases', f'{self.perfSetup["tuningPhases"]}',
+                                   '--log-level', 'debug',
+                                   '--particle-generator', f'{self.perfSetup["generator"]}',
+                                   '--particles-total', f'{self.perfSetup["particles"]}'], stdout=PIPE, stderr=PIPE)
+        if self.measure_output.returncode != 0:
+            print("MEASUREPERF failed with return code", self.measure_output.returncode)
             self.updateStatus(-1,
                               "PERFORMANCE MEASUREMENT",
                               f"MEASUREPERF failed:\nSTDOUT: .... "
-                              f"{convertOutput(measure_output.stdout)[-500:]}\n"
-                              f"STDERR:{convertOutput(measure_output.stderr)}")
+                              f"{convertOutput(self.measure_output.stdout)[-500:]}\n"
+                              f"STDERR:{convertOutput(self.measure_output.stderr)}")
             # change back to top level directory
             os.chdir(self.baseDir)
             return False
@@ -143,255 +142,157 @@ class Commit:
         # change to top
         os.chdir(self.baseDir)
         self.updateStatus(1, "PERFORMANCE MEASUREMENT", f"MEASUREPERF succeeded: \n...\n"
-                                                        f"{convertOutput(measure_output.stdout)[-500:]}")
+                                                        f"{convertOutput(self.measure_output.stdout)[-500:]}")
         return True
 
-    @staticmethod
-    def commaSplit(val):
-        return val.split(",")[0]
 
-    @staticmethod
-    def newlineStrip(val):
-        return val.rstrip(" \n")
-
-    @FutureWarning
-    def colonSep(self, c: Config, line):
-        """WARNING: Deprecated"""
-        sep = line.split(":")
-        e = [x for x in sep]
-        key = e[0]
-        val = e[1]
-
-        if "Container" in key:
-            c.container = self.commaSplit(val).lstrip(" ")
-        elif "Verlet rebuild frequency" in key:
-            c.rebuildFreq = float(self.newlineStrip(val))
-        elif "Verlet skin radius" in key:
-            c.skinRadius = float(self.newlineStrip(val))
-        elif "Layout" in key:
-            c.layout = self.commaSplit(val)
-        elif "Functor" in key:
-            c.functor = self.newlineStrip(val)
-        elif "Newton3" in key:
-            c.newton = self.commaSplit(val)
-        elif "Cutoff" in key:
-            c.cutoff = self.newlineStrip(val)
-        elif "Cell size factor" in key:
-            c.cellSizeFactor = self.newlineStrip(val)
-        elif "Particle Generator" in key:
-            c.generator = self.newlineStrip(val)
-        elif "Box length" in key:
-            c.boxLength = float(self.newlineStrip(val))
-        elif "total" in key:
-            particles = self.newlineStrip(val).split(" ")
-            particles = [int(p) for p in particles[1:]]
-            c.particles = particles
-        elif "traversals" in key:
-            c.traversal = self.commaSplit(val)
-        elif "Iterations" in key:
-            iterations = self.newlineStrip(val).split(" ")
-            iterations = [int(i) for i in iterations[1:]]
-            c.iterations = iterations
-        elif "Tuning Strategy" in key:
-            c.tuningStrategy = self.newlineStrip(val)[1:]
-        elif "Tuning Interval" in key:
-            c.tuningInterval = int(self.newlineStrip(val))
-        elif "Tuning Samples" in key:
-            c.tuningSamples = int(self.newlineStrip(val))
-        elif "Tuning Max evidence" in key:
-            c.tuningMaxEvidence = int(self.newlineStrip(val))
-        elif "epsilon" in key:
-            c.epsilon = float(self.newlineStrip(val))
-        elif "sigma" in key:
-            c.sigma = float(self.newlineStrip(val))
-        else:
-            print("UNPROCESSED COLON SEP PAIR")
-            print(e)
-            self.updateStatus(0, "PARSING", f"UNPROCESSED COLON SEP PAIR at Parsing step: {e}")
-            return True
-        return True
-
-    @staticmethod
-    @FutureWarning
-    def spaceSep(c: Config, line):
-        """WARNING: Deprecated"""
-        sep = line.lstrip(" ").rstrip("\n").split(" ")
-        if "Particles" in line or len(line) < 2:
-            pass
-        else:
-            m = {
-                "N": int(sep[0]),
-                "GFLOPs": float(sep[1]),
-                "MFUPs": float(sep[2]),
-                "Micros": float(sep[3]),
-                "ItMicros": float(sep[4])
-            }
-            # print([s for s in sep])
-            # NumParticles || GFLOPs/s || MFUPs/s || Time[micros] || SingleIteration[micros]
-            c.measurements.append(m)
-        return True
-
-    def upload(self):
+    def parse_and_upload(self):
 
         print("uploading", self.mdFlexDir)
 
-        measurements = glob(os.path.join(self.mdFlexDir, "measurePerf*/"))
+        try:
+            cpu = get_cpu_info()["brand"]
+        except Exception as e:
+            print(f"Couldn't determine CPU brand: {e}")
+            cpu = "N/A"
+        run_timestamp = datetime.utcnow()
 
-        # all measurement folders (should only be 1 usually)
-        for i, folder in enumerate(measurements):
-            folder = os.path.basename(os.path.dirname(folder))
-            folder = folder.lstrip("measurePerf_")
-            timestamp = time.strptime(folder, "%Y-%m-%d_%H-%M-%S")
-            print(timestamp)
+        coarse_pattern = re.compile(r'Collected times for\s+{(.*)}\s:\s\[(.*)\]')
+        config_pattern = re.compile(r'([^,]+): ([^,]+)')
+        times_pattern = re.compile(r'(\d+)')
+        config_runs = coarse_pattern.findall(self.measure_output.stdout.decode('utf-8'))
 
-            # change into measurement folder
-            os.chdir(measurements[i])
+        db_entry = Config()
+        db_entry.name = 'performance via single tuning phase'  # TODO: Keep name field?
+        db_entry.date = run_timestamp
+        db_entry.commitSHA = self.sha
+        db_entry.commitMessage = self.repo.commit(self.sha).message
+        db_entry.commitDate = self.repo.commit(self.sha).authored_datetime
 
-            # collect all configs
-            configPaths = glob(os.path.join(measurements[i], "*.csv"))
-            configNames = [os.path.basename(x) for x in configPaths]
-            # print(configPaths)
-            # print(configNames)
+        # Assumes tests were run on this system
+        db_entry.system = cpu
+
+        # Saving Setup used in perf script
+        db_entry.setup = self.perfSetup
+
+        # TODO: Decide if uniqueness is enforced (Change spare in models to False)
+        # db_entry.unique = db_entry.name + db_entry.commitSHA + db_entry.system + str(db_entry.date)
+        # try:
+        #     db_entry.save()
+        # except NotUniqueError:
+        #     print("Exact Configuration for system and commit + date already saved!")
+        #     continue
+        try:
+            db_entry.save()
+        except Exception as e:
+            self.updateStatus(-1, "UPLOAD", str(e))
+            return False
+        print(db_entry)
+
+        for run in config_runs:
+
+            results = Results()
+            results.config = db_entry
+
+            # Filter all config parameters
+            config = config_pattern.findall(run[0])
+
+            # Parsing output
             try:
-                cpu = get_cpu_info()["brand"]
+                # Parsing Config keys and values
+                for pair in config:
+                    key = pair[0].replace(' ', '')  # Replace spaces
+                    key = 'dynamic_' + key  # Adding prefix to clearly show dynamic field creation in DB
+                    quantity = pair[1].replace(' ', '')  # Replace spaces
+
+                    try:  # Try converting to float if appropriate
+                        quantity = float(quantity)
+                    except ValueError:
+                        pass
+
+                    print(key, quantity)
+                    results[key] = quantity
+
+                # Parsing times
+                times = times_pattern.findall(run[1])
+                times = [float(t) for t in times]
+                results.measurements = times
+                results.meanTime = np.mean(times)  # Mean running Time
+                results.minTime = np.min(times)  # Min running Time
             except Exception as e:
-                print(f"Couldn't determine CPU brand: {e}")
-                cpu = "N/A"
+                print(f'Parsing of measurement failed {e}')
+                self.updateStatus(-1, "PARSING", str(e))
+                return False
 
-            for j, conf in enumerate(configPaths):
-
-                c = Config()
-                c.name = configNames[j]
-                c.date = datetime.utcfromtimestamp(int(time.mktime(timestamp)))
-                c.commitSHA = self.sha
-                c.commitMessage = self.repo.commit(self.sha).message
-                c.commitDate = self.repo.commit(self.sha).authored_datetime
-
-                # Assumes tests were run on this system
-                c.system = cpu
-
-                # TODO: Decide if uniqueness is enforced (Change spare in model to False)
-                # c.unique = c.name + c.commitSHA + c.system + str(c.date)
-                # try:
-                #     c.save()
-                # except NotUniqueError:
-                #     print("Exact Configuration for system and commit + date already saved!")
-                #     continue
-
-                with open(configPaths[j]) as f:
-                    for r in f:
-                        r = re.sub("\s\s+", " ", r)
-
-                        # TODO: test dynamic fields
-                        if ":" in r:
-                            if not self.colonRegex(c, r):
-                                return False
-                            # if not self.colonSep(c, r):
-                            #    return False
-                        else:
-                            if not self.spaceRegex(c, r):
-                                return False
-                            # if not self.spaceSep(c, r):
-                            #    return False
-
-                try:
-                    c.save()
-                except Exception as e:
-                    self.updateStatus(-1, "UPLOAD", str(e))
-                    return False
-
-                print(c)
-                self.configs.append(c)
+            try:
+                results.save()
+            except Exception as e:
+                self.updateStatus(-1, "UPLOAD", str(e))
+                return False
+            print(results)
 
         os.chdir(self.baseDir)
         self.updateStatus(1, "UPLOAD", "RESULT UPLOAD succeeded\n")
         return True
 
     def generatePlot(self):
+        """
+        Quick overview plot for commit
+        :return:
+        """
 
-        configs = self.configs
-        containers = ["DirectSum", "LinkedCells", "VerletListsCells", "VerletClusterLists", "VerletLists"]
-        figs = {}
         try:
-            # Create figs
-            for cont in containers:
-                figs[cont] = plt.figure(cont, figsize=(16, 9))
-                plt.xlabel("Particles")
-                plt.ylabel("MFUP/s")
 
-            for c in configs:
-                data = c.measurements
-                N = [d["N"] for d in data]
-                MFUPs = [d["MFUPs"] for d in data]
+            imgur = ImgurUploader()
 
-                plt.figure(c.container)
-                name = c.name.lstrip("runtimes_").rstrip(".csv")
-                plt.semilogx(N, MFUPs, label=name)
-                plt.xticks(N, N)
+            confs = Config.objects(commitSHA=self.sha)
+            images = []
+
+            # Multiple Plots if more than one config was run
+            conf: Config
+            for conf in confs:
+                results = Results.objects(config=conf)
+
+                means = np.array([r.meanTime for r in results])
+                mins = np.array([r.minTime for r in results])
+
+                labels = np.array([get_dyn_keys(r).expandtabs() for r in results])
+
+                # Sort by minimum time
+                sort_keys = np.argsort(mins)[::-1]
+                sorted_means = means[sort_keys]
+                sorted_mins = mins[sort_keys]
+                sorted_labels = labels[sort_keys]
+
+                fig = plt.figure(figsize=(15, len(means) / 4))
+                plt.gca().set_title(conf)
+                plt.barh(np.arange(len(means)), sorted_means, label='mean')
+                plt.barh(np.arange(len(means)), sorted_mins, label='min')
                 plt.legend()
+                plt.xlabel('nanoseconds')
+                plt.yticks(np.arange(len(means)), sorted_labels)
+                plt.tight_layout()
 
-            os.chdir(self.mdFlexDir)
+                # Upload figure
+                buf = io.BytesIO()
+                fig.savefig(buf, format='png')
+                buf.seek(0)
+                link, hash = imgur.upload(buf.read())
+                conf.perfImgurLink = link
+                conf.perfDeleteHash = hash
+                conf.save()
 
-            for cont in containers:
-                plt.figure(cont)
-                plt.savefig(cont + ".png")
+                self.updateStatus(1, "PLOTTING", "PLOTTING succeeded\n", link)
+
         except Exception as e:
-            self.updateStatus(-1, "PLOTTING", str(e))
-            return False
+            self.updateStatus(-1, "PLOTTING", f"PLOTTING failed\n{e}")
 
         os.chdir(self.baseDir)
-        self.updateStatus(1, "PLOTTING", "PLOTTING succeeded\n")
         return True
 
-    def colonRegex(self, c: Config, line: str):
-        """
-        Parses lines containing ':' and adds dynamic fields to mongo document
 
-        :param c: Current config
-        :param line: Line to parse
-        :return: True/False on success
-        """
-        try:
-            pattern = re.compile('(\S+.*\S+)\s*:\s*(.*)', re.DOTALL)
-            key, value = pattern.findall(line)
-
-            # TODO: Optionally try casting to float and int
-            # Add dynamic field to the config model
-            c[key] = value
-            return True
-
-        except Exception as e:
-            warn(f'Colon Seperation in upload failed with: {e}')
-            self.updateStatus(0, "PARSING", f"UNPROCESSED COLON SEP PAIR at Parsing step: {line, e}")
-            return False
-
-    def spaceRegex(self, c: Config, line: str):
-        """
-        Parses lines containing spaces seperation, here the number of particles and the measurements
-
-        :param c: Config
-        :param line: String line
-        :return: True/False depending on success
-        """
-
-        try:
-            pattern = re.compile('\s*(\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s*')
-
-            res = pattern.findall(line)
-            if len(res) == 0:
-                pass
-
-            m = {
-                "N": int(res[0]),
-                "GFLOPs": float(res[1]),
-                "MFUPs": float(res[2]),
-                "Micros": float(res[3]),
-                "ItMicros": float(res[4])
-            }
-            c.measurements.append(m)
-
-            return True
-        except Exception as e:
-            warn(f'spaceRegex failed with {line, e}')
-            self.updateStatus(0, "PARSING", f"UNPROCESSED SPACE SEP PAIR at Parsing step: {line, e}")
-            return False
+if __name__ == '__main__':
+    me.connect('performancedb', host='localhost:30017', username=os.environ['USERNAME'],
+               password=os.environ['PASSWORD'])
+    c = Commit(Repo('../../../AutoPas'), 'cb22dd6e28ad8d4f25b076562e4bf861613b3153')
+    c.generatePlot()

@@ -1,4 +1,6 @@
 import json
+from models.Results import Results
+
 
 VERBOSE = True
 
@@ -41,7 +43,7 @@ def initialStatus():
     return params
 
 
-def codeStatus(codes, header, messages):
+def codeStatus(codes, header, messages, images=[]):
 
     text = ""
 
@@ -66,6 +68,10 @@ def codeStatus(codes, header, messages):
     else:
         conclusion = "success"
 
+    img_params = []
+    for i in images:
+        img_params.append({'image_url': i, 'alt': i})
+
     params = {
         # "status": "in_progress",
         "conclusion": conclusion,
@@ -73,15 +79,11 @@ def codeStatus(codes, header, messages):
             "title": "Results",
             "summary": "It's over",
             "text": f"# Summary\n{text}",
-            "images": [
-                {
-                    "alt": "test image",
-                    "image_url": "https://bit.ly/2ZlkScy"
-                }
-            ]
+            "images": img_params
         }
     }
     return params
+
 
 def speedupStatus(codes, header, messages, images):
 
@@ -134,3 +136,15 @@ def convertOutput(out):
         s = f'ERROR CONVERTING SYS OUT:\n{e}\n{out}'
         print('output conversion failed', e, out)
     return s
+
+
+def get_dyn_keys(res: Results):
+    out = ''
+    all_attr = res.__dict__
+    keys = all_attr['_fields_ordered']
+    for k in keys:
+        if 'dynamic_' in k:
+            out += k.replace('dynamic_', '') + ": "
+            out += str(all_attr[k]) + ' '
+    out.rstrip(' ')
+    return out

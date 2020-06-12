@@ -54,7 +54,7 @@ class Repository:
 
         # reset to previous state
         self.repo.head.reset(self.initialHead, index=True, working_tree=True)
-        return c.codes, c.headers, c.statusMessages
+        return c.codes, c.headers, c.statusMessages, c.images
 
     def testLast(self, last):
 
@@ -76,7 +76,7 @@ class Repository:
                 print(f"{c.sha}: BUILD DONE")
                 if c.measure():
                     print(f"{c.sha}: MEASUREMENT DONE")
-                    if c.upload():
+                    if c.parse_and_upload():
                         print(f"{c.sha}: UPLOAD DONE")
                         if c.generatePlot():
                             print(f"{c.sha}: PLOTS DONE")
