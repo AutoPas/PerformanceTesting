@@ -1,5 +1,5 @@
-from models.Config import Config
-from models.Results import Results
+from mongoDocuments.Config import Config
+from mongoDocuments.Results import Results
 from hook.helper import convertOutput, get_dyn_keys
 from checks.ImgurUploader import ImgurUploader
 

@@ -1,4 +1,4 @@
-from models.QueueObject import QueueObject
+from mongoDocuments.QueueObject import QueueObject
 from checks.CheckFlow import CheckFlow
 import sys
 

@@ -17,9 +17,9 @@ except ModuleNotFoundError:
 from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus, get_dyn_keys
 from checks.Authenticator import Authenticator
 from checks.Repository import Repository
-from models.Config import Config
-from models.QueueObject import QueueObject
-from models.Results import Results
+from mongoDocuments.Config import Config
+from mongoDocuments.QueueObject import QueueObject
+from mongoDocuments.Results import Results
 from checks.ImgurUploader import ImgurUploader
 
 """
