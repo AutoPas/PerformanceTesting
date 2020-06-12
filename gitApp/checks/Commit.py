@@ -277,8 +277,8 @@ class Commit:
                 fig.savefig(buf, format='png')
                 buf.seek(0)
                 link, hash = imgur.upload(buf.read())
-                conf.imgurLink = link
-                conf.deleteHash = hash
+                conf.perfImgurLink = link
+                conf.perfDeleteHash = hash
                 conf.save()
 
                 self.updateStatus(1, "PLOTTING", "PLOTTING succeeded\n", link)
