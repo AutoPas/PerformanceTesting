@@ -37,7 +37,7 @@ class Commit:
         self.repo = repo
         print("New commit:", self.sha, self.message, "\n")
         self.baseDir = repo.git_dir.strip(".git")
-        self.buildDir = os.path.join(self.baseDir, self.buildDir)
+        self.buildDir = os.path.join(self.baseDir, Commit.buildDir)
         self.mdFlexDir = os.path.join(self.buildDir, "examples/md-flexible")
         print("BASE DIR:", self.baseDir)
         print("BUILD DIR:", self.buildDir)
@@ -128,6 +128,11 @@ class Commit:
                                    '--log-level', 'debug',
                                    '--particle-generator', f'{self.perfSetup["generator"]}',
                                    '--particles-total', f'{self.perfSetup["particles"]}'], stdout=PIPE, stderr=PIPE)
+
+        # Change to Build dir and clean up
+        os.chdir(self.buildDir)
+        run(['make', 'clean'])
+
         if self.measure_output.returncode != 0:
             print("MEASUREPERF failed with return code", self.measure_output.returncode)
             self.updateStatus(-1,
