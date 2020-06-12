@@ -69,8 +69,6 @@ class CheckFlow:
     def receiveHook(self, request):  # WSGIRequest):
         """ on receive of pull_request event """
 
-        # TODO: Add commits to Work queue and spawn worker
-
         print("RUNNING CHECKS")
         body = json.loads(request.body)
         # Update Repo installation ID for Github App auth
@@ -88,7 +86,7 @@ class CheckFlow:
         self.base = pull["base"]["ref"]
         self.baseSHA = pull["base"]["sha"]
         # TODO: Needed here?
-        self.repo.checkoutBranch(self.branch)
+        # self.repo.checkoutBranch(self.branch)
         print(ci_url)
 
         # Run checks on commits url
@@ -204,7 +202,6 @@ class CheckFlow:
 
             fig, minSpeeds, meanSpeeds, missing = self._compareConfigs(base, test)
 
-            # TODO: Save and upload + update checkrun with speeup summary
             # Upload figure
             buf = io.BytesIO()
             fig.savefig(buf, format='png')
