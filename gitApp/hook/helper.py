@@ -195,15 +195,89 @@ def _spawnNewWorker():
     Spawn a new Worker pod
     :return:
     """
-    print('spawning new worker')
-    pass
+    image = 'ls1autopasjenkins/performancetesting'
+    cpu = 13
+
+    params = \
+        {
+            "kind": "Pod",
+            "apiVersion": "v1",
+            "metadata": {
+                "generateName": "api-test-pod",
+                "labels": {
+                    "type": "perfrunner"
+                }
+            },
+            "spec": {
+                "containers": [{
+                    "name": "perfpod",
+                    "image": f"docker-registry.default.svc:5000/{image}",
+                    "resources": {
+                        "requests": {
+                            "cpu": cpu
+                        },
+                        "limits": {
+                            "cpu": cpu
+                        }
+                    },
+                    "env": [
+                        {
+                            "name": "GITHUBAPPID",
+                            "valueFrom": {
+                                "secretKeyRef": {
+                                    "name": "autopas-performance-tester-github-app-id",
+                                    "key": "GITHUBAPPID"
+                                }
+                            }
+                        },
+                        {
+                            "name": "IMGURCLIENTID",
+                            "valueFrom": {
+                                "secretKeyRef": {
+                                    "name": "autopas-performance-tester-imgur-client-id",
+                                    "key": "IMGURCLIENTID"
+                                }
+                            }
+                        }]
+                }],
+                "nodeSelector": {
+                    "node-role.kubernetes.io/compute": "true"
+                },
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [{
+                                "matchExpressions": [{
+                                    "key": "kubernetes.io/hostname",
+                                    "operator": "NotIn",
+                                    "values": [
+                                        "pproc-nvd.sccs.cluster"
+                                    ]
+                                }]
+                            }]
+                        }
+                    }
+                },
+                "restartPolicy": "Never",
+                "serviceAccount": "ls1jenkins",
+                "schedulerName": "default-scheduler"
+            }
+        }
+
+    r = requests.post(url='https://pproc-be.sccs.in.tum.de:8443/api/v1/namespaces/ls1autopasjenkins/pods',
+                      headers=_getServiceAccountToken(),
+                      json=params,
+                      verify=False)
+    pretty_request(r)
+    return r.status_code
 
 
 def spawnWorker():
     """OpenShift API call to start a worker pod"""
 
     if not _checkIfAlreadyRunning():
-        _spawnNewWorker()
+        code = _spawnNewWorker()
+        print(f'\n\nSPAWNING WORKER: {code}')
     else:
         print('\nNo new Worker needed\n')
 
