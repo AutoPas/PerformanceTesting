@@ -1,7 +1,7 @@
 import mongoengine as me
 
 
-class Config(me.Document):
+class Config(me.DynamicDocument):
 
     name = me.StringField()
     date = me.DateTimeField()
@@ -19,9 +19,11 @@ class Config(me.Document):
     setup = me.DictField()
 
     # Image Link
-    imgurLink = me.URLField()
+    perfImgurLink = me.URLField()
+    compImgurLink = me.URLField()
     # Delete Hash
-    deleteHash = me.StringField()
+    perfDeleteHash = me.StringField()
+    compDeleteHash = me.StringField()
 
     def __str__(self):
         output = f"Name: {self.commitMessage}\n" \
