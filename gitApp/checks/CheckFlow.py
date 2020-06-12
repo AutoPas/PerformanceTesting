@@ -289,7 +289,8 @@ class CheckFlow:
         plt.legend()
         plt.grid(which='both', axis='x')
         plt.xlim(0, 2)
-        plt.show()
+        plt.tight_layout()
+        # plt.show()
 
         print(f"{missing_results_counter} not matched out of {len(baseResults)}")
         return fig, sorted_min_speedsup, sorted_mean_speedsup, missing_results_counter
