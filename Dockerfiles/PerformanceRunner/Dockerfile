@@ -29,13 +29,15 @@ WORKDIR /usr/src/app/PerformanceTesting/gitApp
 # ENV GITHUBAPPID XXXXX
 # TODO: Might be overwritten globally from CheckFlow
 ENV OMP_NUM_THREADS 12
+# TODO: Setting this to 0 will not disable production mode. Commenting it will disable
+ENV PRODUCTION 1
 
 
 # allow write for the git and test scripts
 RUN ["chmod", "-R", "777", "/usr/src/app"]
-# RUN ["chmod", "u+x", "entry.sh"]
-# ENTRYPOINT ["./entry.sh"]
+
+# Run down the queue
+ENTRYPOINT ["python3", 'checks/Worker.py']
 
 # TODO: optionally add Healthchecks
-
-CMD [ "/bin/bash" ]
+# CMD [ "/bin/bash" ]

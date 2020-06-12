@@ -25,7 +25,6 @@ matplotlib.use("Agg")
 
 
 class Commit:
-
     baseDir = ""
     buildDir = "build"
     mdFlexDir = ""
@@ -114,19 +113,21 @@ class Commit:
         # change to md-flexible folder
         os.chdir(self.mdFlexDir)
 
+        particles = 1E4 if 'PRODUCTION' in os.environ else 1E3  # TODO: Specify real particle targets for production
+
         self.perfSetup = {
             'deltaT': 0.0,
             'tuningPhases': 1,
             'generator': 'uniform',
-            'particles': 1000
+            'particles': particles
         }
         # Running one tuning session
         self.measure_output = run(['./md-flexible',
-                              '--deltaT', f'{self.perfSetup["deltaT"]}',
-                              '--tuning-phases', f'{self.perfSetup["tuningPhases"]}',
-                              '--log-level', 'debug',
-                              '--particle-generator', f'{self.perfSetup["generator"]}',
-                              '--particles-total', f'{self.perfSetup["particles"]}'], stdout=PIPE, stderr=PIPE)
+                                   '--deltaT', f'{self.perfSetup["deltaT"]}',
+                                   '--tuning-phases', f'{self.perfSetup["tuningPhases"]}',
+                                   '--log-level', 'debug',
+                                   '--particle-generator', f'{self.perfSetup["generator"]}',
+                                   '--particles-total', f'{self.perfSetup["particles"]}'], stdout=PIPE, stderr=PIPE)
         if self.measure_output.returncode != 0:
             print("MEASUREPERF failed with return code", self.measure_output.returncode)
             self.updateStatus(-1,
@@ -263,7 +264,7 @@ class Commit:
                 sorted_mins = mins[sort_keys]
                 sorted_labels = labels[sort_keys]
 
-                fig = plt.figure(figsize=(15, len(means)/4))
+                fig = plt.figure(figsize=(15, len(means) / 4))
                 plt.gca().set_title(conf)
                 plt.barh(np.arange(len(means)), sorted_means, label='mean')
                 plt.barh(np.arange(len(means)), sorted_mins, label='min')
@@ -290,8 +291,8 @@ class Commit:
         return True
 
 
-
 if __name__ == '__main__':
-    me.connect('performancedb', host='localhost:30017', username=os.environ['USERNAME'], password=os.environ['PASSWORD'])
+    me.connect('performancedb', host='localhost:30017', username=os.environ['USERNAME'],
+               password=os.environ['PASSWORD'])
     c = Commit(Repo('../../../AutoPas'), 'cb22dd6e28ad8d4f25b076562e4bf861613b3153')
     c.generatePlot()
