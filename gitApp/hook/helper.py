@@ -1,5 +1,6 @@
 import json
-from models.Results import Results
+import requests
+from mongoDocuments.Results import Results
 
 
 VERBOSE = True
