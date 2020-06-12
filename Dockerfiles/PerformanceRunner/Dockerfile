@@ -23,7 +23,7 @@ RUN mv *.pem PerformanceTesting/gitApp/
 RUN mv database.config PerformanceTesting/gitApp/
 
 WORKDIR /usr/src/app/PerformanceTesting/gitApp
-
+ENV PYTHONPATH /usr/src/app/PerformanceTesting/gitApp
 
 # ENV IMGURCLIENTID XXXX
 # ENV GITHUBAPPID XXXXX
@@ -37,7 +37,7 @@ ENV PRODUCTION 1
 RUN ["chmod", "-R", "777", "/usr/src/app"]
 
 # Run down the queue
-ENTRYPOINT ["python3", "checks/Worker.py"]
+ENTRYPOINT ["python3", "/usr/src/app/PerformanceTesting/gitApp/checks/Worker.py"]
 
 # TODO: optionally add Healthchecks
 # CMD [ "/bin/bash" ]
