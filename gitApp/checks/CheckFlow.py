@@ -39,7 +39,7 @@ class CheckFlow:
     AUTOPAS = "../../AutoPas"
     PERF_THRESHOLD = 0.9  # TODO: Define speedup criterium further
 
-    def __init__(self):
+    def __init__(self, initRepo=False):
         print("new checkFlow instance")
         self.auth = Authenticator(CheckFlow.PEM, CheckFlow.GIT_APP_ID)
         self.baseUrl = ""
@@ -62,7 +62,9 @@ class CheckFlow:
         me.connect(db.collection, username=db.user, password=db.password, host=("mongodb://" + db.server))
 
         # Initiate Repo
-        self.repo = Repository(os.path.join(BASE_DIR, CheckFlow.AUTOPAS))
+        # TODO: Separate Hook calls from Worker calls
+        if initRepo:
+            self.repo = Repository(os.path.join(BASE_DIR, CheckFlow.AUTOPAS))
 
     def receiveHook(self, request):  # WSGIRequest):
         """ on receive of pull_request event """

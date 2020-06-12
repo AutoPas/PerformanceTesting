@@ -9,7 +9,7 @@ class Worker:
     """
 
     def __init__(self):
-        self.checkflow = CheckFlow()  # Handles Repo, DB and Auth calls
+        self.checkflow = CheckFlow(initRepo=True)  # Handles Repo, DB and Auth calls
 
 
     def checkQueue(self):
