@@ -149,3 +149,64 @@ def get_dyn_keys(res: Results):
             out += str(all_attr[k]) + ' '
     out.rstrip(' ')
     return out
+
+
+def _getServiceAccountToken():
+    """
+    Loads service account auth token
+    :return: token
+    """
+    token = 'token'
+    authHeader = {
+        "Authorization": f"Bearer {token}"
+    }
+    return authHeader
+
+
+def _checkIfAlreadyRunning():
+    """
+    Check if there is already a running worker pod
+    :return: bool
+    """
+    r = requests.get(url='https://pproc-be.sccs.in.tum.de:8443/api/v1/namespaces/ls1autopasjenkins/pods',
+                     headers=_getServiceAccountToken(),
+                     verify=False  # Not checking SSL Cert valid
+                     )
+    pretty_request(r)
+    for i in r.json()['items']:
+
+        try:
+            podType = i['metadata']['labels']['type']
+            if podType == 'perfrunner':
+                status = i['status']['phase']
+                if status == 'Pending':
+                    return True  # Do not schedule a new pod
+                elif status == 'Running':
+                    return True  # Do not schedule a new pod
+
+        except KeyError:
+            continue
+
+    return False  # if no pod with label perfrunner and status running or pending was found
+
+
+def _spawnNewWorker():
+    """
+    Spawn a new Worker pod
+    :return:
+    """
+    print('spawning new worker')
+    pass
+
+
+def spawnWorker():
+    """OpenShift API call to start a worker pod"""
+
+    if not _checkIfAlreadyRunning():
+        _spawnNewWorker()
+    else:
+        print('\nNo new Worker needed\n')
+
+
+if __name__ == '__main__':
+    spawnWorker()
