@@ -4,6 +4,7 @@ import mongoengine as me
 from pymongo import errors
 import imp
 import os
+import io
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,6 +20,7 @@ from checks.Repository import Repository
 from models.Config import Config
 from models.QueueObject import QueueObject
 from models.Results import Results
+from checks.ImgurUploader import ImgurUploader
 
 """
 Codes:
@@ -36,6 +38,7 @@ class CheckFlow:
 
     AUTOPAS = "../../AutoPas"
     THREADS = 4
+    PERF_THRESHOLD = 0.9  # TODO: Define speedup criterium further
 
     def __init__(self):
         print("new checkFlow instance")
@@ -190,19 +193,49 @@ class CheckFlow:
         r = requests.patch(url=compareUrl, headers=self.auth.getTokenHeader(), json=initialStatus())
         pretty_request(r)
 
-        # TODO: What if involved in more than one PR
-        pr = r.json()['pull_requests'][0]
-        baseSHA = pr['base']['sha']
+        try:
+            # TODO: What if involved in more than one PR
+            pr = r.json()['pull_requests'][0]
+            baseSHA = pr['base']['sha']
 
-        # TODO: What if multiple configs are all of interest, and not just the newest
-        base = Config.objects(commitSHA=baseSHA).order_by('-date').first()  # Get freshest config
-        test = Config.objects(commitSHA=sha, system=base.system, setup=base.setup).order_by('-date').first()  # Get freshest config
+            # TODO: What if multiple configs are all of interest, and not just the newest
+            base = Config.objects(commitSHA=baseSHA).order_by('-date').first()  # Get freshest config
+            test = Config.objects(commitSHA=sha, system=base.system, setup=base.setup).order_by('-date').first()  # Get freshest config
 
-        fig, *_ = self._compareConfigs(base, test)
+            fig, minSpeeds, meanSpeeds, missing = self._compareConfigs(base, test)
 
-        # TODO: Save and upload + update checkrun with speeup summary
+            # TODO: Save and upload + update checkrun with speeup summary
+            # Upload figure
+            buf = io.BytesIO()
+            fig.savefig(buf, format='png')
+            buf.seek(0)
+            imgur = ImgurUploader()
+            link, hash = imgur.upload(buf.read())
+            test.compImgurLink = link
+            test.compDeleteHash = hash
+            test.save()
 
-        return False
+            message = f'<b>Perf Results:</b>\n\n' \
+                      f'<b>Threshold to pass:</b> speedup >= {CheckFlow.PERF_THRESHOLD}\n' \
+                      f'<b>Minimum Time Speedup Average:</b> {np.mean(minSpeeds)}\n' \
+                      f'<b>Mean Time Speedup Average:</b> {np.mean(meanSpeeds)}\n\n' \
+                      f'<b>Not available configs to compare:</b> {missing}'
+
+            # Setup Params for message
+            code = [1 if np.mean(minSpeeds) >= CheckFlow.PERF_THRESHOLD else -1]
+            header = ['COMPARISON']
+            message = [message]
+            params = codeStatus(code, header, message, [link])
+
+        except Exception as e:
+            code = [-1]
+            header = ['COMPARISON']
+            message = [str(e)[-500:]]
+            params = codeStatus(code, header, message)
+
+        # Patch Checkrun
+        r = requests.patch(url=compareUrl, headers=self.auth.getTokenHeader(), json=params)
+        pretty_request(r)
 
 
     def _compareConfigs(self, base: Config, test: Config):
@@ -247,13 +280,14 @@ class CheckFlow:
         sorted_mean_speedsup = np.array(meanSpeeds)[sort_keys]
         sorted_labels = np.array(labels)[sort_keys]
 
-        colors = ['g' if speed <= 1.1 else 'r' for speed in sorted_min_speedsup]
+        colors = ['g' if speed >= CheckFlow.PERF_THRESHOLD else 'r' for speed in sorted_min_speedsup]
 
         fig = plt.figure(figsize=(15, len(labels)/4))
         plt.title('Speedup')
         plt.barh(np.arange(len(labels)), sorted_min_speedsup, color=colors, alpha=.5, label='Speedup: minimum runtime')
         plt.barh(np.arange(len(labels)), sorted_mean_speedsup, color='gray', alpha=.5, label='Speedup: mean runtime')
-        plt.axvline(1, c='r', label='no change')
+        plt.axvline(1, c='k', label='no change')
+        plt.axvline(CheckFlow.PERF_THRESHOLD, c='r', label='passing threshold')
         plt.yticks(np.arange(len(labels)), sorted_labels)
         plt.legend()
         plt.grid(which='both', axis='x')
@@ -261,7 +295,7 @@ class CheckFlow:
         plt.show()
 
         print(f"{missing_results_counter} not matched out of {len(baseResults)}")
-        return fig, minSpeeds, meanSpeeds
+        return fig, sorted_min_speedsup, sorted_mean_speedsup, missing_results_counter
 
     def _compareResults(self, base: Results, test: Results):
         """
