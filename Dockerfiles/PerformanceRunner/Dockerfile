@@ -37,7 +37,7 @@ ENV PRODUCTION 1
 RUN ["chmod", "-R", "777", "/usr/src/app"]
 
 # Run down the queue
-ENTRYPOINT ["python3", 'checks/Worker.py']
+ENTRYPOINT ["python3", "checks/Worker.py"]
 
 # TODO: optionally add Healthchecks
 # CMD [ "/bin/bash" ]
