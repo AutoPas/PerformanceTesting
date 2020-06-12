@@ -1,5 +1,6 @@
 import json
 import requests
+import os
 from mongoDocuments.Results import Results
 
 
@@ -156,7 +157,12 @@ def _getServiceAccountToken():
     Loads service account auth token
     :return: token
     """
-    token = 'token'
+    try:
+        with open('/var/run/secrets/kubernetes.io/serviceaccount/token') as f:
+            token = f.read()
+    except FileNotFoundError:
+        token = os.environ['SERVICEACCOUNT']
+
     authHeader = {
         "Authorization": f"Bearer {token}"
     }
