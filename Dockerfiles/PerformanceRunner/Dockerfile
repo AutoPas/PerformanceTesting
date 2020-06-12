@@ -5,7 +5,6 @@ WORKDIR /usr/src/app
 # Copy GitHub App Certificate and Database configuration file, moved up top to crash early if not found
 COPY *.pem private-key.pem
 COPY database.config .
-COPY database_server.config .
 
 RUN apt-get update
 RUN apt-get install -y python3-pip
