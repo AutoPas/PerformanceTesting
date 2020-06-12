@@ -37,7 +37,6 @@ class CheckFlow:
     DB = "database.config"
 
     AUTOPAS = "../../AutoPas"
-    THREADS = 4
     PERF_THRESHOLD = 0.9  # TODO: Define speedup criterium further
 
     def __init__(self):
@@ -159,7 +158,6 @@ class CheckFlow:
 
         try:
             cwd = os.getcwd()
-            os.environ["OMP_NUM_THREADS"] = str(CheckFlow.THREADS)
             print("Running Threads:", os.environ["OMP_NUM_THREADS"])
             # TODO: _IMPORTANT: Think about replicating that work flow here and actually make
             #  build / measure / upload their own check runs in the suite or via updateStatus
