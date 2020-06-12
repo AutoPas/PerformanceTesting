@@ -92,6 +92,7 @@ class CheckFlow:
         # Run checks on commits url
         # TODO: THIS ACTIVATES ALL CHECK RUNS
         self._checkCommits(ci_url)
+        spawnWorker()
 
     def _checkCommits(self, url):
         """
@@ -128,7 +129,6 @@ class CheckFlow:
                 print("COMMIT ALREADY TESTED", sha)
                 continue
 
-        spawnWorker()
         return 0
 
 
