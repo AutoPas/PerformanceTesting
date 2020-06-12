@@ -14,7 +14,7 @@ try:
 except ModuleNotFoundError:
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     BASE_DIR = os.path.join('../gitApp', BASE_DIR)
-from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus, get_dyn_keys
+from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus, get_dyn_keys, spawnWorker
 from checks.Authenticator import Authenticator
 from checks.Repository import Repository
 from mongoDocuments.Config import Config
@@ -129,7 +129,7 @@ class CheckFlow:
                 print("COMMIT ALREADY TESTED", sha)
                 continue
 
-        # TODO: Spawn pod and to run queue
+        spawnWorker()
         return 0
 
 
