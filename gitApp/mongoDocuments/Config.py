@@ -25,6 +25,9 @@ class Config(me.DynamicDocument):
     perfDeleteHash = me.StringField()
     compDeleteHash = me.StringField()
 
+    # Failure field
+    failure = me.StringField()
+
     def __str__(self):
         output = f"Name: {self.commitMessage}\n" \
                  f"SHA: {self.commitSHA}\n" \
