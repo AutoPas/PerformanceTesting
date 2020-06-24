@@ -90,19 +90,24 @@ class CheckFlow:
         print(ci_url)
 
         # Run checks on commits url
-        # TODO: THIS ACTIVATES ALL CHECK RUNS
-        self._checkCommits(ci_url)
-        spawnWorker()
+        needWorker = self._checkCommits(ci_url)
+        if needWorker:
+            spawnWorker()
 
     def _checkCommits(self, url):
         """
         Gets list of pull request commits and runs checks
+        :param url: url to receive commits from
+        :return: if worker is needed
         """
         r = requests.get(url=url, headers=self.auth.getTokenHeader())
         pretty_request(r)
         print("COMMIT LIST:")
         cis = r.json()
         SHAs = [self.baseSHA]  # Adding additional SHA from master
+
+        needWorker = False  # if nothing is added to queue, no worker needs to be spawned
+
         # Full list
         for c in cis:
             SHAs.append(c["sha"])
@@ -124,12 +129,13 @@ class CheckFlow:
                     queue.compareUrl = self._createCheckRun(sha, "Performance Comparison")
                 queue.running = False
                 queue.save()
+                needWorker = True  # Switch on worker spawn
             else:
                 print("Available Tests for SHA", shaConfigs.count())
                 print("COMMIT ALREADY TESTED", sha)
                 continue
 
-        return 0
+        return needWorker
 
 
     def _createCheckRun(self, sha, name):
