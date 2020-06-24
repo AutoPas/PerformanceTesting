@@ -198,8 +198,11 @@ class CheckFlow:
 
             # TODO: What if multiple configs are all of interest, and not just the newest
             base = Config.objects(commitSHA=baseSHA).order_by('-date').first()  # Get freshest config
+            if base is None:
+                raise RuntimeError('<b>No performance runs for the PR base were found</b>')
             test = Config.objects(commitSHA=sha, system=base.system, setup=base.setup).order_by('-date').first()  # Get freshest config
-
+            if test is None:
+                raise RuntimeError('<b>No matching configs between PR base and this commit could be found.</b>')
             fig, minSpeeds, meanSpeeds, missing = self._compareConfigs(base, test)
 
             # Upload figure
@@ -223,6 +226,12 @@ class CheckFlow:
             header = ['COMPARISON']
             message = [message]
             params = codeStatus(code, header, message, [link])
+
+        except RuntimeError as v:
+            code = [0]
+            header = ['COMPARISON']
+            message = [str(v)[-500:]]
+            params = codeStatus(code, header, message)
 
         except Exception as e:
             code = [-1]
