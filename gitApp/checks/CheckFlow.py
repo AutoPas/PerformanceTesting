@@ -199,8 +199,11 @@ class CheckFlow:
 
         try:
             # TODO: What if involved in more than one PR
-            pr = r.json()['pull_requests'][0]
-            baseSHA = pr['base']['sha']
+            pr = r.json()['pull_requests']
+            if len(pr) == 0:
+                # TODO: Why sometimes empty list
+                raise RuntimeError(f'<b>Github Checkrun API returned 0 Pull Requests associated with this SHA {sha} at {compareUrl}</b>')
+            baseSHA = pr[0]['base']['sha']
 
             # TODO: What if multiple configs are all of interest, and not just the newest
             base = Config.objects(commitSHA=baseSHA).order_by('-date').first()  # Get freshest config
