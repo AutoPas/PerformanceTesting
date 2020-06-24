@@ -199,16 +199,19 @@ class CheckFlow:
 
         try:
             # TODO: What if involved in more than one PR
-            pr = r.json()['pull_requests'][0]
-            baseSHA = pr['base']['sha']
+            pr = r.json()['pull_requests']
+            if len(pr) == 0:
+                # TODO: Why sometimes empty list
+                raise RuntimeError(f'<b>Github Checkrun API returned 0 Pull Requests associated with this SHA {sha} at {compareUrl}</b>')
+            baseSHA = pr[0]['base']['sha']
 
             # TODO: What if multiple configs are all of interest, and not just the newest
             base = Config.objects(commitSHA=baseSHA).order_by('-date').first()  # Get freshest config
             if base is None:
-                raise RuntimeError('<b>No performance runs for the PR base were found</b>')
+                raise RuntimeError(f'<b>No performance runs for the PR base {baseSHA} were found</b>')
             test = Config.objects(commitSHA=sha, system=base.system, setup=base.setup).order_by('-date').first()  # Get freshest config
             if test is None:
-                raise RuntimeError('<b>No matching configs between PR base and this commit could be found.</b>')
+                raise RuntimeError(f'<b>No matching configs between this commit {sha} and PR base {baseSHA} could be found.</b>')
             fig, minSpeeds, meanSpeeds, missing = self._compareConfigs(base, test)
 
             # Upload figure
