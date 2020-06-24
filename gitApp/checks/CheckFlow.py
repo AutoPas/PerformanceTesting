@@ -216,6 +216,7 @@ class CheckFlow:
             test.save()
 
             message = f'<b>Perf Results:</b>\n\n' \
+                      f'<b>Comparing this commit</b> {sha} with base {baseSHA}\n' \
                       f'<b>Threshold to pass:</b> speedup >= {CheckFlow.PERF_THRESHOLD}\n' \
                       f'<b>Minimum Time Speedup Average:</b> {np.mean(minSpeeds)}\n' \
                       f'<b>Mean Time Speedup Average:</b> {np.mean(meanSpeeds)}\n\n' \
