@@ -26,7 +26,7 @@ matplotlib.use("Agg")
 
 class Commit:
     baseDir = ""
-    buildDir = "build"
+    buildDir = "perfBuild"
     mdFlexDir = ""
 
     def __init__(self, repo: Repo, sha: str):
@@ -131,7 +131,7 @@ class Commit:
 
         # Change to Build dir and clean up
         os.chdir(self.buildDir)
-        run(['make', 'clean'])
+        run(['git', 'clean', '-dxf'])  # Force clean all untracked and/or ignored files
 
         if self.measure_output.returncode != 0:
             print("MEASUREPERF failed with return code", self.measure_output.returncode)
