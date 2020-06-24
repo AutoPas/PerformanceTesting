@@ -90,19 +90,24 @@ class CheckFlow:
         print(ci_url)
 
         # Run checks on commits url
-        # TODO: THIS ACTIVATES ALL CHECK RUNS
-        self._checkCommits(ci_url)
-        spawnWorker()
+        needWorker = self._checkCommits(ci_url)
+        if needWorker:
+            spawnWorker()
 
     def _checkCommits(self, url):
         """
         Gets list of pull request commits and runs checks
+        :param url: url to receive commits from
+        :return: if worker is needed
         """
         r = requests.get(url=url, headers=self.auth.getTokenHeader())
         pretty_request(r)
         print("COMMIT LIST:")
         cis = r.json()
         SHAs = [self.baseSHA]  # Adding additional SHA from master
+
+        needWorker = False  # if nothing is added to queue, no worker needs to be spawned
+
         # Full list
         for c in cis:
             SHAs.append(c["sha"])
@@ -124,12 +129,13 @@ class CheckFlow:
                     queue.compareUrl = self._createCheckRun(sha, "Performance Comparison")
                 queue.running = False
                 queue.save()
+                needWorker = True  # Switch on worker spawn
             else:
                 print("Available Tests for SHA", shaConfigs.count())
                 print("COMMIT ALREADY TESTED", sha)
                 continue
 
-        return 0
+        return needWorker
 
 
     def _createCheckRun(self, sha, name):
@@ -198,8 +204,11 @@ class CheckFlow:
 
             # TODO: What if multiple configs are all of interest, and not just the newest
             base = Config.objects(commitSHA=baseSHA).order_by('-date').first()  # Get freshest config
+            if base is None:
+                raise RuntimeError('<b>No performance runs for the PR base were found</b>')
             test = Config.objects(commitSHA=sha, system=base.system, setup=base.setup).order_by('-date').first()  # Get freshest config
-
+            if test is None:
+                raise RuntimeError('<b>No matching configs between PR base and this commit could be found.</b>')
             fig, minSpeeds, meanSpeeds, missing = self._compareConfigs(base, test)
 
             # Upload figure
@@ -213,6 +222,7 @@ class CheckFlow:
             test.save()
 
             message = f'<b>Perf Results:</b>\n\n' \
+                      f'<b>Comparing this commit</b> {sha} with base {baseSHA}\n' \
                       f'<b>Threshold to pass:</b> speedup >= {CheckFlow.PERF_THRESHOLD}\n' \
                       f'<b>Minimum Time Speedup Average:</b> {np.mean(minSpeeds)}\n' \
                       f'<b>Mean Time Speedup Average:</b> {np.mean(meanSpeeds)}\n\n' \
@@ -223,6 +233,12 @@ class CheckFlow:
             header = ['COMPARISON']
             message = [message]
             params = codeStatus(code, header, message, [link])
+
+        except RuntimeError as v:
+            code = [0]
+            header = ['COMPARISON']
+            message = [str(v)[-500:]]
+            params = codeStatus(code, header, message)
 
         except Exception as e:
             code = [-1]

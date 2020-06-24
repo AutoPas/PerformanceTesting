@@ -240,6 +240,23 @@ class Commit:
         self.updateStatus(1, "UPLOAD", "RESULT UPLOAD succeeded\n")
         return True
 
+    def save_failed_config(self, failure: str):
+        """
+        Saving failed configs to not re-run them again
+        :param failure: Failure Mode
+        :return:
+        """
+        db_entry = Config()
+        db_entry.name = 'Performance Testing Failed'  # TODO: Keep name field?
+        db_entry.date = datetime.utcnow()
+        db_entry.commitSHA = self.sha
+        db_entry.commitMessage = self.repo.commit(self.sha).message
+        db_entry.commitDate = self.repo.commit(self.sha).authored_datetime
+        # Saving Setup used in perf script
+        db_entry.setup = self.perfSetup
+        db_entry.failure = failure
+        db_entry.save()
+
     def generatePlot(self):
         """
         Quick overview plot for commit

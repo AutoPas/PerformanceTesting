@@ -81,6 +81,11 @@ class Repository:
                         if c.generatePlot():
                             print(f"{c.sha}: PLOTS DONE")
                             print("done testing")
+                else:
+                    c.save_failed_config('Run failed')
+            else:
+                c.save_failed_config('Build failed')
+
         except Exception as e:
             print(f"_testCommit {c.sha} failed with {e}")
             c.updateStatus(-1, 'GENERAL', f"failed with {e}")
