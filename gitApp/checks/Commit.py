@@ -1,5 +1,5 @@
 from mongoDocuments.Config import Config
-from mongoDocuments.Results import Results
+from mongoDocuments.Result import Result
 from hook.helper import convertOutput, get_dyn_kv_pair, get_dyn_keys, generate_label_table
 from checks.ImgurUploader import ImgurUploader
 
@@ -198,7 +198,7 @@ class Commit:
 
         for run in config_runs:
 
-            results = Results()
+            results = Result()
             results.config = db_entry
 
             # Filter all config parameters
@@ -275,7 +275,7 @@ class Commit:
             # Multiple Plots if more than one config was run
             conf: Config
             for conf in confs:
-                results = Results.objects(config=conf)
+                results = Result.objects(config=conf)
 
                 means = np.array([r.meanTime for r in results])
                 mins = np.array([r.minTime for r in results])

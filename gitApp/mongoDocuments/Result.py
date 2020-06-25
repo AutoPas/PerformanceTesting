@@ -2,7 +2,7 @@ import mongoengine as me
 from mongoDocuments.Config import Config
 
 
-class Results(me.DynamicDocument):
+class Result(me.DynamicDocument):
     """
     Holding results for a given config
     """
