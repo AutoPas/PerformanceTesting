@@ -14,7 +14,7 @@ try:
 except ModuleNotFoundError:
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     BASE_DIR = os.path.join('../gitApp', BASE_DIR)
-from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus, get_dyn_keys, spawnWorker
+from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus, get_dyn_kv_pair, spawnWorker
 from checks.Authenticator import Authenticator
 from checks.Repository import Repository
 from mongoDocuments.Config import Config
@@ -294,7 +294,7 @@ class CheckFlow:
             minSpeedup, meanSpeedup = self._compareResults(baseRes, testRes)
             minSpeeds.append(minSpeedup)
             meanSpeeds.append(meanSpeedup)
-            labels.append(get_dyn_keys(testRes))
+            labels.append(get_dyn_kv_pair(testRes))
 
         sort_keys = np.argsort(minSpeeds)
         sorted_min_speedsup = np.array(minSpeeds)[sort_keys]

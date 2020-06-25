@@ -1,8 +1,11 @@
 import json
 import requests
 import os
-from mongoDocuments.Results import Results
+from typing import List
+import numpy as np
 
+from mongoDocuments.Results import Results
+from mongoengine import QuerySet
 
 VERBOSE = True
 
@@ -140,7 +143,33 @@ def convertOutput(out):
     return s
 
 
-def get_dyn_keys(res: Results):
+def get_dyn_keys(res: QuerySet):
+    """
+    Return all keys starting with dynamic_
+    :param res: QuerySet containing all results to check
+    :return:
+    """
+    out = []
+    header = ''
+    for r in res:
+        all_attr = r.__dict__
+        keys = all_attr['_fields_ordered']
+        for k in keys:
+            if 'dynamic_' in k:
+                new_key = k.replace('dynamic_', '')
+                if new_key not in out:
+                    out.append(new_key)
+                    header += new_key + r'\ '
+    header.rstrip(r'\ ')
+    return header, out
+
+
+def get_dyn_kv_pair(res: Results):
+    """
+    Return String formatted with all key value pairs starting with dynamic_
+    :param res:
+    :return:
+    """
     out = ''
     all_attr = res.__dict__
     keys = all_attr['_fields_ordered']
@@ -150,6 +179,26 @@ def get_dyn_keys(res: Results):
             out += str(all_attr[k]) + ' '
     out.rstrip(' ')
     return out
+
+
+def generate_label_table(results: QuerySet, keys: List[str]):
+    """
+
+    :param results: QuerySet with results
+    :param keys: list of all possible keys across all results
+    :return: labels for plot in table form
+    """
+    labels = []
+    for r in results:
+        line = ''
+        for k in keys:
+            try:
+                line += f"{r['dynamic_'+k]}\t"
+            except AttributeError:
+                line += '--\t'
+        line = line.rstrip('\t')
+        labels.append(line.expandtabs())
+    return np.array(labels)
 
 
 def _getServiceAccountToken():
