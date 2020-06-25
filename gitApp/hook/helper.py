@@ -140,7 +140,7 @@ def convertOutput(out):
     return s
 
 
-def get_dyn_keys(res: Results):
+def get_dyn_kv_pair(res: Results):
     out = ''
     all_attr = res.__dict__
     keys = all_attr['_fields_ordered']

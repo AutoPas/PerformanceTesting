@@ -1,6 +1,6 @@
 from mongoDocuments.Config import Config
 from mongoDocuments.Results import Results
-from hook.helper import convertOutput, get_dyn_keys
+from hook.helper import convertOutput, get_dyn_kv_pair
 from checks.ImgurUploader import ImgurUploader
 
 from git import Repo
@@ -279,7 +279,7 @@ class Commit:
                 means = np.array([r.meanTime for r in results])
                 mins = np.array([r.minTime for r in results])
 
-                labels = np.array([get_dyn_keys(r).expandtabs() for r in results])
+                labels = np.array([get_dyn_kv_pair(r).expandtabs() for r in results])
 
                 # Sort by minimum time
                 sort_keys = np.argsort(mins)[::-1]
