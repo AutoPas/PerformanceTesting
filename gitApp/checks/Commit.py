@@ -61,6 +61,7 @@ class Commit:
 
         print("BUILD/MD-FLEX DIR: ", self.buildDir, self.mdFlexDir)
 
+        os.chdir(self.baseDir)
         run(['git', 'clean', '-dxf'])  # Force clean all untracked and/or ignored files
         # remove old buildDir if present
         shutil.rmtree(self.buildDir, ignore_errors=True)
