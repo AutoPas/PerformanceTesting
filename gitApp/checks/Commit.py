@@ -297,7 +297,7 @@ class Commit:
                 plt.barh(np.arange(len(means)), sorted_mins, label='min')
                 plt.legend()
                 plt.xlabel('nanoseconds')
-                plt.yticks(np.arange(len(means)+1), sorted_labels)
+                plt.yticks(np.arange(len(sorted_labels)), sorted_labels)
                 plt.tight_layout()
 
                 # Upload figure
