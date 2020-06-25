@@ -13,6 +13,7 @@ Script used to upload all .yaml files in this directory, and if changes occur fo
 if __name__ == '__main__':
 
     # Connect to DB
+    # TODO: use env or .config files for settings
     me.connect(url='localhost:30017', user='XXX', password='XXX')
 
     # TODO: check for same file content
