@@ -1,7 +1,7 @@
 import json
 import requests
 import os
-from typing import List
+from typing import List, Union, Tuple
 import numpy as np
 
 from mongoDocuments.Results import Results
@@ -143,11 +143,11 @@ def convertOutput(out):
     return s
 
 
-def get_dyn_keys(res: QuerySet):
+def get_dyn_keys(res: Union[List, QuerySet]) -> Tuple[str, List]:
     """
     Return all keys starting with dynamic_
     :param res: QuerySet containing all results to check
-    :return:
+    :return: header string and array with labels
     """
     out = []
     header = ''
@@ -181,7 +181,7 @@ def get_dyn_kv_pair(res: Results):
     return out
 
 
-def generate_label_table(results: QuerySet, keys: List[str]):
+def generate_label_table(results: Union[List, QuerySet], keys: List[str]) -> np.array:
     """
 
     :param results: QuerySet with results

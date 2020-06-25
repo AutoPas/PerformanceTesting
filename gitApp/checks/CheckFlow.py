@@ -1,7 +1,6 @@
 import json
 import requests
 import mongoengine as me
-from pymongo import errors
 import imp
 import os
 import io
@@ -325,7 +324,9 @@ class CheckFlow:
         print(f"{missing_results_counter} not matched out of {len(baseResults)}")
         return fig, sorted_min_speedsup, sorted_mean_speedsup, missing_results_counter
 
-    def _compareResults(self, base: Results, test: Results):
+
+    @staticmethod
+    def _compareResults(base: Results, test: Results):
         """
         Compare invididual matching results
 
