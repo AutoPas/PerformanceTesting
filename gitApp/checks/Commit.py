@@ -131,9 +131,6 @@ class Commit:
                                    '--particle-generator', f'{self.perfSetup["generator"]}',
                                    '--particles-total', f'{self.perfSetup["particles"]}'], stdout=PIPE, stderr=PIPE)
 
-        # Change to Build dir and clean up
-        os.chdir(self.buildDir)
-        run(['git', 'clean', '-dxf'])  # Force clean all untracked and/or ignored files
 
         if self.measure_output.returncode != 0:
             print("MEASUREPERF failed with return code", self.measure_output.returncode)
