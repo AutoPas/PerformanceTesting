@@ -7,8 +7,9 @@ class Setup(me.DynamicDocument):
     """
 
     # Yaml File
-    name = me.StringField()
-    file = me.FileField()
+    name = me.StringField(unique=False)
+    version = me.IntField(unique=True)
+    file = me.FileField(unique=True)
     active = me.BooleanField()
 
     def __str__(self):
