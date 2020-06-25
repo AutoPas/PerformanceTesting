@@ -52,9 +52,10 @@ class Authenticator:
         """
         self.getToken()
         token_headers = {
-            "Accept": "application/vnd.github.antiope-preview+json, "
+            "Accept": "application/vnd.github.v3+json, "
+                      "application/vnd.github.antiope-preview+json, "
                       "application/vnd.github.machine-man-preview+json, "
-                      "application/vnd.github.v3+json",
+                      "application/vnd.github.groot-preview+json",
             "Authorization": f"token {self.install_token}",
         }
         return token_headers
