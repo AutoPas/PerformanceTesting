@@ -104,7 +104,7 @@ class Commit:
 
     def measure(self):
 
-        # main.py path
+        # oldMain.py path
         # issues with using the __file__ method when deploying via uwsgi
         # mainPath = os.path.abspath(os.path.dirname(__file__))
         mainPath = os.path.join(self.baseDir, "..", "PerformanceTesting/gitApp/checks")
