@@ -1,6 +1,6 @@
 from mongoDocuments.Config import Config
 from mongoDocuments.Results import Results
-from hook.helper import convertOutput, get_dyn_kv_pair
+from hook.helper import convertOutput, get_dyn_kv_pair, get_dyn_keys, generate_label_table
 from checks.ImgurUploader import ImgurUploader
 
 from git import Repo
@@ -279,13 +279,16 @@ class Commit:
                 means = np.array([r.meanTime for r in results])
                 mins = np.array([r.minTime for r in results])
 
-                labels = np.array([get_dyn_kv_pair(r).expandtabs() for r in results])
+                header, all_keys = get_dyn_keys(results)
+                header_string = r'$\bf{' + header + '}$'
+                labels = generate_label_table(results, all_keys)
 
                 # Sort by minimum time
                 sort_keys = np.argsort(mins)[::-1]
                 sorted_means = means[sort_keys]
                 sorted_mins = mins[sort_keys]
                 sorted_labels = labels[sort_keys]
+                sorted_labels = np.append(sorted_labels, header_string)
 
                 fig = plt.figure(figsize=(15, len(means) / 4))
                 plt.gca().set_title(conf)
@@ -293,7 +296,7 @@ class Commit:
                 plt.barh(np.arange(len(means)), sorted_mins, label='min')
                 plt.legend()
                 plt.xlabel('nanoseconds')
-                plt.yticks(np.arange(len(means)), sorted_labels)
+                plt.yticks(np.arange(len(means)+1), sorted_labels)
                 plt.tight_layout()
 
                 # Upload figure
