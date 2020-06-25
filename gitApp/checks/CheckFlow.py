@@ -14,7 +14,7 @@ try:
 except ModuleNotFoundError:
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     BASE_DIR = os.path.join('../gitApp', BASE_DIR)
-from hook.helper import pretty_request, initialStatus, codeStatus, speedupStatus, get_dyn_kv_pair, spawnWorker
+from hook.helper import pretty_request, initialStatus, codeStatus, spawnWorker, get_dyn_keys, generate_label_table
 from checks.Authenticator import Authenticator
 from checks.Repository import Repository
 from mongoDocuments.Config import Config
@@ -273,9 +273,10 @@ class CheckFlow:
         testResults = Results.objects(config=test)
 
         missing_results_counter = 0
-        labels = []
         minSpeeds = []
         meanSpeeds = []
+
+        matchedResults = []
 
         for baseRes in baseResults:
             # Build dynamic keys dict
@@ -294,27 +295,32 @@ class CheckFlow:
             minSpeedup, meanSpeedup = self._compareResults(baseRes, testRes)
             minSpeeds.append(minSpeedup)
             meanSpeeds.append(meanSpeedup)
-            labels.append(get_dyn_kv_pair(testRes))
+            matchedResults.append(testRes)
+
+        header, all_keys = get_dyn_keys(matchedResults)
+        header_string = r'$\bf{' + header + '}$'
+        labels = generate_label_table(matchedResults, all_keys)
 
         sort_keys = np.argsort(minSpeeds)
         sorted_min_speedsup = np.array(minSpeeds)[sort_keys]
         sorted_mean_speedsup = np.array(meanSpeeds)[sort_keys]
-        sorted_labels = np.array(labels)[sort_keys]
+        sorted_labels = labels[sort_keys]
+        sorted_labels = np.append(sorted_labels, header_string)
 
         colors = ['g' if speed >= CheckFlow.PERF_THRESHOLD else 'r' for speed in sorted_min_speedsup]
 
         fig = plt.figure(figsize=(15, len(labels)/4))
         plt.title('Speedup')
-        plt.barh(np.arange(len(labels)), sorted_min_speedsup, color=colors, alpha=.5, label='Speedup: minimum runtime')
-        plt.barh(np.arange(len(labels)), sorted_mean_speedsup, color='gray', alpha=.5, label='Speedup: mean runtime')
+        plt.barh(np.arange(len(sort_keys)), sorted_min_speedsup, color=colors, alpha=.5, label='Speedup: minimum runtime')
+        plt.barh(np.arange(len(sort_keys)), sorted_mean_speedsup, color='gray', alpha=.5, label='Speedup: mean runtime')
         plt.axvline(1, c='k', label='no change')
         plt.axvline(CheckFlow.PERF_THRESHOLD, c='r', label='passing threshold')
-        plt.yticks(np.arange(len(labels)), sorted_labels)
-        plt.legend()
+        plt.yticks(np.arange(len(sorted_labels)), sorted_labels)
+        plt.legend(loc='lower right')
         plt.grid(which='both', axis='x')
         plt.xlim(0, 2)
         plt.tight_layout()
-        # plt.show()
+        plt.show()
 
         print(f"{missing_results_counter} not matched out of {len(baseResults)}")
         return fig, sorted_min_speedsup, sorted_mean_speedsup, missing_results_counter
