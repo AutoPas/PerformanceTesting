@@ -198,16 +198,21 @@ class CheckFlow:
         pretty_request(r)
 
         try:
+            # Get Pull Requests associated with sha
+            commitPR_url = f'{compareUrl.split("/check-runs/")[0]}/commits/{str(sha)}/pulls'
+            r = requests.get(url=commitPR_url, headers=self.auth.getTokenHeader())
+            pretty_request(r)
+
             # TODO: What if involved in more than one PR
-            pr = r.json()['pull_requests']
-            if len(pr) == 0:
-                # TODO: Why sometimes empty list
-                raise RuntimeError(f'<b>Github Checkrun API returned 0 Pull Requests associated with this SHA {sha} at {compareUrl}</b>')
-            baseSHA = pr[0]['base']['sha']
+            shaPRs = r.json()
+            if len(shaPRs) == 0:
+                raise RuntimeError(f'<b>Github Commit API returned 0 Pull Requests associated with this SHA {sha} at {commitPR_url}</b>')
+            baseSHA = shaPRs[0]['base']['sha']
 
             # TODO: What if multiple configs are all of interest, and not just the newest
             base = Config.objects(commitSHA=baseSHA).order_by('-date').first()  # Get freshest config
             if base is None:
+                # Todo: Rerun tests if base has not failed, but just not been tested yet
                 raise RuntimeError(f'<b>No performance runs for the PR base {baseSHA} were found</b>')
             test = Config.objects(commitSHA=sha, system=base.system, setup=base.setup).order_by('-date').first()  # Get freshest config
             if test is None:
