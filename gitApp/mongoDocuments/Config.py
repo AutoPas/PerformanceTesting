@@ -1,3 +1,5 @@
+from mongoDocuments.Setup import Setup
+
 import mongoengine as me
 
 
@@ -16,7 +18,7 @@ class Config(me.DynamicDocument):
     unique = me.StringField(unique=True, sparse=True)
 
     # Test setup
-    setup = me.DictField()
+    setup = me.ReferenceField(Setup)
 
     # Image Link
     perfImgurLink = me.URLField()

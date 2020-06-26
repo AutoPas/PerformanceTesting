@@ -1,5 +1,6 @@
 from mongoDocuments.Config import Config
-from mongoDocuments.Results import Results
+from mongoDocuments.Result import Result
+from mongoDocuments.Setup import Setup
 from hook.helper import convertOutput, get_dyn_kv_pair, get_dyn_keys, generate_label_table
 from checks.ImgurUploader import ImgurUploader
 
@@ -48,7 +49,7 @@ class Commit:
         self.statusMessages = []
         self.images = []
         self.measure_output = None
-        self.perfSetup = {}
+        self.perfSetup = None
 
     def updateStatus(self, code, header, message, image=None):
         self.codes.append(code)
@@ -104,7 +105,7 @@ class Commit:
         self.updateStatus(1, "BUILD", f"CMAKE+MAKE passed")
         return True
 
-    def measure(self):
+    def measure(self, setup: Setup):
 
         # oldMain.py path
         # issues with using the __file__ method when deploying via uwsgi
@@ -115,25 +116,18 @@ class Commit:
         # change to md-flexible folder
         os.chdir(self.mdFlexDir)
 
-        particles = 1E4 if 'PRODUCTION' in os.environ else 1E3  # TODO: Specify real particle targets for production
+        # Setting yaml file for this run
+        self.perfSetup = setup
+        yamlFile = 'perfConfig.yaml'
+        with open(yamlFile, 'w') as f:
+            f.write(self.perfSetup.yaml)
 
-        self.perfSetup = {
-            'deltaT': 0.0,
-            'tuningPhases': 1,
-            'generator': 'uniform',
-            'particles': particles
-        }
-        # Running one tuning session
+        # Running one tuning session with yaml setup
         self.measure_output = run(['./md-flexible',
-                                   '--deltaT', f'{self.perfSetup["deltaT"]}',
-                                   '--tuning-phases', f'{self.perfSetup["tuningPhases"]}',
                                    '--log-level', 'debug',
-                                   '--particle-generator', f'{self.perfSetup["generator"]}',
-                                   '--particles-total', f'{self.perfSetup["particles"]}'], stdout=PIPE, stderr=PIPE)
+                                   '--yaml-filename', f'{yamlFile}'],
+                                  stdout=PIPE, stderr=PIPE)
 
-        # Change to Build dir and clean up
-        os.chdir(self.buildDir)
-        run(['git', 'clean', '-dxf'])  # Force clean all untracked and/or ignored files
 
         if self.measure_output.returncode != 0:
             print("MEASUREPERF failed with return code", self.measure_output.returncode)
@@ -141,7 +135,8 @@ class Commit:
                               "PERFORMANCE MEASUREMENT",
                               f"MEASUREPERF failed:\nSTDOUT: .... "
                               f"{convertOutput(self.measure_output.stdout)[-500:]}\n"
-                              f"STDERR:{convertOutput(self.measure_output.stderr)}")
+                              f"STDERR:{convertOutput(self.measure_output.stderr)}\n"
+                              f"Setup: {self.perfSetup.name}")
             # change back to top level directory
             os.chdir(self.baseDir)
             return False
@@ -149,7 +144,8 @@ class Commit:
         # change to top
         os.chdir(self.baseDir)
         self.updateStatus(1, "PERFORMANCE MEASUREMENT", f"MEASUREPERF succeeded: \n...\n"
-                                                        f"{convertOutput(self.measure_output.stdout)[-500:]}")
+                                                        f"{convertOutput(self.measure_output.stdout)[-500:]}\n"
+                                                        f"{self.perfSetup.name}")
         return True
 
 
@@ -198,7 +194,7 @@ class Commit:
 
         for run in config_runs:
 
-            results = Results()
+            results = Result()
             results.config = db_entry
 
             # Filter all config parameters
@@ -255,7 +251,8 @@ class Commit:
         db_entry.commitMessage = self.repo.commit(self.sha).message
         db_entry.commitDate = self.repo.commit(self.sha).authored_datetime
         # Saving Setup used in perf script
-        db_entry.setup = self.perfSetup
+        if self.perfSetup is not None:
+            db_entry.setup = self.perfSetup
         db_entry.failure = failure
         db_entry.save()
 
@@ -275,7 +272,7 @@ class Commit:
             # Multiple Plots if more than one config was run
             conf: Config
             for conf in confs:
-                results = Results.objects(config=conf)
+                results = Result.objects(config=conf)
 
                 means = np.array([r.meanTime for r in results])
                 mins = np.array([r.minTime for r in results])
@@ -297,7 +294,9 @@ class Commit:
                 plt.barh(np.arange(len(means)), sorted_mins, label='min')
                 plt.legend()
                 plt.xlabel('nanoseconds')
+                plt.xscale('log')
                 plt.yticks(np.arange(len(sorted_labels)), sorted_labels)
+                plt.grid(which='both', axis='x')
                 plt.tight_layout()
 
                 # Upload figure

@@ -18,7 +18,7 @@ from checks.Authenticator import Authenticator
 from checks.Repository import Repository
 from mongoDocuments.Config import Config
 from mongoDocuments.QueueObject import QueueObject
-from mongoDocuments.Results import Results
+from mongoDocuments.Result import Result
 from checks.ImgurUploader import ImgurUploader
 
 """
@@ -268,8 +268,8 @@ class CheckFlow:
         """
 
         # Use base as common denominator and look for results containing the keys in base
-        baseResults = Results.objects(config=base)
-        testResults = Results.objects(config=test)
+        baseResults = Result.objects(config=base)
+        testResults = Result.objects(config=test)
 
         missing_results_counter = 0
         minSpeeds = []
@@ -326,7 +326,7 @@ class CheckFlow:
 
 
     @staticmethod
-    def _compareResults(base: Results, test: Results):
+    def _compareResults(base: Result, test: Result):
         """
         Compare invididual matching results
 
