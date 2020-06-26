@@ -136,7 +136,7 @@ class Commit:
                               f"MEASUREPERF failed:\nSTDOUT: .... "
                               f"{convertOutput(self.measure_output.stdout)[-500:]}\n"
                               f"STDERR:{convertOutput(self.measure_output.stderr)}\n"
-                              f"Setup: {self.perfSetup}")
+                              f"Setup: {self.perfSetup.name}")
             # change back to top level directory
             os.chdir(self.baseDir)
             return False
@@ -145,7 +145,7 @@ class Commit:
         os.chdir(self.baseDir)
         self.updateStatus(1, "PERFORMANCE MEASUREMENT", f"MEASUREPERF succeeded: \n...\n"
                                                         f"{convertOutput(self.measure_output.stdout)[-500:]}\n"
-                                                        f"{self.perfSetup}")
+                                                        f"{self.perfSetup.name}")
         return True
 
 
