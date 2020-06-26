@@ -1,6 +1,7 @@
 from mongoDocuments.Setup import Setup
 
 import mongoengine as me
+import os
 import glob
 import hashlib
 from datetime import datetime
@@ -14,8 +15,8 @@ if __name__ == '__main__':
 
     # Connect to DB
     # TODO: use env or .config files for settings
-    me.connect(url='localhost:30017', user='XXX', password='XXX')
-
+    me.connect('performancedb', host='localhost:30017', username=os.environ['USERNAME'],
+               password=os.environ['PASSWORD'])
     # TODO: check for same file content
     for filename in glob.glob('*.yaml'):
         print(filename)
@@ -26,7 +27,7 @@ if __name__ == '__main__':
         with open(filename, 'r') as f:
             file = f.read()
             s.yaml = file
-            s.yamlHash = hashlib.md5(file.encode('utf-8')).hexdigest()
+            s.yamlHash = hashlib.sha256(file.encode('utf-8')).hexdigest()
 
         # Checking File uniqueness via yaml hash for a given name
         try:
