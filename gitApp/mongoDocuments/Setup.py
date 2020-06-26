@@ -13,5 +13,6 @@ class Setup(me.DynamicDocument):
     uploadDate = me.DateTimeField()
 
     def __str__(self):
-        out = f'{self.name}'
+        out = f'{self.name} {self.uploadDate}\n' \
+              f'{self.yaml}'
         return out
