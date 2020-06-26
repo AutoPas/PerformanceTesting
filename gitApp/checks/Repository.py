@@ -1,5 +1,7 @@
 from git import Repo
 from checks.Commit import Commit
+from mongoDocuments.Setup import Setup
+
 
 class Repository:
 
@@ -74,15 +76,16 @@ class Repository:
         try:
             if c.build():
                 print(f"{c.sha}: BUILD DONE")
-                if c.measure():
-                    print(f"{c.sha}: MEASUREMENT DONE")
-                    if c.parse_and_upload():
-                        print(f"{c.sha}: UPLOAD DONE")
-                        if c.generatePlot():
-                            print(f"{c.sha}: PLOTS DONE")
-                            print("done testing")
-                else:
-                    c.save_failed_config('Run failed')
+                for setup in Setup.objects(active=True):
+                    if c.measure(setup):
+                        print(f"{c.sha}: MEASUREMENT DONE")
+                        if c.parse_and_upload():
+                            print(f"{c.sha}: UPLOAD DONE")
+                            if c.generatePlot():
+                                print(f"{c.sha}: PLOTS DONE")
+                                print("done testing")
+                    else:
+                        c.save_failed_config('Run failed')
             else:
                 c.save_failed_config('Build failed')
 
