@@ -13,10 +13,6 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../../PerformanceTesting/gitApp'))
-sys.path.insert(0, os.path.abspath('../../PerformanceTesting/gitApp/checks'))
-sys.path.insert(0, os.path.abspath('../../PerformanceTesting/gitApp/gitApp'))
-sys.path.insert(0, os.path.abspath('../../PerformanceTesting/gitApp/hook'))
-sys.path.insert(0, os.path.abspath('../../PerformanceTesting/gitApp/mongoDocuments'))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gitApp.settings')
 
 # -- Project information -----------------------------------------------------
