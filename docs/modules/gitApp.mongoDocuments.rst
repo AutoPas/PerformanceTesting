@@ -4,7 +4,7 @@ MongoDocuments
 Config
 -----------------------------------
 
-.. automodule:: gitApp.mongoDocuments.Config
+.. automodule:: mongoDocuments.Config
    :members:
    :undoc-members:
    :show-inheritance:
@@ -12,7 +12,7 @@ Config
 QueueObject
 ----------------------------------------
 
-.. automodule:: gitApp.mongoDocuments.QueueObject
+.. automodule:: mongoDocuments.QueueObject
    :members:
    :undoc-members:
    :show-inheritance:
@@ -20,7 +20,7 @@ QueueObject
 Result
 -----------------------------------
 
-.. automodule:: gitApp.mongoDocuments.Result
+.. automodule:: mongoDocuments.Result
    :members:
    :undoc-members:
    :show-inheritance:
@@ -28,7 +28,7 @@ Result
 Setup
 ----------------------------------
 
-.. automodule:: gitApp.mongoDocuments.Setup
+.. automodule:: mongoDocuments.Setup
    :members:
    :undoc-members:
    :show-inheritance:

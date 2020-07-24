@@ -10,7 +10,7 @@ Django App hook
 hook.apps
 -----------------------
 
-.. automodule:: gitApp.hook.apps
+.. automodule:: hook.apps
    :members:
    :undoc-members:
    :show-inheritance:
@@ -18,24 +18,16 @@ hook.apps
 hook.helper
 -------------------------
 
-.. automodule:: gitApp.hook.helper
+.. automodule:: hook.helper
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-hook.urls
------------------------
-
-.. automodule:: gitApp.hook.urls
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 hook.views
 ------------------------
 
-.. automodule:: gitApp.hook.views
+.. automodule:: hook.views
    :members:
    :undoc-members:
    :show-inheritance:

@@ -9,7 +9,7 @@ Checks Package
 Authenticator
 ----------------------------------
 
-.. automodule:: gitApp.checks.Authenticator
+.. automodule:: checks.Authenticator
    :members:
    :undoc-members:
    :show-inheritance:
@@ -17,7 +17,7 @@ Authenticator
 CheckFlow
 ------------------------------
 
-.. automodule:: gitApp.checks.CheckFlow
+.. automodule:: checks.CheckFlow
    :members:
    :undoc-members:
    :show-inheritance:
@@ -25,7 +25,7 @@ CheckFlow
 Commit
 ---------------------------
 
-.. automodule:: gitApp.checks.Commit
+.. automodule:: checks.Commit
    :members:
    :undoc-members:
    :show-inheritance:
@@ -33,7 +33,7 @@ Commit
 ImgurUploader
 ----------------------------------
 
-.. automodule:: gitApp.checks.ImgurUploader
+.. automodule:: checks.ImgurUploader
    :members:
    :undoc-members:
    :show-inheritance:
@@ -41,7 +41,7 @@ ImgurUploader
 Repository
 -------------------------------
 
-.. automodule:: gitApp.checks.Repository
+.. automodule:: checks.Repository
    :members:
    :undoc-members:
    :show-inheritance:
@@ -49,7 +49,7 @@ Repository
 Worker
 ---------------------------
 
-.. automodule:: gitApp.checks.Worker
+.. automodule:: checks.Worker
    :members:
    :undoc-members:
    :show-inheritance:
@@ -57,7 +57,7 @@ Worker
 YamlSetups - uploadSetups
 --------------------------------------------
 
-.. automodule:: gitApp.checks.yamlSetups.uploadSetups
+.. automodule:: checks.yamlSetups.uploadSetups
    :members:
    :undoc-members:
    :show-inheritance:
