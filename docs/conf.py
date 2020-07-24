@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../'))
 sys.path.insert(0, os.path.abspath('../gitApp'))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gitApp.settings')
+os.environ.setdefault('GITHUBAPPID', -1)
 
 # -- Project information -----------------------------------------------------
 
