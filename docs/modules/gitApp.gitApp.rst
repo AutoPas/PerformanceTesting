@@ -5,7 +5,7 @@ Django Server gitApp
 settings
 -----------------------------
 
-.. automodule:: settings
+.. automodule:: gitApp.settings
    :members:
    :undoc-members:
    :show-inheritance:
