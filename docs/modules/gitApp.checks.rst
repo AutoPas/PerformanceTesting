@@ -1,15 +1,15 @@
 =====================
 Checks Package
 =====================
+.. py:currentmodule:: checks
 
 .. toctree::
    :maxdepth: 2
 
-
 Authenticator
 ----------------------------------
 
-.. automodule:: checks.Authenticator
+.. autoclass:: Authenticator
    :members:
    :undoc-members:
    :show-inheritance:
@@ -17,7 +17,7 @@ Authenticator
 CheckFlow
 ------------------------------
 
-.. automodule:: checks.CheckFlow
+.. autoclass:: CheckFlow
    :members:
    :undoc-members:
    :show-inheritance:
@@ -25,7 +25,7 @@ CheckFlow
 Commit
 ---------------------------
 
-.. automodule:: checks.Commit
+.. autoclass:: Commit
    :members:
    :undoc-members:
    :show-inheritance:
@@ -33,7 +33,7 @@ Commit
 ImgurUploader
 ----------------------------------
 
-.. automodule:: checks.ImgurUploader
+.. autoclass:: ImgurUploader
    :members:
    :undoc-members:
    :show-inheritance:
@@ -41,7 +41,7 @@ ImgurUploader
 Repository
 -------------------------------
 
-.. automodule:: checks.Repository
+.. autoclass:: Repository
    :members:
    :undoc-members:
    :show-inheritance:
@@ -49,7 +49,7 @@ Repository
 Worker
 ---------------------------
 
-.. automodule:: checks.Worker
+.. autoclass:: Worker
    :members:
    :undoc-members:
    :show-inheritance:
@@ -57,7 +57,7 @@ Worker
 YamlSetups - uploadSetups
 --------------------------------------------
 
-.. automodule:: checks.yamlSetups.uploadSetups
+.. autoclass:: yamlSetups.uploadSetups
    :members:
    :undoc-members:
    :show-inheritance:
