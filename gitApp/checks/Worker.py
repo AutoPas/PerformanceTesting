@@ -1,5 +1,5 @@
 from mongoDocuments.QueueObject import QueueObject
-from checks.CheckFlow import CheckFlow
+from checks import CheckFlow
 import sys
 
 

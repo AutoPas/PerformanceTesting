@@ -1,5 +1,5 @@
 from git import Repo
-from checks.Commit import Commit
+from checks import Commit
 from mongoDocuments.Setup import Setup
 
 

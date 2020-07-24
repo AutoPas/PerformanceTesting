@@ -2,7 +2,7 @@ from mongoDocuments.Config import Config
 from mongoDocuments.Result import Result
 from mongoDocuments.Setup import Setup
 from hook.helper import convertOutput, get_dyn_kv_pair, get_dyn_keys, generate_label_table
-from checks.ImgurUploader import ImgurUploader
+from checks import ImgurUploader
 
 from git import Repo
 import os
