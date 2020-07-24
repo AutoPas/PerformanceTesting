@@ -12,7 +12,6 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../PerformanceTesting/'))
 sys.path.insert(0, os.path.abspath('../../PerformanceTesting/gitApp'))
 sys.path.insert(0, os.path.abspath('../../PerformanceTesting/gitApp/checks'))
 sys.path.insert(0, os.path.abspath('../../PerformanceTesting/gitApp/gitApp'))
