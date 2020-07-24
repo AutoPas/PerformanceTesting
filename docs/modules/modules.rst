@@ -1,7 +1,11 @@
-gitApp
-======
+=======
+GitApp
+=======
 
 .. toctree::
    :maxdepth: 4
 
-   gitApp
+   gitApp.checks
+   gitApp.gitApp
+   gitApp.hook
+   gitApp.mongoDocuments

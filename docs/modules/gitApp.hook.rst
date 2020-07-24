@@ -1,26 +1,13 @@
-gitApp.hook package
+===================
+Django App hook
 ===================
 
-Subpackages
------------
 
 .. toctree::
    :maxdepth: 4
 
-   gitApp.hook.migrations
 
-Submodules
-----------
-
-gitApp.hook.admin module
-------------------------
-
-.. automodule:: gitApp.hook.admin
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-gitApp.hook.apps module
+hook.apps
 -----------------------
 
 .. automodule:: gitApp.hook.apps
@@ -28,7 +15,7 @@ gitApp.hook.apps module
    :undoc-members:
    :show-inheritance:
 
-gitApp.hook.helper module
+hook.helper
 -------------------------
 
 .. automodule:: gitApp.hook.helper
@@ -36,23 +23,8 @@ gitApp.hook.helper module
    :undoc-members:
    :show-inheritance:
 
-gitApp.hook.models module
--------------------------
 
-.. automodule:: gitApp.hook.models
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-gitApp.hook.tests module
-------------------------
-
-.. automodule:: gitApp.hook.tests
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-gitApp.hook.urls module
+hook.urls
 -----------------------
 
 .. automodule:: gitApp.hook.urls
@@ -60,19 +32,10 @@ gitApp.hook.urls module
    :undoc-members:
    :show-inheritance:
 
-gitApp.hook.views module
+hook.views
 ------------------------
 
 .. automodule:: gitApp.hook.views
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: gitApp.hook
    :members:
    :undoc-members:
    :show-inheritance:

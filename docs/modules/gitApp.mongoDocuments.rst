@@ -1,10 +1,7 @@
-gitApp.mongoDocuments package
+MongoDocuments
 =============================
 
-Submodules
-----------
-
-gitApp.mongoDocuments.Config module
+Config
 -----------------------------------
 
 .. automodule:: gitApp.mongoDocuments.Config
@@ -12,7 +9,7 @@ gitApp.mongoDocuments.Config module
    :undoc-members:
    :show-inheritance:
 
-gitApp.mongoDocuments.QueueObject module
+QueueObject
 ----------------------------------------
 
 .. automodule:: gitApp.mongoDocuments.QueueObject
@@ -20,7 +17,7 @@ gitApp.mongoDocuments.QueueObject module
    :undoc-members:
    :show-inheritance:
 
-gitApp.mongoDocuments.Result module
+Result
 -----------------------------------
 
 .. automodule:: gitApp.mongoDocuments.Result
@@ -28,19 +25,10 @@ gitApp.mongoDocuments.Result module
    :undoc-members:
    :show-inheritance:
 
-gitApp.mongoDocuments.Setup module
+Setup
 ----------------------------------
 
 .. automodule:: gitApp.mongoDocuments.Setup
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: gitApp.mongoDocuments
    :members:
    :undoc-members:
    :show-inheritance:

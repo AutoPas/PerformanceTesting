@@ -1,18 +1,12 @@
-gitApp.checks package
+=====================
+Checks Package
 =====================
 
-Subpackages
------------
-
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
-   gitApp.checks.yamlSetups
 
-Submodules
-----------
-
-gitApp.checks.Authenticator module
+Authenticator
 ----------------------------------
 
 .. automodule:: gitApp.checks.Authenticator
@@ -20,7 +14,7 @@ gitApp.checks.Authenticator module
    :undoc-members:
    :show-inheritance:
 
-gitApp.checks.CheckFlow module
+CheckFlow
 ------------------------------
 
 .. automodule:: gitApp.checks.CheckFlow
@@ -28,7 +22,7 @@ gitApp.checks.CheckFlow module
    :undoc-members:
    :show-inheritance:
 
-gitApp.checks.Commit module
+Commit
 ---------------------------
 
 .. automodule:: gitApp.checks.Commit
@@ -36,7 +30,7 @@ gitApp.checks.Commit module
    :undoc-members:
    :show-inheritance:
 
-gitApp.checks.ImgurUploader module
+ImgurUploader
 ----------------------------------
 
 .. automodule:: gitApp.checks.ImgurUploader
@@ -44,7 +38,7 @@ gitApp.checks.ImgurUploader module
    :undoc-members:
    :show-inheritance:
 
-gitApp.checks.Repository module
+Repository
 -------------------------------
 
 .. automodule:: gitApp.checks.Repository
@@ -52,7 +46,7 @@ gitApp.checks.Repository module
    :undoc-members:
    :show-inheritance:
 
-gitApp.checks.Worker module
+Worker
 ---------------------------
 
 .. automodule:: gitApp.checks.Worker
@@ -60,27 +54,11 @@ gitApp.checks.Worker module
    :undoc-members:
    :show-inheritance:
 
-gitApp.checks.oldMain module
-----------------------------
+YamlSetups - uploadSetups
+--------------------------------------------
 
-.. automodule:: gitApp.checks.oldMain
+.. automodule:: gitApp.checks.yamlSetups.uploadSetups
    :members:
    :undoc-members:
    :show-inheritance:
 
-gitApp.checks.test module
--------------------------
-
-.. automodule:: gitApp.checks.test
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: gitApp.checks
-   :members:
-   :undoc-members:
-   :show-inheritance:

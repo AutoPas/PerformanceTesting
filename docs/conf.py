@@ -18,6 +18,7 @@ sys.path.append(os.path.abspath('../../PerformanceTesting/gitApp/checks'))
 sys.path.append(os.path.abspath('../../PerformanceTesting/gitApp/gitApp'))
 sys.path.append(os.path.abspath('../../PerformanceTesting/gitApp/hook'))
 sys.path.append(os.path.abspath('../../PerformanceTesting/gitApp/mongoDocuments'))
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gitApp.settings')
 
 # -- Project information -----------------------------------------------------
 
@@ -34,9 +35,9 @@ release = 'alpha'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['recommonmark', 'sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx_rtd_theme']
+extensions = ['recommonmark', 'sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx_rtd_theme', 'sphinx.ext.coverage']
 autodoc_default_options = {"members": True, "undoc-members": True, "private-members": True}
-autodoc_mock_imports = ["mongoengine"]
+# autodoc_mock_imports = ["mongoengine"]
 autodoc_inherit_docstrings = True
 autodoc_member_order = 'alphabetical'  # 'bysource'
 

@@ -1,38 +1,11 @@
-gitApp.gitApp package
+=====================
+Django Server gitApp
 =====================
 
-Submodules
-----------
-
-gitApp.gitApp.settings module
+settings
 -----------------------------
 
-.. automodule:: gitApp.gitApp.settings
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-gitApp.gitApp.urls module
--------------------------
-
-.. automodule:: gitApp.gitApp.urls
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-gitApp.gitApp.wsgi module
--------------------------
-
-.. automodule:: gitApp.gitApp.wsgi
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: gitApp.gitApp
+.. automodule:: settings
    :members:
    :undoc-members:
    :show-inheritance:

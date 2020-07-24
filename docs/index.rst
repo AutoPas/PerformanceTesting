@@ -9,12 +9,14 @@ Welcome to Autopas Performance Testing's documentation!
 .. toctree::
    :maxdepth: 4
    :caption: Contents:
-   :glob:
+
+   Overview
+   Setup
 
    modules/modules
 
 
-
+=====
 TODOs
 =====
 
