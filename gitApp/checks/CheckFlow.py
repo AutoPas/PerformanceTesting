@@ -447,6 +447,16 @@ if __name__ == '__main__':
 
     CheckFlow.AUTOPAS = "../../AutoPas"
     check = CheckFlow(initRepo=True)
+
+    try:
+        bc = check._getBranchHead('origin/master')
+        print(bc)
+        lc = check._getLastCommonRef('637c2e2', 'a6e67a4')
+        print(lc)
+        fc = check._getForkPoint('origin/master', 'a6e67a4')
+        print(fc)
+    except ValueError:
+        pass
     single_sha = "64a5b092bc32a7b01e19be4091a79148fecb04e7"
     # check.baseSHA = "cb22dd6e28ad8d4f25b076562e4bf861613b3153"
     check.baseUrl = "https://api.github.com/repos/AutoPas/AutoPas"
