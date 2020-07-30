@@ -1,6 +1,6 @@
-from mongoDocuments.Config import Config
-from mongoDocuments.Result import Result
-from mongoDocuments.Setup import Setup
+from mongoDocuments import Config
+from mongoDocuments import Result
+from mongoDocuments import Setup
 from hook.helper import convertOutput, get_dyn_kv_pair, get_dyn_keys, generate_label_table
 from checks import ImgurUploader
 

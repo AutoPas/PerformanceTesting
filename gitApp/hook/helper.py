@@ -4,7 +4,7 @@ import os
 from typing import List, Union, Tuple
 import numpy as np
 
-from mongoDocuments.Result import Result
+from mongoDocuments import Result
 from mongoengine import QuerySet
 
 VERBOSE = True

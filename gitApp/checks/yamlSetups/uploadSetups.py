@@ -1,4 +1,4 @@
-from mongoDocuments.Setup import Setup
+from mongoDocuments import Setup
 
 import mongoengine as me
 import os
