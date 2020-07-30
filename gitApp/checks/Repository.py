@@ -5,7 +5,7 @@ from mongoDocuments import Setup
 
 class Repository:
 
-    def __init__(self, gitPath, branch="master"):
+    def __init__(self, gitPath, branch="origin/master"):
         # Repo Object of already cloned Repo, expects a pulled and clean repo
         self.repo = Repo(gitPath)
         # Checkout branch
@@ -93,3 +93,13 @@ class Repository:
             print(f"_testCommit {c.sha} failed with {e}")
             c.updateStatus(-1, 'GENERAL', f"failed with {e}")
 
+    def fetchAll(self):
+        """
+        Fetching for all remote branches
+
+        Returns:
+        """
+        print('Fetching all remotes')
+        for remote in self.repo.remotes:
+            remote.fetch()
+            print('\t', remote)
