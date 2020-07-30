@@ -38,6 +38,7 @@ autodoc_default_options = {"members": True, "undoc-members": True, "private-memb
 # autodoc_mock_imports = ["mongoengine"]
 autodoc_inherit_docstrings = True
 autodoc_member_order = 'alphabetical'  # 'bysource'
+autoclass_content = 'both'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

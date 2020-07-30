@@ -23,6 +23,12 @@ class Authenticator:
     JWT_EXP_THRESHOLD = 2
 
     def __init__(self, pem, git_app_id):
+        """
+
+        Args:
+            pem: .pem certificate file name
+            git_app_id: Github App ID for API calls
+        """
         self.pem = pem
         self.app_id = git_app_id
         self.install_id = -1
