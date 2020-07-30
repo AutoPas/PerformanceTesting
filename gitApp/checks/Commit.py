@@ -320,5 +320,5 @@ class Commit:
 if __name__ == '__main__':
     me.connect('performancedb', host='localhost:30017', username=os.environ['USERNAME'],
                password=os.environ['PASSWORD'])
-    c = Commit(Repo('../../../AutoPas'), 'cb22dd6e28ad8d4f25b076562e4bf861613b3153')
+    c = Commit(Repo('../../../AutoPas'), '64a5b092bc32a7b01e19be4091a79148fecb04e7')
     c.generatePlot()

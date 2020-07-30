@@ -341,14 +341,14 @@ class CheckFlow:
 if __name__ == '__main__':
 
     CheckFlow.AUTOPAS = "../../AutoPas"
-    check = CheckFlow()
-    single_sha = "3ca1622626af6627d263971bc3351d208d72ec0e"
-    check.baseSHA = "cb22dd6e28ad8d4f25b076562e4bf861613b3153"
+    check = CheckFlow(initRepo=True)
+    single_sha = "64a5b092bc32a7b01e19be4091a79148fecb04e7"
+    # check.baseSHA = "cb22dd6e28ad8d4f25b076562e4bf861613b3153"
     check.baseUrl = "https://api.github.com/repos/AutoPas/AutoPas"
     check.auth.updateInstallID(2027548)
     #check.CompareUrls[single_sha] = check._createCheckRun(single_sha, "DEBUG TEST")
-    #runUrl = check._createCheckRun(single_sha, "DEBUG TEST")
-    #check.runCheck(single_sha, runUrl)
-    check.comparePerformance(single_sha, 'https://api.github.com/repos/AutoPas/AutoPas/check-runs/762824540')
+    runUrl = check._createCheckRun(single_sha, "DEBUG TEST")
+    check.runCheck(single_sha, runUrl)
+    #check.comparePerformance(single_sha, 'https://api.github.com/repos/AutoPas/AutoPas/check-runs/762824540')
 
 
