@@ -193,6 +193,21 @@ class CheckFlow:
 
         self.baseSHA = self._getBranchHead(f'origin/{self.base}')
         SHAs = [self.baseSHA]  # Adding additional SHA from master
+        compareSHAs = {'0_BaseSHA': self.baseSHA}
+        # Adding Fork Point if available
+        try:
+            forkPoint = self._getForkPoint(baseBranch=f'origin/{self.base}', branchRef=f'origin/{self.branch}')
+            SHAs.append(forkPoint)
+            compareSHAs['1_ForkPoint'] = forkPoint
+        except ValueError:
+            print(f'No Forkpoint found for {self.branch} on {self.base}')
+        # Adding Last Common Commit if available
+        try:
+            lastCommon = self._getLastCommonRef(baseRef=self.base, branchRef=f'origin/{self.branch}')
+            SHAs.append(lastCommon)
+            compareSHAs['2_LastCommon'] = lastCommon
+        except ValueError:
+            print(f'No common ancestor between {self.base} and {self.branch}')
 
         needWorker = False  # if nothing is added to queue, no worker needs to be spawned
 
@@ -207,13 +222,14 @@ class CheckFlow:
                 queue = QueueObject()
                 queue.commitSHA = sha
                 queue.installID = self.auth.install_id
+                queue.compareOptions = compareSHAs
                 try:
                     queue.save()
                 except me.NotUniqueError:
                     print('SHA is already queued')
                     continue
                 queue.runUrl = self._createCheckRun(sha, "Performance Run")
-                if sha is not self.baseSHA:
+                if sha not in compareSHAs.values():
                     queue.compareUrl = self._createCheckRun(sha, "Performance Comparison")
                 queue.running = False
                 queue.save()

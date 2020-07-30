@@ -12,6 +12,9 @@ class QueueObject(me.Document):
     runUrl = me.URLField()
     compareUrl = me.URLField()
 
+    # Possible SHAs to compare with
+    compareOptions = me.DictField()
+
     def __str__(self):
         output = f"Name: {self.commitSHA} Running: {self.running}"
         return output
