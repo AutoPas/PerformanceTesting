@@ -1,10 +1,15 @@
-MongoDocuments
+MongoDocuments Package
 =============================
+
+.. py:currentmodule:: mongoDocuments
+
+.. toctree::
+   :maxdepth: 2
 
 Config
 -----------------------------------
 
-.. automodule:: mongoDocuments.Config
+.. autoclass:: Config
    :members:
    :undoc-members:
    :show-inheritance:
@@ -12,7 +17,7 @@ Config
 QueueObject
 ----------------------------------------
 
-.. automodule:: mongoDocuments.QueueObject
+.. autoclass:: QueueObject
    :members:
    :undoc-members:
    :show-inheritance:
@@ -20,7 +25,7 @@ QueueObject
 Result
 -----------------------------------
 
-.. automodule:: mongoDocuments.Result
+.. autoclass:: Result
    :members:
    :undoc-members:
    :show-inheritance:
@@ -28,7 +33,7 @@ Result
 Setup
 ----------------------------------
 
-.. automodule:: mongoDocuments.Setup
+.. autoclass:: Setup
    :members:
    :undoc-members:
    :show-inheritance:
