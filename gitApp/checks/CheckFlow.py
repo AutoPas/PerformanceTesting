@@ -7,6 +7,7 @@ import io
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from subprocess import run, PIPE
 
 try:
     from gitApp.settings import BASE_DIR
@@ -92,6 +93,36 @@ class CheckFlow:
         needWorker = self._checkCommits(ci_url)
         if needWorker:
             spawnWorker()
+
+
+    def _getLastCommonRef(self, baseRef: str, branchRef: str) -> str:
+        """
+        Running git command in AutoPas Repo to find last common ref.
+        This usually is the last time origin/master was merged into the feature branch.
+
+        Args:
+            baseRef: SHA on base branch
+            branchRef: SHA on feature branch
+
+        Returns:
+            str: last common ref
+
+        """
+
+        baseDir = os.getcwd()
+        os.chdir(self.repo.repo.git_dir.strip('.git'))
+
+        gitOutput = run(['git', 'merge-base', baseRef, branchRef], stdout=PIPE, stderr=PIPE, encoding='utf-8')
+
+        os.chdir(baseDir)
+
+        if gitOutput.returncode == 0:
+            sha = gitOutput.stdout
+        else:
+            raise ValueError(f'No Common Ref found for: {baseRef} {branchRef}', gitOutput.stderr)
+
+        return sha
+
 
     def _checkCommits(self, url):
         """
