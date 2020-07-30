@@ -38,7 +38,7 @@ class CheckFlow:
     AUTOPAS = "../../AutoPas"
     PERF_THRESHOLD = 0.9  # TODO: Define speedup criterium further
 
-    def __init__(self, initRepo=False):
+    def __init__(self, initRepo=True):
         print("new checkFlow instance")
         self.auth = Authenticator(CheckFlow.PEM, CheckFlow.GIT_APP_ID)
         self.baseUrl = ""
