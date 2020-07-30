@@ -15,11 +15,11 @@ except ModuleNotFoundError:
     BASE_DIR = os.path.join('../gitApp', BASE_DIR)
 from hook.helper import pretty_request, initialStatus, codeStatus, spawnWorker, get_dyn_keys, generate_label_table
 from checks import Authenticator
-from checks import Repository
-from mongoDocuments.Config import Config
-from mongoDocuments.QueueObject import QueueObject
-from mongoDocuments.Result import Result
 from checks import ImgurUploader
+from checks import Repository
+from mongoDocuments import Config
+from mongoDocuments import QueueObject
+from mongoDocuments import Result
 
 """
 Codes:
