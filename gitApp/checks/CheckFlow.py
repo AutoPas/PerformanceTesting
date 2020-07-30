@@ -222,7 +222,6 @@ class CheckFlow:
                 queue = QueueObject()
                 queue.commitSHA = sha
                 queue.installID = self.auth.install_id
-                queue.compareOptions = compareSHAs
                 try:
                     queue.save()
                 except me.NotUniqueError:
@@ -230,6 +229,7 @@ class CheckFlow:
                     continue
                 queue.runUrl = self._createCheckRun(sha, "Performance Run")
                 if sha not in compareSHAs.values():
+                    queue.compareOptions = compareSHAs
                     queue.compareUrl = self._createCheckRun(sha, "Performance Comparison")
                 queue.running = False
                 queue.save()
