@@ -1,6 +1,6 @@
 from git import Repo
-from checks.Commit import Commit
-from mongoDocuments.Setup import Setup
+from checks import Commit
+from mongoDocuments import Setup
 
 
 class Repository:

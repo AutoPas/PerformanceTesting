@@ -14,7 +14,7 @@ import imp
 import argparse
 import sys, os
 
-from checks.Repository import Repository
+from checks import Repository
 
 if __name__ == "__main__":
 

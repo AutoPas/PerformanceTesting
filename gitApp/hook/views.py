@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from hook.helper import pretty_request
-from checks.CheckFlow import CheckFlow
+from checks import CheckFlow
 import json
 
 # Create your views here.

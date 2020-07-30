@@ -4,7 +4,7 @@ import os
 from typing import List, Union, Tuple
 import numpy as np
 
-from mongoDocuments.Result import Result
+from mongoDocuments import Result
 from mongoengine import QuerySet
 
 VERBOSE = True
@@ -146,6 +146,7 @@ def convertOutput(out):
 def get_dyn_keys(res: Union[List, QuerySet]) -> Tuple[str, List]:
     """
     Return all keys starting with dynamic_
+
     :param res: QuerySet containing all results to check
     :return: header string and array with labels
     """
@@ -167,6 +168,7 @@ def get_dyn_keys(res: Union[List, QuerySet]) -> Tuple[str, List]:
 def get_dyn_kv_pair(res: Result):
     """
     Return String formatted with all key value pairs starting with dynamic_
+
     :param res:
     :return:
     """
