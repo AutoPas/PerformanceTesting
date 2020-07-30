@@ -88,9 +88,7 @@ class CheckFlow:
         # Checkout branch associated with pull request
         self.branch = pull["head"]["ref"]
         self.base = pull["base"]["ref"]
-        self.baseSHA = pull["base"]["sha"]
-        # TODO: Needed here?
-        # self.repo.checkoutBranch(self.branch)
+        # self.baseSHA = pull["base"]["sha"]  # Completely unclear what determines which SHA is printed here. It's not the HEAD
         print(ci_url)
 
         # Run checks on commits url
@@ -121,7 +119,7 @@ class CheckFlow:
         os.chdir(baseDir)
 
         if gitOutput.returncode == 0:
-            sha = gitOutput.stdout
+            sha = gitOutput.stdout.strip('\n')
         else:
             raise ValueError(f'No Common Ref found for: {baseRef} {branchRef}', gitOutput.stderr)
 
@@ -148,9 +146,36 @@ class CheckFlow:
         os.chdir(baseDir)
 
         if gitOutput.returncode == 0:
-            sha = gitOutput.stdout
+            sha = gitOutput.stdout.strip('\n')
         else:
             raise ValueError(f'No Fork Point found for: {baseBranch} {branchRef}', gitOutput.stderr)
+
+        return sha
+
+
+    def _getBranchHead(self, baseBranch: str) -> str:
+        """
+        Running git command in AutoPas Repo to find head of branch
+
+        Args:
+            baseBranch: name of base branch, e.g. master
+
+        Returns:
+            str: HEAD sha on baseBranch
+
+        """
+
+        baseDir = os.getcwd()
+        os.chdir(self.repo.repo.git_dir.strip('.git'))
+
+        gitOutput = run(['git', 'show-ref', '--hash', baseBranch], stdout=PIPE, stderr=PIPE, encoding='utf-8')
+
+        os.chdir(baseDir)
+
+        if gitOutput.returncode == 0:
+            sha = gitOutput.stdout.strip('\n')
+        else:
+            raise ValueError(f'No HEAD found for: {baseBranch}', gitOutput.stderr)
 
         return sha
 
@@ -165,6 +190,8 @@ class CheckFlow:
         pretty_request(r)
         print("COMMIT LIST:")
         cis = r.json()
+
+        self.baseSHA = self._getBranchHead(f'origin/{self.base}')
         SHAs = [self.baseSHA]  # Adding additional SHA from master
 
         needWorker = False  # if nothing is added to queue, no worker needs to be spawned
