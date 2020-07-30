@@ -65,6 +65,7 @@ class CheckFlow:
         # TODO: Separate Hook calls from Worker calls
         if initRepo:
             self.repo = Repository(os.path.join(BASE_DIR, CheckFlow.AUTOPAS))
+            self.repo.fetchAll()
 
     def receiveHook(self, request):  # WSGIRequest):
         """ on receive of pull_request event """
@@ -73,6 +74,9 @@ class CheckFlow:
         body = json.loads(request.body)
         # Update Repo installation ID for Github App auth
         self.auth.updateInstallID(int(body["installation"]["id"]))
+
+        # Fetching for Repo
+        self.repo.fetchAll()
 
         # Base url for all API request for this repo
         self.baseUrl = body["repository"]["url"]
