@@ -89,7 +89,7 @@ class Commit:
         print("Running MAKE")
 
         THREADS = os.environ["OMP_NUM_THREADS"]
-        make_output = run(["make", "md-flexible", "-B", "-j", THREADS], stdout=PIPE, stderr=PIPE)
+        make_output = run(["make", "md-flexible", "-j", THREADS], stdout=PIPE, stderr=PIPE)
         make_returncode = make_output.returncode
         if make_returncode != 0:
             print("MAKE failed with return code", make_returncode)
