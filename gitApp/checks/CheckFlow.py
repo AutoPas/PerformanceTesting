@@ -101,8 +101,8 @@ class CheckFlow:
         This usually is the last time origin/master was merged into the feature branch.
 
         Args:
-            baseRef: SHA on base branch
-            branchRef: SHA on feature branch
+            baseRef: SHA on base branch or ref (e.g. origin/master)
+            branchRef: SHA on feature branch or ref
 
         Returns:
             str: last common ref
@@ -120,6 +120,33 @@ class CheckFlow:
             sha = gitOutput.stdout
         else:
             raise ValueError(f'No Common Ref found for: {baseRef} {branchRef}', gitOutput.stderr)
+
+        return sha
+
+    def _getForkPoint(self, baseBranch: str, branchRef: str) -> str:
+        """
+        Running git command in AutoPas Repo to find fork point of branch.
+
+        Args:
+            baseBranch: name of base branch, e.g. master
+            branchRef: SHA on feature branch or ref (e.g. origin/feature)
+
+        Returns:
+            str: fork point sha on baseBranch
+
+        """
+
+        baseDir = os.getcwd()
+        os.chdir(self.repo.repo.git_dir.strip('.git'))
+
+        gitOutput = run(['git', 'merge-base', '--fork-point', baseBranch, branchRef], stdout=PIPE, stderr=PIPE, encoding='utf-8')
+
+        os.chdir(baseDir)
+
+        if gitOutput.returncode == 0:
+            sha = gitOutput.stdout
+        else:
+            raise ValueError(f'No Fork Point found for: {baseBranch} {branchRef}', gitOutput.stderr)
 
         return sha
 
