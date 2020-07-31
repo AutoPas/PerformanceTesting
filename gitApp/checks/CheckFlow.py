@@ -316,9 +316,10 @@ class CheckFlow:
 
         Works on a checkrun already created via the GitHub checks api at compareUrl.
         Comparison options include:
-            1) Merge Current Master Head into branch and compare performance between merged and un-merged master
-            2) Compare against the Performance at Fork Point
-            3) Compare against the last common commit between master and feature branch
+            1a) Merge Current Master Head into branch and compare performance between merged and un-merged master
+            1b) Merge failed -> Compare between non-merged feature branch and master
+            2) To Be Implemented (perf already available): Compare against the Fork Point
+            3) To Be Implemented (perf already available): Compare against the Last Common commit between master and feature branch
 
         Args:
             q: QueueObject containing all necessary information to run comparison
