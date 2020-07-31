@@ -352,7 +352,7 @@ class CheckFlow:
                     raise RuntimeError(f'<b>No matching configs between this commit {commitSHA} and PR base {baseSHA} could be found.</b>')
 
                 # Case 1) Merge worked out
-                if test.mergeBaseSHA is not None:
+                if test.mergedBaseSHA is not None:
                     headers.append('Merged Master into Feature Branch Comparison')
                 else:
                     headers.append('Feature vs. Master Comparison (no-merge)')
