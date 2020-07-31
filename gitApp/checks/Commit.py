@@ -27,7 +27,7 @@ class Commit:
     buildDir = "perfBuild"
     mdFlexDir = ""
 
-    def __init__(self, repo: Repo, sha: str):
+    def __init__(self, repo: Repo, sha: str, baseSHA: str = None):
         # Reset Dir to specified commit
         repo.head.reset(sha, index=True, working_tree=True)
         self.message = repo.head.commit.message
@@ -47,6 +47,7 @@ class Commit:
         self.images = []
         self.measure_output = None
         self.perfSetup = None
+        self.baseSHA = baseSHA
 
     def updateStatus(self, code, header, message, image=None):
         self.codes.append(code)
@@ -168,6 +169,7 @@ class Commit:
         db_entry.commitSHA = self.sha
         db_entry.commitMessage = self.repo.commit(self.sha).message
         db_entry.commitDate = self.repo.commit(self.sha).authored_datetime
+        db_entry.mergedBaseSHA = self.baseSHA
 
         # Assumes tests were run on this system
         db_entry.system = cpu
