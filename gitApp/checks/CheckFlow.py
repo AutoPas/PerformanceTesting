@@ -501,9 +501,18 @@ if __name__ == '__main__':
     # check.baseSHA = "cb22dd6e28ad8d4f25b076562e4bf861613b3153"
     check.baseUrl = "https://api.github.com/repos/AutoPas/AutoPas"
     check.auth.updateInstallID(2027548)
-    #check.CompareUrls[single_sha] = check._createCheckRun(single_sha, "DEBUG TEST")
-    runUrl = check._createCheckRun(single_sha, "DEBUG TEST")
-    check.runCheck(single_sha, runUrl)
-    #check.comparePerformance(single_sha, 'https://api.github.com/repos/AutoPas/AutoPas/check-runs/762824540')
+    compareUrl = check._createCheckRun(single_sha, "DEBUG TEST")
+
+    q = QueueObject()
+    q.compareUrl = compareUrl
+    q.commitSHA = single_sha
+    q.installID = 2027548
+    q.compareOptions = {'0_BaseSHA': '1baed181eaf3e698b8e7061a8ac8d0607844d39f',
+                        '1_ForkPoint': '7596386e4c48807003f506daf4938d6135ad6a0a',
+                        '2_LastCommont': '7596386e4c48807003f506daf4938d6135ad6a0a'}
+    check.comparePerformance(q)
+
+    # runUrl = check._createCheckRun(single_sha, "DEBUG TEST")
+    # check.runCheck(single_sha, runUrl)
 
 
