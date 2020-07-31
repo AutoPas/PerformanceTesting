@@ -28,13 +28,11 @@ class Worker:
         nextUp.running = True
         nextUp.save()  # Update status to running
 
-        sha = nextUp.commitSHA
-
         try:
             self.checkflow.auth.updateInstallID(nextUp.installID)
-            if self.checkflow.runCheck(sha, nextUp.runUrl):  # Run perf measurements
+            if self.checkflow.runCheck(nextUp):  # Run perf measurements
                 if nextUp.compareUrl is not None:
-                    self.checkflow.comparePerformance(sha, nextUp.compareUrl)  # Run comparison
+                    self.checkflow.comparePerformance(nextUp)  # Run comparison
             nextUp.status = "completed"
             nextUp.save()
             nextUp.delete()  # Bit unnecessary to change status earlier, but hey
