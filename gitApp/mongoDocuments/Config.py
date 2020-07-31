@@ -27,6 +27,9 @@ class Config(me.DynamicDocument):
     perfDeleteHash = me.StringField()
     compDeleteHash = me.StringField()
 
+    # Merged Commit
+    mergedBaseSHA = me.StringField()
+
     # Failure field
     failure = me.StringField()
 
@@ -44,3 +47,17 @@ class Config(me.DynamicDocument):
             'commitSHA'
         ]
     }
+
+
+    @staticmethod
+    def checkExisting(sha: str) -> bool:
+        """
+        Check if there already exists a config for a given sha
+        Args:
+            sha: SHA to check for
+
+        Returns:
+            bool: True if already existing Config
+        """
+        c = Config.objects(commitSHA=sha).order_by('-date').first()  # Get freshest config
+        return c is not None
