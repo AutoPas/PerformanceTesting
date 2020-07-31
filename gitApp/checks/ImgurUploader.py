@@ -27,17 +27,26 @@ class ImgurUploader:
         # Check for available upload credits
         limits = requests.get(url='https://api.imgur.com/3/credits',
                               headers=auth_header)
-        remainingCredits = int(limits.json()['data']['UserRemaining'])
-        resetTimestamp = int(limits.json()['data']['UserReset'])
+        data = limits.json()['data']
+        userRemaining = int(data['UserRemaining'])
+        clientRemaining = int(data['ClientRemaining'])
+        remainingCredits = min(userRemaining, clientRemaining)
+        resetTimestamp = int(data['UserReset'])
         timedelta = resetTimestamp - int(time.time())
-        print(f'Remaining Credits: {remainingCredits}\n'
-              f'Reset Time: {resetTimestamp} in {timedelta/60:.2f} mins')
+        print(f'Remaining Credits : {remainingCredits}\n'
+              f'User Credits : {userRemaining}\n'
+              f'Client Credits : {clientRemaining}\n'
+              f'Reset Time: {resetTimestamp} in {timedelta/60:.2f} mins\n')
 
         # Check if upload is allowed at this time
         if remainingCredits == 0:
-            while resetTimestamp - int(time.time()) > 0:
-                print(f'\nOUT OF IMGUR CREDITS: Waiting for {(resetTimestamp - int(time.time()))/60:.2f} mins')
-                time.sleep(60)
+            if userRemaining == 0:
+                while resetTimestamp - int(time.time()) > 0:
+                    print(f'\nOUT OF IMGUR CREDITS: Waiting for {(resetTimestamp - int(time.time()))/60:.2f} mins')
+                    time.sleep(60)
+            elif clientRemaining == 0:
+                print('IMGUR Client is out of credits. End of upload for the day.')
+                raise RuntimeError('IMGUR: Out of Client Credits for the day.')
 
         # Upload image
         form = {
