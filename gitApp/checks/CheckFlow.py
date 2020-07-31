@@ -258,13 +258,14 @@ class CheckFlow:
         print(check_run_id_url)
         return check_run_id_url
 
-    def runCheck(self, sha, runUrl):
+
+    def runCheck(self, q: QueueObject):
 
         # RUN CHECK
-        print(f"RUNNING CHECKS ON {sha} {runUrl}")
+        print(f"RUNNING CHECKS ON {q.commitSHA} {q.runUrl}")
 
         # Update Status to in Progress
-        r = requests.patch(url=runUrl, headers=self.auth.getTokenHeader(), json=initialStatus())
+        r = requests.patch(url=q.runUrl, headers=self.auth.getTokenHeader(), json=initialStatus())
         pretty_request(r)
 
         try:
@@ -275,9 +276,10 @@ class CheckFlow:
             codes, headers, messages, images = self.repo.testSHA(sha)
 
             os.chdir(cwd)
+
             print("CODES", codes, messages)
             r = requests.patch(
-                url=runUrl,
+                url=q.runUrl,
                 headers=self.auth.getTokenHeader(),
                 json=codeStatus(codes, headers, messages, images))
             pretty_request(r)
@@ -285,11 +287,12 @@ class CheckFlow:
                 return False
             else:
                 return True
+
         except Exception as e:
             print(e)
-            print(f"TestSHA {sha} failed with exit")
+            print(f"TestSHA {q.commitSHA} failed with exit")
             r = requests.patch(
-                url=runUrl,
+                url=q.runUrl,
                 headers=self.auth.getTokenHeader(),
                 json=codeStatus([-1], ["GENERAL"], [f"exit() statement called\n{e}"]))
             pretty_request(r)
