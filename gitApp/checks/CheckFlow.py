@@ -271,9 +271,21 @@ class CheckFlow:
         try:
             cwd = os.getcwd()
             print("Running Threads:", os.environ["OMP_NUM_THREADS"])
-            # TODO: _IMPORTANT: Think about replicating that work flow here and actually make
-            #  build / measure / upload their own check runs in the suite or via updateStatus
-            codes, headers, messages, images = self.repo.testSHA(sha)
+
+            # Check if commit has comparisons setup
+            if '0_BaseSHA' in q.compareOptions.keys():
+                # BaseSHA is available (should always be the case)
+                baseSHA = q.compareOptions['0_BaseSHA']
+                # Try to merge base into branch and run performance
+                codes, headers, messages, images = self.repo.testMerge(baseSHA=baseSHA, branchSHA=q.commitSHA)
+
+                if -1 in codes:
+                    # Merge has failed, run unmerged instead
+                    codes, headers, messages, images = self.repo.testSHA(q.commitSHA)
+
+            else:
+                # No comparison modes set. Just test commit
+                codes, headers, messages, images = self.repo.testSHA(q.commitSHA)
 
             os.chdir(cwd)
 
