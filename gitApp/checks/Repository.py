@@ -1,6 +1,8 @@
 from git import Repo
 from checks import Commit
 from mongoDocuments import Setup
+from subprocess import run, PIPE
+import os
 
 
 class Repository:
@@ -57,6 +59,41 @@ class Repository:
         # reset to previous state
         self.repo.head.reset(self.initialHead, index=True, working_tree=True)
         return c.codes, c.headers, c.statusMessages, c.images
+
+    def testMerge(self, baseSHA, branchSHA):
+        """
+        Trying a merge of base into branch
+
+        Args:
+            baseSHA: from e.g. origin/master
+            branchSHA: from e.g. origin/feature
+
+        Returns:
+
+        """
+
+        c = Commit(self.repo, branchSHA, baseSHA=baseSHA)   # Resets repo to mergeSha
+
+        curdir = os.getcwd()
+
+        os.chdir(self.repo.git_dir.rstrip('.git'))
+        gitOutput = run(['git', 'merge', '--no-commit', baseSHA], stdout=PIPE, stderr=PIPE, encoding='utf-8')
+
+        if gitOutput.returncode == 0:
+            print(f'Merge of {baseSHA} and {branchSHA} succeeded.')
+        else:
+            print(f'Merge of {baseSHA} and {branchSHA} failed.')
+            self.repo.head.reset(self.initialHead, index=True, working_tree=True)
+            os.chdir(curdir)
+            return [-1], ['Merge'], ['Merge failed'], []
+
+        self._testCommit(c)
+
+        os.chdir(curdir)
+        # reset to previous state
+        self.repo.head.reset(self.initialHead, index=True, working_tree=True)
+        return c.codes, c.headers, c.statusMessages, c.images
+
 
     def testLast(self, last):
 
