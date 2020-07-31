@@ -310,57 +310,79 @@ class CheckFlow:
             pretty_request(r)
             return False
 
-    def comparePerformance(self, sha, compareUrl):
+    def comparePerformance(self, q: QueueObject):
+        """
+        Function to compare performance between different commits in the Repo.
 
-        print(f"Comparing Performance for {sha} {compareUrl}")
+        Works on a checkrun already created via the GitHub checks api at compareUrl.
+        Comparison options include:
+            1) Merge Current Master Head into branch and compare performance between merged and un-merged master
+            2) Compare against the Performance at Fork Point
+            3) Compare against the last common commit between master and feature branch
+
+        Args:
+            q: QueueObject containing all necessary information to run comparison
+
+        Returns:
+
+        """
+
+        commitSHA = q.commitSHA
+        print(f"Comparing Performance for {commitSHA} {q.compareUrl}")
         # Update Status to in Progress
-        r = requests.patch(url=compareUrl, headers=self.auth.getTokenHeader(), json=initialStatus())
+        r = requests.patch(url=q.compareUrl, headers=self.auth.getTokenHeader(), json=initialStatus())
         pretty_request(r)
+
+        codes, headers, messages, images = [], [], [], []
 
         try:
             # Get Pull Requests associated with sha
-            commitPR_url = f'{compareUrl.split("/check-runs/")[0]}/commits/{str(sha)}/pulls'
-            r = requests.get(url=commitPR_url, headers=self.auth.getTokenHeader())
-            pretty_request(r)
+            # commitPR_url = f'{compareUrl.split("/check-runs/")[0]}/commits/{str(sha)}/pulls'
+            # r = requests.get(url=commitPR_url, headers=self.auth.getTokenHeader())
 
-            # TODO: What if involved in more than one PR
-            shaPRs = r.json()
-            if len(shaPRs) == 0:
-                raise RuntimeError(f'<b>Github Commit API returned 0 Pull Requests associated with this SHA {sha} at {commitPR_url}</b>')
-            baseSHA = shaPRs[0]['base']['sha']
-
-            # TODO: What if multiple configs are all of interest, and not just the newest
-            base = Config.objects(commitSHA=baseSHA).order_by('-date').first()  # Get freshest config
-            if base is None:
-                # Todo: Rerun tests if base has not failed, but just not been tested yet
+            baseSHA = q.compareOptions['0_BaseSHA']
+            baseConfigs = Config.objects(commitSHA=baseSHA).order_by('-date')
+            if baseConfigs.first() is None:
                 raise RuntimeError(f'<b>No performance runs for the PR base {baseSHA} were found</b>')
-            test = Config.objects(commitSHA=sha, system=base.system, setup=base.setup).order_by('-date').first()  # Get freshest config
-            if test is None:
-                raise RuntimeError(f'<b>No matching configs between this commit {sha} and PR base {baseSHA} could be found.</b>')
-            fig, minSpeeds, meanSpeeds, missing = self._compareConfigs(base, test)
 
-            # Upload figure
-            buf = io.BytesIO()
-            fig.savefig(buf, format='png')
-            buf.seek(0)
-            imgur = ImgurUploader()
-            link, hash = imgur.upload(buf.read())
-            test.compImgurLink = link
-            test.compDeleteHash = hash
-            test.save()
+            # Check for all configs, aka Setups
+            for base in baseConfigs:
+                test = Config.objects(commitSHA=commitSHA, system=base.system, setup=base.setup).order_by('-date').first()  # Get freshest config
+                if test is None:
+                    raise RuntimeError(f'<b>No matching configs between this commit {commitSHA} and PR base {baseSHA} could be found.</b>')
 
-            message = f'<b>Perf Results:</b>\n\n' \
-                      f'<b>Comparing this commit</b> {sha} with base {baseSHA}\n' \
-                      f'<b>Threshold to pass:</b> speedup >= {CheckFlow.PERF_THRESHOLD}\n' \
-                      f'<b>Minimum Time Speedup Average:</b> {np.mean(minSpeeds)}\n' \
-                      f'<b>Mean Time Speedup Average:</b> {np.mean(meanSpeeds)}\n\n' \
-                      f'<b>Not available configs to compare:</b> {missing}'
+                # Case 1) Merge worked out
+                if test.mergeBaseSHA is not None:
+                    headers.append('Merged Master into Feature Branch Comparison')
+                else:
+                    headers.append('Feature vs. Master Comparison (no-merge)')
 
-            # Setup Params for message
-            code = [1 if np.mean(minSpeeds) >= CheckFlow.PERF_THRESHOLD else -1]
-            header = ['COMPARISON']
-            message = [message]
-            params = codeStatus(code, header, message, [link])
+                # TODO: Add comparison for lastcommon and fork point, perf tests are already running
+
+                fig, minSpeeds, meanSpeeds, missing = self._compareConfigs(base, test)
+
+                # Upload figure
+                buf = io.BytesIO()
+                fig.savefig(buf, format='png')
+                buf.seek(0)
+                imgur = ImgurUploader()
+                link, hash = imgur.upload(buf.read())
+                images.append(link)
+                test.compImgurLink = link
+                test.compDeleteHash = hash
+                test.save()
+
+                messages.append(f'<b>Perf Results:</b>\n\n'
+                                f'<b>Comparing this commit</b> {commitSHA} with base {baseSHA}\n'
+                                f'<b>Threshold to pass:</b> speedup >= {CheckFlow.PERF_THRESHOLD}\n'
+                                f'<b>Minimum Time Speedup Average:</b> {np.mean(minSpeeds)}\n'
+                                f'<b>Mean Time Speedup Average:</b> {np.mean(meanSpeeds)}\n\n'
+                                f'<b>Not available configs to compare:</b> {missing}')
+
+                # Setup Params for message
+                codes.append(1 if np.mean(minSpeeds) >= CheckFlow.PERF_THRESHOLD else -1)
+
+            params = codeStatus(codes, headers, messages, images)
 
         except RuntimeError as v:
             code = [0]
@@ -375,7 +397,7 @@ class CheckFlow:
             params = codeStatus(code, header, message)
 
         # Patch Checkrun
-        r = requests.patch(url=compareUrl, headers=self.auth.getTokenHeader(), json=params)
+        r = requests.patch(url=q.compareUrl, headers=self.auth.getTokenHeader(), json=params)
         pretty_request(r)
 
 
