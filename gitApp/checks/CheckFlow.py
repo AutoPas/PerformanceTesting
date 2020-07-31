@@ -373,6 +373,7 @@ class CheckFlow:
                 test.save()
 
                 messages.append(f'<b>Perf Results:</b>\n\n'
+                                f'<b>Setup:</b> {test.setup.name}'
                                 f'<b>Comparing this commit</b> {commitSHA} with base {baseSHA}\n'
                                 f'<b>Threshold to pass:</b> speedup >= {CheckFlow.PERF_THRESHOLD}\n'
                                 f'<b>Minimum Time Speedup Average:</b> {np.mean(minSpeeds)}\n'
