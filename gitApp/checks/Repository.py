@@ -118,6 +118,7 @@ class Repository:
                         print(f"{c.sha}: MEASUREMENT DONE")
                         if c.parse_and_upload():
                             print(f"{c.sha}: UPLOAD DONE")
+                            # TODO: Move outside for loop or only upload single picture inside generatePlot
                             if c.generatePlot():
                                 print(f"{c.sha}: PLOTS DONE")
                                 print("done testing")
