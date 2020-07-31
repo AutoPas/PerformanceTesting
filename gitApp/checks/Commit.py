@@ -1,7 +1,7 @@
 from mongoDocuments import Config
 from mongoDocuments import Result
 from mongoDocuments import Setup
-from hook.helper import convertOutput, get_dyn_kv_pair, get_dyn_keys, generate_label_table
+from hook.helper import convertOutput, get_dyn_keys, generate_label_table
 from checks import ImgurUploader
 
 from git import Repo
@@ -9,14 +9,11 @@ import os
 import io
 import shutil
 from subprocess import run, PIPE
-from glob import glob
-import time
 from datetime import datetime
 import re
 from cpuinfo import get_cpu_info
 import matplotlib
 from matplotlib import pyplot as plt
-from warnings import warn
 import numpy as np
 import mongoengine as me
 
