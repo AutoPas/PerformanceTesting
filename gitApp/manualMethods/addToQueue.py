@@ -1,9 +1,6 @@
 from mongoDocuments import QueueObject
 from checks import CheckFlow
 
-import mongoengine as me
-import os
-
 if __name__ == '__main__':
 
     # me.connect('performancedb', host='localhost:30017', username=os.environ['USERNAME'],
