@@ -150,8 +150,8 @@ def updateSetups(sha0, sha1):
 
 def getConfigs(string):
     ids = re.findall('(\S+) # (\S+)', string)
-    conf0 = Config.objects(id=ids[0][0]).first()
-    conf1 = Config.objects(id=ids[0][1]).first()
+    conf0 = Config.objects().get(id=ids[0][0])
+    conf1 = Config.objects().get(id=ids[0][1])
     return conf0, conf1
 
 
