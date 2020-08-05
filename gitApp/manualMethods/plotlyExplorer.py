@@ -204,48 +204,32 @@ def plotComparison(click, setups, container):
     else:
 
         conf0, conf1 = getConfigs(setups)
-        # Get all results for config
-        results0 = Result.objects(config=conf0)
-        results1 = Result.objects(config=conf1)
+        # Get all results for both configs
+        results0 = Result.objects(config=conf0).batch_size(1000)
+        results1 = Result.objects(config=conf1).batch_size(1000)
 
-        x = []
-        y = []
-        z = []
-        w = []
-        v = []
+        df = pd.DataFrame()
 
-        for r in results0:
+        missing_results = 0
 
-            if r.dynamic_Container in container:
+        for r0 in results0:
+            # Container Filter
+            if r0.dynamic_Container in container:
 
-                x.append(r.dynamic_Container)
-                y.append(r.meanTime)
-                z.append(r.dynamic_DataLayout)
-                w.append(r.dynamic_Newton3)
-                v.append('c0')
+                # Build Dynamic Query
+                dynamicQuery = {k: r0[k] for k in r0.__dict__['_fields_ordered'] if 'dynamic_' in k}
 
-        for r in results1:
+                r1 = results1.only('meanTime').get(**dynamicQuery)
+                if len(r1) == 0:
+                    missing_results += 1
+                    continue
 
-            if r.dynamic_Container in container:
+                dynamicQuery['label'] = ''.join([str(dynamicQuery[k]) + ' ' for k in dynamicQuery.keys() if 'Container' not in k])
+                dynamicQuery['speedup'] = r0.meanTime / r1.meanTime
+                df = df.append(dynamicQuery, ignore_index=True)
+                print(dynamicQuery['speedup'])
 
-                x.append(r.dynamic_Container)
-                y.append(r.meanTime)
-                z.append(r.dynamic_DataLayout)
-                w.append(r.dynamic_Newton3)
-                v.append('c1')
-
-
-        df = pd.DataFrame(
-            {
-                'container': x,
-                'time': y,
-                'layout': z,
-                'newton3': w,
-                'commit': v
-            }
-        )
-
-        return px.bar(df, x='container', y='time', color='commit', barmode='group')
+        return px.bar(df.sort_values('speedup'), x='label', y='speedup', color='dynamic_Container')
 
 
 if __name__ == '__main__':
