@@ -205,13 +205,69 @@ def plotComparison(click, setups, container):
 
         conf0, conf1 = getConfigs(setups)
         # Get all results for both configs
-        results0 = Result.objects(config=conf0).batch_size(1000)
-        results1 = Result.objects(config=conf1).batch_size(1000)
-
-        df = pd.DataFrame()
+        results0 = Result.objects(config=conf0).batch_size(1000).exclude('measurements')
+        results1 = Result.objects(config=conf1).batch_size(1000).exclude('measurements')
 
         missing_results = 0
 
+        def aggregate_results(results: me.QuerySet) -> pd.DataFrame:
+            """
+            Aggregate Results into pandas Dataframe
+            Args:
+                results: queryset
+
+            Returns:
+                df: Dataframe
+            """
+
+            df = pd.DataFrame()
+
+            for r in results:
+                if r.dynamic_Container in container:
+                    data = r.__dict__
+                    data['meanTime'] = r.meanTime
+                    df = df.append(r.__dict__, ignore_index=True)
+
+            df = df.drop(columns=['_cls', '_dynamic_lock', '_fields_ordered'])
+            return df
+
+        df0 = aggregate_results(results0)
+        df1 = aggregate_results(results1)
+
+        def calculate_speedup(data0: pd.DataFrame, data1: pd.DataFrame) -> pd.DataFrame:
+            """
+            Return Dataframe containing all matched configs and the speedup
+
+            Args:
+                data0: aggregated result dataframe commit0
+                data1: aggregated result dataframe commit1
+
+            Returns:
+                table: dataframe with speedup table
+            """
+
+            quantity = 'meanTime'
+            all_data1_configs = data1.drop(columns=quantity)  # Drop column for matching
+            table = all_data1_configs.copy()
+
+            for i_search in range(len(data0)):
+                search_config = data0.loc[i_search, data0.columns != quantity]  # Select row except time column
+                full_match = (all_data1_configs == search_config).all(axis=1)  # Checks against all df1 rows and marks if full row matches df0 row, except z column
+                i_match = full_match[full_match == True].index[0]  # Get index of the full match in data1
+
+                speedup = data1.loc[i_match, quantity] / data0.loc[i_search, quantity]
+                label = ''.join(str(v) + ' ' for v in data1.loc[i_match, :].values)
+                table.loc[i_match, 'speedup'] = speedup
+                table.loc[i_match, 'label'] = label
+
+            return table
+
+        speedup_table = calculate_speedup(df0, df1).sort_values('speedup')
+
+        return px.bar(speedup_table, x='speedup', y='label', color='dynamic_Container', orientation='h')
+
+        """
+        # For speedup comparison, but dynamic Query is v slow
         for r0 in results0:
             # Container Filter
             if r0.dynamic_Container in container:
@@ -230,6 +286,7 @@ def plotComparison(click, setups, container):
                 print(dynamicQuery['speedup'])
 
         return px.bar(df.sort_values('speedup'), x='label', y='speedup', color='dynamic_Container')
+        """
 
 
 if __name__ == '__main__':
