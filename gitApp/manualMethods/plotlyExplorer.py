@@ -74,6 +74,12 @@ app.layout = html.Div(children=[
                        })]
     ),
 
+    html.H2(id='LoadText', children='Nothing to do'),
+    html.Img(id='LoadingImg', src='', width='5%'),
+
+    dcc.Interval('LoadCheck', interval=250, disabled=False),  # Continuously checking if load has succeeded
+    html.Div(id='CurrentData', style={'display': 'none'}),
+
     html.Div(
         [
             html.H2('4) Plot:'),
@@ -183,110 +189,130 @@ def availableContainer(setups):
             checkboxes.append({'label': container, 'value': container})
             selected.append(container)
 
-        return [sorted(checkboxes, key=lambda c: c['label']), sorted(selected), False]
+        return sorted(checkboxes, key=lambda c: c['label']), sorted(selected), False
 
     else:
         return [], [], True
 
 
+
+@app.callback(
+    [Output('LoadingImg', 'src'),
+     Output('LoadText', 'children')],
+    [Input('LoadCheck', 'n_intervals')],
+    [State('CurrentData', 'children'),
+     State('Setups', 'value')]
+)
+def updateImg(n, data, setups):
+    """
+    Triggered on setup change, this callback sets the loading state
+
+
+    Returns:
+        loading url
+    """
+
+    if setups is None:
+        return '', ''
+    else:
+        if data is None:
+            return 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif', f'Loading Results and computing speedups'
+
+        setupsLoaded = data[1]
+        setupsTarget = setups
+
+        if setupsLoaded == setupsTarget:
+            return '', f'Speedups computed, ready to plot'
+        else:
+            return 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif', f'Loading Results and computing speedups'
+
+
+@app.callback(
+    Output('CurrentData', 'children'),
+    [Input('Setups', 'value')],
+)
+def Z_retrieveDataAndBuildSpeedupTable(setups):
+    print('[CALLBACK] Retrieving Data')
+
+    conf0, conf1 = getConfigs(setups)
+    # Get all results for both configs
+    results0 = Result.objects(config=conf0).batch_size(1000).exclude('measurements')
+    results1 = Result.objects(config=conf1).batch_size(1000).exclude('measurements')
+
+    missing_results = 0
+
+    def aggregate_results(results: me.QuerySet) -> pd.DataFrame:
+        """
+        Aggregate Results into pandas Dataframe
+        Args:
+            results: queryset
+
+        Returns:
+            df: Dataframe
+        """
+
+        df = pd.DataFrame()
+
+        for r in results:
+            data = r.__dict__
+            data['meanTime'] = r.meanTime
+            df = df.append(r.__dict__, ignore_index=True)
+
+        df = df.drop(columns=['_cls', '_dynamic_lock', '_fields_ordered'])
+        return df
+
+    df0 = aggregate_results(results0)
+    df1 = aggregate_results(results1)
+
+    def calculate_speedup(data0: pd.DataFrame, data1: pd.DataFrame) -> pd.DataFrame:
+        """
+        Return Dataframe containing all matched configs and the speedup
+
+        Args:
+            data0: aggregated result dataframe commit0
+            data1: aggregated result dataframe commit1
+
+        Returns:
+            table: dataframe with speedup table
+        """
+
+        quantity = 'meanTime'
+        all_data1_configs = data1.drop(columns=quantity)  # Drop column for matching
+        table = all_data1_configs.copy()
+
+        for i_search in range(len(data0)):
+            search_config = data0.loc[i_search, data0.columns != quantity]  # Select row except time column
+            full_match = (all_data1_configs == search_config).all(axis=1)  # Checks against all df1 rows and marks if full row matches df0 row, except z column
+            i_match = full_match[full_match == True].index[0]  # Get index of the full match in data1
+
+            speedup = data1.loc[i_match, quantity] / data0.loc[i_search, quantity]
+            label = ''.join(str(v) + ' ' for v in data1.loc[i_match, :].values)
+            table.loc[i_match, 'speedup'] = speedup
+            table.loc[i_match, 'label'] = label
+
+        return table
+
+    speedupTable = calculate_speedup(df0, df1).sort_values('speedup')
+
+    return [speedupTable.to_json(), setups]
+
+
+
 @app.callback(
     Output('example-graph', 'figure'),
     [Input('plotButton', 'n_clicks')],
-    [State('Setups', 'value'),
-     State('Container', 'value')]
+    [State('Container', 'value'),
+     State('CurrentData', 'children')]
 )
-def plotComparison(click, setups, container):
+def plotComparison(click, container, data):
     print('\n[CALLBACK] Plotting Comparison')
 
-    print(setups)
-    if setups is None:
+    if data is None:
         return px.line(x=[0], y=[0])
-    else:
 
-        conf0, conf1 = getConfigs(setups)
-        # Get all results for both configs
-        results0 = Result.objects(config=conf0).batch_size(1000).exclude('measurements')
-        results1 = Result.objects(config=conf1).batch_size(1000).exclude('measurements')
+    speedupTable = pd.read_json(data[0])
 
-        missing_results = 0
-
-        def aggregate_results(results: me.QuerySet) -> pd.DataFrame:
-            """
-            Aggregate Results into pandas Dataframe
-            Args:
-                results: queryset
-
-            Returns:
-                df: Dataframe
-            """
-
-            df = pd.DataFrame()
-
-            for r in results:
-                if r.dynamic_Container in container:
-                    data = r.__dict__
-                    data['meanTime'] = r.meanTime
-                    df = df.append(r.__dict__, ignore_index=True)
-
-            df = df.drop(columns=['_cls', '_dynamic_lock', '_fields_ordered'])
-            return df
-
-        df0 = aggregate_results(results0)
-        df1 = aggregate_results(results1)
-
-        def calculate_speedup(data0: pd.DataFrame, data1: pd.DataFrame) -> pd.DataFrame:
-            """
-            Return Dataframe containing all matched configs and the speedup
-
-            Args:
-                data0: aggregated result dataframe commit0
-                data1: aggregated result dataframe commit1
-
-            Returns:
-                table: dataframe with speedup table
-            """
-
-            quantity = 'meanTime'
-            all_data1_configs = data1.drop(columns=quantity)  # Drop column for matching
-            table = all_data1_configs.copy()
-
-            for i_search in range(len(data0)):
-                search_config = data0.loc[i_search, data0.columns != quantity]  # Select row except time column
-                full_match = (all_data1_configs == search_config).all(axis=1)  # Checks against all df1 rows and marks if full row matches df0 row, except z column
-                i_match = full_match[full_match == True].index[0]  # Get index of the full match in data1
-
-                speedup = data1.loc[i_match, quantity] / data0.loc[i_search, quantity]
-                label = ''.join(str(v) + ' ' for v in data1.loc[i_match, :].values)
-                table.loc[i_match, 'speedup'] = speedup
-                table.loc[i_match, 'label'] = label
-
-            return table
-
-        speedup_table = calculate_speedup(df0, df1).sort_values('speedup')
-
-        return px.bar(speedup_table, x='speedup', y='label', color='dynamic_Container', orientation='h')
-
-        """
-        # For speedup comparison, but dynamic Query is v slow
-        for r0 in results0:
-            # Container Filter
-            if r0.dynamic_Container in container:
-
-                # Build Dynamic Query
-                dynamicQuery = {k: r0[k] for k in r0.__dict__['_fields_ordered'] if 'dynamic_' in k}
-
-                r1 = results1.only('meanTime').get(**dynamicQuery)
-                if len(r1) == 0:
-                    missing_results += 1
-                    continue
-
-                dynamicQuery['label'] = ''.join([str(dynamicQuery[k]) + ' ' for k in dynamicQuery.keys() if 'Container' not in k])
-                dynamicQuery['speedup'] = r0.meanTime / r1.meanTime
-                df = df.append(dynamicQuery, ignore_index=True)
-                print(dynamicQuery['speedup'])
-
-        return px.bar(df.sort_values('speedup'), x='label', y='speedup', color='dynamic_Container')
-        """
+    return px.bar(speedupTable, x='speedup', y='label', color='dynamic_Container', orientation='h')
 
 
 if __name__ == '__main__':
