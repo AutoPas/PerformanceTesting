@@ -162,8 +162,7 @@ def getConfigs(string):
 
 
 @app.callback([Output('Container', 'options'),
-               Output('Container', 'value'),
-               Output('plotButton', 'disabled')],
+               Output('Container', 'value')],
               [Input('Setups', 'value')])
 def availableContainer(setups):
     print('[CALLBACK] Checking Container Types')
@@ -189,16 +188,17 @@ def availableContainer(setups):
             checkboxes.append({'label': container, 'value': container})
             selected.append(container)
 
-        return sorted(checkboxes, key=lambda c: c['label']), sorted(selected), False
+        return sorted(checkboxes, key=lambda c: c['label']), sorted(selected)
 
     else:
-        return [], [], True
+        return [], []
 
 
 
 @app.callback(
     [Output('LoadingImg', 'src'),
-     Output('LoadText', 'children')],
+     Output('LoadText', 'children'),
+     Output('plotButton', 'disabled')],
     [Input('LoadCheck', 'n_intervals')],
     [State('CurrentData', 'children'),
      State('Setups', 'value')]
@@ -213,18 +213,18 @@ def updateImg(n, data, setups):
     """
 
     if setups is None or setups == []:
-        return '', ''
+        return '', '', True
     else:
         if data is None:
-            return 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif', f'Loading Results and computing speedups'
+            return 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif', f'Loading Results and computing speedups', True
 
         setupsLoaded = data[1]
         setupsTarget = setups
 
         if setupsLoaded == setupsTarget:
-            return '', f'Speedups computed, ready to plot'
+            return '', f'Speedups computed, ready to plot', False
         else:
-            return 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif', f'Loading Results and computing speedups'
+            return 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif', f'Loading Results and computing speedups', True
 
 
 @app.callback(
