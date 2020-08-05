@@ -212,7 +212,7 @@ def updateImg(n, data, setups):
         loading url
     """
 
-    if setups is None:
+    if setups is None or setups == []:
         return '', ''
     else:
         if data is None:
@@ -233,6 +233,9 @@ def updateImg(n, data, setups):
 )
 def Z_retrieveDataAndBuildSpeedupTable(setups):
     print('[CALLBACK] Retrieving Data')
+
+    if setups is None or setups == []:
+        return [None, None]
 
     conf0, conf1 = getConfigs(setups)
     # Get all results for both configs
