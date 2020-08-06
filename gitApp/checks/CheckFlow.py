@@ -429,6 +429,9 @@ class CheckFlow:
             for field in dynamicFields:
                 query[field] = baseRes[field]
 
+            # TODO: Change above to similar dict comprehension
+            # dynamicQuery = {k: r0[k] for k in r0.__dict__['_fields_ordered'] if 'dynamic_' in k}
+
             # Get Results with matching settings (filter existing queryset)
             testRes = testResults.filter(**query)
             if len(testRes) == 0:
