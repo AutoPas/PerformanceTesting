@@ -4,7 +4,6 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import plotly.express as px
 import pandas as pd
-import numpy as np
 import mongoengine as me
 import os
 import re
@@ -93,7 +92,7 @@ app.layout = html.Div(children=[
     ),
 
     dcc.Graph(
-        id='example-graph'
+        id='CompareGraph'
     ),
 
 ])
@@ -314,7 +313,7 @@ def Z_retrieveDataAndBuildSpeedupTable(setups):
 
 
 @app.callback(
-    Output('example-graph', 'figure'),
+    Output('CompareGraph', 'figure'),
     [Input('CurrentData', 'children'),
      Input('Container', 'value')]
 )
