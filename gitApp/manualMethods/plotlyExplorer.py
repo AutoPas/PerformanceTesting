@@ -27,8 +27,7 @@ app.layout = html.Div(children=[
     '''),
 
     html.Div(
-        [html.Button('Refresh Commit List', id='refreshButton', n_clicks=0),
-         html.Button('Reset', id='resetButton', n_clicks=0)]
+        [html.Button('Refresh Commit List', id='refreshButton', n_clicks=0)]
     ),
 
     html.H2('1) Select commits to compare:'),
