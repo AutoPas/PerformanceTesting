@@ -198,12 +198,13 @@ def availableContainer(setups):
 @app.callback(
     [Output('LoadingImg', 'src'),
      Output('LoadText', 'children'),
-     Output('plotButton', 'disabled')],
-    [Input('LoadCheck', 'n_intervals')],
-    [State('CurrentData', 'children'),
-     State('Setups', 'value')]
+     Output('plotButton', 'disabled'),
+     Output('LoadCheck', 'disabled')],
+    [Input('LoadCheck', 'n_intervals'),
+     Input('Setups', 'value')],
+    [State('CurrentData', 'children')]
 )
-def updateImg(n, data, setups):
+def updateImg(n, setups, data):
     """
     Triggered on setup change, this callback sets the loading state
 
@@ -213,18 +214,18 @@ def updateImg(n, data, setups):
     """
 
     if setups is None or setups == []:
-        return '', '', True
+        return '', '', True, False
     else:
         if data is None:
-            return 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif', f'Loading Results and computing speedups', True
+            return 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif', f'Loading Results and computing speedups', False, False
 
         setupsLoaded = data[1]
         setupsTarget = setups
 
         if setupsLoaded == setupsTarget:
-            return '', f'Speedups computed, ready to plot', False
+            return '', f'Speedups computed, ready to plot', False, True
         else:
-            return 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif', f'Loading Results and computing speedups', True
+            return 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif', f'Loading Results and computing speedups', True, False
 
 
 @app.callback(
@@ -314,7 +315,7 @@ def Z_retrieveDataAndBuildSpeedupTable(setups):
      Input('Container', 'value')]
 )
 def plotComparison(click, data, container):
-    print('\n[CALLBACK] Plotting Comparison', time.time())
+    print('\n[CALLBACK] Plotting Comparison')
 
     if data is None or container == []:
         return px.line(x=[0], y=[0])
