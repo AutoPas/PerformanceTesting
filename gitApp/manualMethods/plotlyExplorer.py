@@ -1,7 +1,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output, State, ALL
 import plotly.express as px
 import pandas as pd
 import mongoengine as me
@@ -25,7 +25,7 @@ DYNAMIC_OPTIONS = ['Container', 'Traversal', 'LoadEstimator', 'DataLayout', 'New
 def getDynamicOptionTemplate(i, value, width):
     return html.Div(
                 [html.H2(f'{value}:'),
-                 dcc.Checklist(id=value,
+                 dcc.Checklist(id={'type': 'dynamic', 'id': value},
                                options=[k for k in dummyOptions],
                                labelStyle={'display': 'block'},
                                style={
@@ -227,8 +227,8 @@ def getOverLap(keyword, setups):
 
 
 def _makeDynamicFunction(value):
-    @app.callback([Output(k, 'options'),
-                   Output(k, 'value')],
+    @app.callback([Output({'type': 'dynamic', 'id': value}, 'options'),
+                   Output({'type': 'dynamic', 'id': value}, 'value')],
                   [Input('Setups', 'value')])
     def _dynFunction(setups):
         return getOverLap(value, setups)
@@ -365,14 +365,14 @@ def Z_retrieveDataAndBuildSpeedupTable(setups):
     [Output('CompareGraph', 'figure'),
      Output('PlotTitle', 'children')],
     [Input('CurrentData', 'children'),
-     Input('Container', 'value'),
-     Input('Traversal', 'value'),
-     Input('DataLayout', 'value'),
-     Input('Newton3', 'value'),
      Input('Coloring', 'value'),
+     Input({'type': 'dynamic', 'id': 'Container'}, 'value'),
+     Input({'type': 'dynamic', 'id': 'Traversal'}, 'value'),
+     Input({'type': 'dynamic', 'id': 'DataLayout'}, 'value'),
+     Input({'type': 'dynamic', 'id': 'Newton3'}, 'value'),
      ]
 )
-def plotComparison(data, container, traversal, datalayout, newton3, coloring):
+def plotComparison(data, coloring, container, traversal, datalayout, newton3):
     print('\n[CALLBACK] Plotting Comparison')
 
     if data is None or container == []:
