@@ -32,22 +32,28 @@ app.layout = html.Div(children=[
 
     html.H2('1) Select commits to compare:'),
     html.Div(
-        dcc.Dropdown('CommitList0', options=[k for k in dummyOptions],
-                     placeholder='Select 1st Commit...',
-                     style={
-                         'font-family': 'monospace',
-                     }),
+        [
+            html.P('Base Commit:', style={'font-weight': 'bold'}),
+            dcc.Dropdown('CommitList0', options=[k for k in dummyOptions],
+                         placeholder='Select 1st Commit...',
+                         style={
+                             'font-family': 'monospace',
+                         })
+        ],
         style={
             'width': '50%',
             'float': 'left'
         }
     ),
     html.Div(
-        dcc.Dropdown('CommitList1', options=[k for k in dummyOptions],
-                     placeholder='Select 2nd Commit...',
-                     style={
-                         'font-family': 'monospace',
-                     }),
+        [
+            html.P('Compare Commit:', style={'font-weight': 'bold'}),
+            dcc.Dropdown('CommitList1', options=[k for k in dummyOptions],
+                         placeholder='Select 2nd Commit...',
+                         style={
+                             'font-family': 'monospace',
+                         })
+        ],
         style={
             'width': '50%',
             'float': 'right'
