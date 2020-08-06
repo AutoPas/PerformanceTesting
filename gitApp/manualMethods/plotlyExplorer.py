@@ -16,6 +16,8 @@ app = dash.Dash(__name__)
 # Empty Commit List of Dicts
 dummyOptions = []
 
+COLORS = ['#7FB7BE', '#D3F3EE', '#DEDEDF', '#E9C9D0', '#F4B4C1', '#FF9FB2']
+
 # Layout
 
 app.layout = html.Div(children=[
@@ -70,14 +72,76 @@ app.layout = html.Div(children=[
     ),
 
     html.Div(
-        [html.H2('3) Select Container to compare:'),
+        [html.H2('3a) Select Container:'),
 
          dcc.Checklist('Container', options=[k for k in dummyOptions],
                        labelStyle={'display': 'block'},
                        style={
                            'font-family': 'monospace',
-                       })]
+                       })],
+        style={
+            'width': '20%',
+            'background-color': COLORS[0],
+            'float': 'left'
+        }
     ),
+    html.Div(
+        [html.H2('3b) Select Traversal:'),
+
+         dcc.Checklist('Traversal', options=[k for k in dummyOptions],
+                       labelStyle={'display': 'block'},
+                       style={
+                           'font-family': 'monospace',
+                       })],
+        style={
+            'width': '20%',
+            'background-color': COLORS[3],
+            'float': 'left'
+        }
+    ),
+    html.Div(
+        [html.H2('3c) Select Data Layout:'),
+
+         dcc.Checklist('DataLayout', options=[k for k in dummyOptions],
+                       labelStyle={'display': 'block'},
+                       style={
+                           'font-family': 'monospace',
+                       })],
+        style={
+            'width': '20%',
+            'background-color': COLORS[1],
+            'float': 'left'
+        }
+    ),
+    html.Div(
+        [html.H2('3d) Select Newton3:'),
+
+         dcc.Checklist('Newton3', options=[k for k in dummyOptions],
+                       labelStyle={'display': 'block'},
+                       style={
+                           'font-family': 'monospace',
+                       })],
+        style={
+            'width': '20%',
+            'background-color': COLORS[2],
+            'float': 'left'
+        }
+    ),
+    html.Div(
+        [html.H2('3e) Select Coloring:'),
+
+         dcc.RadioItems('Coloring', options=[k for k in dummyOptions],
+                        labelStyle={'display': 'block'},
+                        style={
+                            'font-family': 'monospace',
+                        })],
+        style={
+            'width': '20%',
+            'background-color': COLORS[4],
+            'float': 'left'
+        }
+    ),
+    html.Br(style={'clear': 'left'}),
 
     html.H2(id='LoadText', children='Nothing to do'),
     html.Img(id='LoadingImg', src='', width='5%'),
@@ -87,7 +151,7 @@ app.layout = html.Div(children=[
 
     html.Div(
         [
-            html.H2('4) Plot:'),
+            html.H2('4) Plot:', id='PlotTitle'),
         ]
     ),
 
@@ -107,7 +171,7 @@ app.layout = html.Div(children=[
      Output('CommitList1', 'value')],
     [Input('refreshButton', 'n_clicks')])
 def reloadAvailableCommits(refreshClicks):
-    print(f'\n[CALLBACK] refreshing commit list')
+    print(f'\n[CALLBACK] refreshing commit list for {refreshClicks}th time')
 
     uniqueSHAs = Config.objects().distinct(field='commitSHA')
     print(f'\tFound {len(uniqueSHAs)} unique SHAs')
@@ -165,38 +229,72 @@ def getConfigs(string):
     return conf0, conf1
 
 
-@app.callback([Output('Container', 'options'),
-               Output('Container', 'value')],
-              [Input('Setups', 'value')])
-def availableContainer(setups):
-    print('\n[CALLBACK] Checking Container Types')
+def getOverLap(keyword, setups):
+    print(f'\n[CALLBACK] Checking Types for {keyword}')
     print('\tSETUPS', setups)
 
     if setups is not None and len(setups) != 0:
 
         conf0, conf1 = getConfigs(setups)
 
-        print(f'\tGetting Container for:\n'
+        print(f'\tGetting {keyword} for:\n'
               f'\t{conf0.name}\n'
               f'\t{conf1.name}\n')
 
         # TODO: Watch out for keyword change, as this is a dynamic key
-        cont0 = Result.objects(config=conf0).distinct('dynamic_Container')
-        cont1 = Result.objects(config=conf1).distinct('dynamic_Container')
-        overlap = set(cont0) & set(cont1)
+        opt0 = Result.objects(config=conf0).distinct(f'dynamic_{keyword}')
+        opt1 = Result.objects(config=conf1).distinct(f'dynamic_{keyword}')
+        overlap = set(opt0) & set(opt1)
 
         checkboxes = []
         selected = []
 
-        for container in overlap:
-            checkboxes.append({'label': container, 'value': container})
-            selected.append(container)
+        for value in overlap:
+            checkboxes.append({'label': value, 'value': value})
+            selected.append(value)
 
         return sorted(checkboxes, key=lambda c: c['label']), sorted(selected)
 
     else:
         return [], []
 
+
+@app.callback([Output('Container', 'options'),
+               Output('Container', 'value')],
+              [Input('Setups', 'value')])
+def availableContainer(setups):
+    return getOverLap('Container', setups)
+
+
+@app.callback([Output('Traversal', 'options'),
+               Output('Traversal', 'value')],
+              [Input('Setups', 'value')])
+def availableTraversal(setups):
+    return getOverLap('Traversal', setups)
+
+
+@app.callback([Output('DataLayout', 'options'),
+               Output('DataLayout', 'value')],
+              [Input('Setups', 'value')])
+def availableDataLayouts(setups):
+    return getOverLap('DataLayout', setups)
+
+
+@app.callback([Output('Newton3', 'options'),
+               Output('Newton3', 'value')],
+              [Input('Setups', 'value')])
+def availableNewton3(setups):
+    return getOverLap('Newton3', setups)
+
+
+@app.callback([Output('Coloring', 'options'),
+               Output('Coloring', 'value')],
+              [Input('Setups', 'value')])
+def availableColoring(setups):
+    # TODO: Make Coloring and other 3a-d options dynamic somehow (Create html layout on server load dynamically?)
+    opts = ['Container', 'Traversal', 'DataLayout', 'Newton3']
+    opt_dict = [{'label': k, 'value': k} for k in opts]
+    return opt_dict, opts[0]
 
 
 @app.callback(
@@ -313,21 +411,59 @@ def Z_retrieveDataAndBuildSpeedupTable(setups):
 
 
 @app.callback(
-    Output('CompareGraph', 'figure'),
+    [Output('CompareGraph', 'figure'),
+     Output('PlotTitle', 'children')],
     [Input('CurrentData', 'children'),
-     Input('Container', 'value')]
+     Input('Container', 'value'),
+     Input('Traversal', 'value'),
+     Input('DataLayout', 'value'),
+     Input('Newton3', 'value'),
+     Input('Coloring', 'value'),
+     ]
 )
-def plotComparison(data, container):
+def plotComparison(data, container, traversal, datalayout, newton3, coloring):
     print('\n[CALLBACK] Plotting Comparison')
 
     if data is None or container == []:
-        return px.line(x=[0], y=[0])
+        return px.line(x=[0], y=[0]), '4) Plot:'
 
     speedupTable = pd.read_json(data[0])
 
     filtered_by_container = speedupTable[speedupTable['dynamic_Container'].isin(container)]
+    filtered_by_traversal = filtered_by_container[filtered_by_container['dynamic_Traversal'].isin(traversal)]
+    filtered_by_datalayout = filtered_by_traversal[filtered_by_traversal['dynamic_DataLayout'].isin(datalayout)]
+    filtered_by_newton3 = filtered_by_datalayout[filtered_by_datalayout['dynamic_Newton3'].isin(newton3)]
 
-    return px.bar(filtered_by_container, x='speedup', y='label', color='dynamic_Container', orientation='h')
+    finalSet = filtered_by_newton3
+
+    print(f'\tFiltered Set: {len(finalSet)}/{len(speedupTable)}')
+
+    fig = px.bar(finalSet,
+                 x='speedup',
+                 y='label',
+                 color=f'dynamic_{coloring}',
+                 orientation='h')
+
+    fig.add_shape(
+        dict(
+            type='line',
+            x0=1,
+            y0=0,
+            x1=1,
+            y1=len(finalSet),
+            line=dict(
+                color='Black',
+                width=3,
+            )
+        )
+    )
+
+    fig.update_layout(height=max(10 * len(finalSet), 200),
+                      width=1800)
+    fig.update_yaxes(automargin=True)
+
+
+    return fig, f'Plotting Filtered Set: {len(finalSet)}/{len(speedupTable)}'
 
 
 if __name__ == '__main__':
