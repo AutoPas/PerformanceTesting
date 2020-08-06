@@ -12,7 +12,6 @@ import re
 from mongoDocuments import Config, Result
 
 app = dash.Dash(__name__)
-# fig = px.line(x=[0, 1, 2], y=[0, 1, -1])
 
 # Empty Commit List of Dicts
 dummyOptions = []
@@ -106,7 +105,7 @@ def reloadAvailableCommits(refreshClicks):
     print(f'\n[CALLBACK] refreshing commit list')
 
     uniqueSHAs = Config.objects().distinct(field='commitSHA')
-    print(f'Found {len(uniqueSHAs)} unique SHAs')
+    print(f'\tFound {len(uniqueSHAs)} unique SHAs')
     options = []
 
     for sha in uniqueSHAs:
@@ -130,10 +129,10 @@ def updateSetups(sha0, sha1):
     print('\n[CALLBACK] Checking Setups')
 
     if sha0 is None or sha1 is None:
-        print('Selection is None')
+        print('\tSelection is None')
         return [], []
 
-    print(f'Comparing {sha0} vs. {sha1}')
+    print(f'\tComparing {sha0} vs. {sha1}')
     config0_all = Config.objects(commitSHA=sha0).order_by('-date')
 
     # Listing available setups
@@ -165,16 +164,16 @@ def getConfigs(string):
                Output('Container', 'value')],
               [Input('Setups', 'value')])
 def availableContainer(setups):
-    print('[CALLBACK] Checking Container Types')
-    print('SETUPS', setups)
+    print('\n[CALLBACK] Checking Container Types')
+    print('\tSETUPS', setups)
 
     if setups is not None and len(setups) != 0:
 
         conf0, conf1 = getConfigs(setups)
 
-        print(f'Getting Container for:\n'
-              f'{conf0.name}\n'
-              f'{conf1.name}\n')
+        print(f'\tGetting Container for:\n'
+              f'\t{conf0.name}\n'
+              f'\t{conf1.name}\n')
 
         # TODO: Watch out for keyword change, as this is a dynamic key
         cont0 = Result.objects(config=conf0).distinct('dynamic_Container')
@@ -232,7 +231,7 @@ def updateImg(n, data, setups):
     [Input('Setups', 'value')],
 )
 def Z_retrieveDataAndBuildSpeedupTable(setups):
-    print('[CALLBACK] Retrieving Data')
+    print('\n[CALLBACK] Retrieving Data')
 
     if setups is None or setups == []:
         return [None, None]
