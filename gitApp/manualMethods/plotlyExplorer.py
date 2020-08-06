@@ -309,19 +309,21 @@ def Z_retrieveDataAndBuildSpeedupTable(setups):
 
 @app.callback(
     Output('example-graph', 'figure'),
-    [Input('plotButton', 'n_clicks')],
-    [State('Container', 'value'),
-     State('CurrentData', 'children')]
+    [Input('plotButton', 'n_clicks'),
+     Input('CurrentData', 'children'),
+     Input('Container', 'value')]
 )
-def plotComparison(click, container, data):
-    print('\n[CALLBACK] Plotting Comparison')
+def plotComparison(click, data, container):
+    print('\n[CALLBACK] Plotting Comparison', time.time())
 
-    if data is None:
+    if data is None or container == []:
         return px.line(x=[0], y=[0])
 
     speedupTable = pd.read_json(data[0])
 
-    return px.bar(speedupTable, x='speedup', y='label', color='dynamic_Container', orientation='h')
+    filtered_by_container = speedupTable[speedupTable['dynamic_Container'].isin(container)]
+
+    return px.bar(filtered_by_container, x='speedup', y='label', color='dynamic_Container', orientation='h')
 
 
 if __name__ == '__main__':
