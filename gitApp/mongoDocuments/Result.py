@@ -21,5 +21,37 @@ class Result(me.DynamicDocument):
     meta = {
         'indexes': [
             'config',
+            '#config',
+            # TODO: Watch out for changes in keywords and update these indices for performance (not really helping though)
+            'dynamic_Container',
+            'dynamic_CellSizeFactor',
+            'dynamic_DataLayout',
+            'dynamic_Traversal',
+            'dynamic_Newton3',
+            'dynamic_LoadEstimator',
+            {
+                'fields': ['config', 'dynamic_Container'],
+                'name': 'compound0'
+            },
+            {
+                'fields': ['config', 'dynamic_Container', 'dynamic_DataLayout'],
+                'name': 'compound1'
+            },
+            {
+                'fields': ['config', 'dynamic_Container', 'dynamic_DataLayout', 'dynamic_Traversal'],
+                'name': 'compound2'
+            },
+            {
+                'fields': ['config', 'dynamic_Container', 'dynamic_DataLayout', 'dynamic_Traversal', 'dynamic_Newton3'],
+                'name': 'compound3'
+            },
+            {
+                'fields': ['config', 'dynamic_Container', 'dynamic_DataLayout', 'dynamic_Traversal', 'dynamic_Newton3', 'dynamic_CellSizeFactor'],
+                'name': 'compound4'
+            },
+            {
+                'fields': ['config', 'dynamic_Container', 'dynamic_DataLayout', 'dynamic_Traversal', 'dynamic_Newton3', 'dynamic_CellSizeFactor', 'dynamic_LoadEstimator'],
+                'name': 'compound5'
+            }
         ]
     }
