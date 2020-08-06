@@ -17,8 +17,27 @@ app = dash.Dash(__name__)
 dummyOptions = []
 
 COLORS = ['#7FB7BE', '#D3F3EE', '#DEDEDF', '#E9C9D0', '#F4B4C1', '#FF9FB2']
+DYNAMIC_OPTIONS = ['Container', 'Traversal', 'DataLayout', 'Newton3']
+
 
 # Layout
+
+def getDynamicOptionTemplate(i, value, width):
+    return html.Div(
+                [html.H2(f'{value}:'),
+                 dcc.Checklist(id=value,
+                               options=[k for k in dummyOptions],
+                               labelStyle={'display': 'block'},
+                               style={
+                                   'font-family': 'monospace',
+                               })],
+                style={
+                    'width': f'{width}%',
+                    'background-color': COLORS[i],
+                    'float': 'left'
+                }
+            )
+
 
 app.layout = html.Div(children=[
     html.H1(children='Performance Explorer'),
@@ -71,64 +90,12 @@ app.layout = html.Div(children=[
                       })]
     ),
 
-    html.Div(
-        [html.H2('3a) Select Container:'),
+    #### Dynamic Parts ####
+    *[getDynamicOptionTemplate(i, k, 100/len(DYNAMIC_OPTIONS)) for i, k in enumerate(DYNAMIC_OPTIONS)],
+    #### Dynamic Parts ####
 
-         dcc.Checklist('Container', options=[k for k in dummyOptions],
-                       labelStyle={'display': 'block'},
-                       style={
-                           'font-family': 'monospace',
-                       })],
-        style={
-            'width': '20%',
-            'background-color': COLORS[0],
-            'float': 'left'
-        }
-    ),
     html.Div(
-        [html.H2('3b) Select Traversal:'),
-
-         dcc.Checklist('Traversal', options=[k for k in dummyOptions],
-                       labelStyle={'display': 'block'},
-                       style={
-                           'font-family': 'monospace',
-                       })],
-        style={
-            'width': '20%',
-            'background-color': COLORS[3],
-            'float': 'left'
-        }
-    ),
-    html.Div(
-        [html.H2('3c) Select Data Layout:'),
-
-         dcc.Checklist('DataLayout', options=[k for k in dummyOptions],
-                       labelStyle={'display': 'block'},
-                       style={
-                           'font-family': 'monospace',
-                       })],
-        style={
-            'width': '20%',
-            'background-color': COLORS[1],
-            'float': 'left'
-        }
-    ),
-    html.Div(
-        [html.H2('3d) Select Newton3:'),
-
-         dcc.Checklist('Newton3', options=[k for k in dummyOptions],
-                       labelStyle={'display': 'block'},
-                       style={
-                           'font-family': 'monospace',
-                       })],
-        style={
-            'width': '20%',
-            'background-color': COLORS[2],
-            'float': 'left'
-        }
-    ),
-    html.Div(
-        [html.H2('3e) Select Coloring:'),
+        [html.H2('3) Coloring:'),
 
          dcc.RadioItems('Coloring', options=[k for k in dummyOptions],
                         labelStyle={'display': 'block'},
