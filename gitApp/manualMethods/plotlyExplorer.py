@@ -17,7 +17,7 @@ app = dash.Dash(__name__)
 dummyOptions = []
 
 COLORS = ['#7FB7BE', '#D3F3EE', '#DEDEDF', '#E9C9D0', '#F4B4C1', '#FF9FB2']
-DYNAMIC_OPTIONS = ['Container', 'Traversal', 'DataLayout', 'Newton3']
+DYNAMIC_OPTIONS = ['Container', 'Traversal', 'LoadEstimator', 'DataLayout', 'Newton3']
 
 
 # Layout
@@ -103,7 +103,7 @@ app.layout = html.Div(children=[
                             'font-family': 'monospace',
                         })],
         style={
-            'width': '20%',
+            'width': f'{100/(len(DYNAMIC_OPTIONS)+1)}%',
             'background-color': COLORS[4],
             'float': 'left'
         }
@@ -226,42 +226,26 @@ def getOverLap(keyword, setups):
         return [], []
 
 
-@app.callback([Output('Container', 'options'),
-               Output('Container', 'value')],
-              [Input('Setups', 'value')])
-def availableContainer(setups):
-    return getOverLap('Container', setups)
+def _makeDynamicFunction(value):
+    @app.callback([Output(k, 'options'),
+                   Output(k, 'value')],
+                  [Input('Setups', 'value')])
+    def _dynFunction(setups):
+        return getOverLap(value, setups)
+    return _dynFunction
 
 
-@app.callback([Output('Traversal', 'options'),
-               Output('Traversal', 'value')],
-              [Input('Setups', 'value')])
-def availableTraversal(setups):
-    return getOverLap('Traversal', setups)
-
-
-@app.callback([Output('DataLayout', 'options'),
-               Output('DataLayout', 'value')],
-              [Input('Setups', 'value')])
-def availableDataLayouts(setups):
-    return getOverLap('DataLayout', setups)
-
-
-@app.callback([Output('Newton3', 'options'),
-               Output('Newton3', 'value')],
-              [Input('Setups', 'value')])
-def availableNewton3(setups):
-    return getOverLap('Newton3', setups)
+for k in DYNAMIC_OPTIONS:
+    _function = _makeDynamicFunction(k)
+    _function.__name__ = f'dynamicCallback_{k}'
 
 
 @app.callback([Output('Coloring', 'options'),
                Output('Coloring', 'value')],
               [Input('Setups', 'value')])
 def availableColoring(setups):
-    # TODO: Make Coloring and other 3a-d options dynamic somehow (Create html layout on server load dynamically?)
-    opts = ['Container', 'Traversal', 'DataLayout', 'Newton3']
-    opt_dict = [{'label': k, 'value': k} for k in opts]
-    return opt_dict, opts[0]
+    opt_dict = [{'label': k, 'value': k} for k in DYNAMIC_OPTIONS]
+    return opt_dict, DYNAMIC_OPTIONS[0]
 
 
 @app.callback(
