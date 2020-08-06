@@ -8,6 +8,7 @@ import numpy as np
 import mongoengine as me
 import os
 import re
+import time
 
 from mongoDocuments import Config, Result
 
@@ -238,10 +239,12 @@ def Z_retrieveDataAndBuildSpeedupTable(setups):
 
     conf0, conf1 = getConfigs(setups)
     # Get all results for both configs
-    results0 = Result.objects(config=conf0).batch_size(1000).exclude('measurements')
-    results1 = Result.objects(config=conf1).batch_size(1000).exclude('measurements')
+    results0 = Result.objects(config=conf0).hint('config_hashed')
+    results1 = Result.objects(config=conf1).hint('config_hashed')
 
     missing_results = 0
+
+    start = time.time()
 
     def aggregate_results(results: me.QuerySet) -> pd.DataFrame:
         """
@@ -253,18 +256,22 @@ def Z_retrieveDataAndBuildSpeedupTable(setups):
             df: Dataframe
         """
 
-        df = pd.DataFrame()
+        temp_dict = {}
 
-        for r in results:
+        for i, r in enumerate(results):
             data = r.__dict__
             data['meanTime'] = r.meanTime
-            df = df.append(r.__dict__, ignore_index=True)
+            temp_dict[i] = data
 
-        df = df.drop(columns=['_cls', '_dynamic_lock', '_fields_ordered'])
+        df = pd.DataFrame.from_dict(temp_dict)
+        df = df.drop(['_cls', '_dynamic_lock', '_fields_ordered'])
+        df = df.transpose()
         return df
 
     df0 = aggregate_results(results0)
     df1 = aggregate_results(results1)
+
+    print(f'\tAggregated in {(time.time() - start)} seconds')
 
     def calculate_speedup(data0: pd.DataFrame, data1: pd.DataFrame) -> pd.DataFrame:
         """
