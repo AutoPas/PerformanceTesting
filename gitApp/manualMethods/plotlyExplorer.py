@@ -74,6 +74,7 @@ app.layout = html.Div(children=[
         [html.H2('3) Select Container to compare:'),
 
          dcc.Checklist('Container', options=[k for k in dummyOptions],
+                       labelStyle={'display': 'block'},
                        style={
                            'font-family': 'monospace',
                        })]
@@ -159,7 +160,7 @@ def updateSetups(sha0, sha1):
 ### Setting Container Buttons
 
 def getConfigs(string):
-    ids = re.findall('(\S+) # (\S+)', string)
+    ids = re.findall(r'(\S+) # (\S+)', string)
     conf0 = Config.objects().get(id=ids[0][0])
     conf1 = Config.objects().get(id=ids[0][1])
     return conf0, conf1
@@ -290,6 +291,7 @@ def Z_retrieveDataAndBuildSpeedupTable(setups):
         """
 
         quantity = 'meanTime'
+        # TODO: watch out for no matches when adding other timing quants into dataframe
         all_data1_configs = data1.drop(columns=quantity)  # Drop column for matching
         table = all_data1_configs.copy()
 
