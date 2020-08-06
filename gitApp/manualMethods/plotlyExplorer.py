@@ -104,7 +104,7 @@ app.layout = html.Div(children=[
                         })],
         style={
             'width': f'{100/(len(DYNAMIC_OPTIONS)+1)}%',
-            'background-color': COLORS[4],
+            'background-color': COLORS[len(DYNAMIC_OPTIONS)],
             'float': 'left'
         }
     ),
