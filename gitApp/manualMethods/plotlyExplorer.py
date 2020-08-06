@@ -16,8 +16,8 @@ app = dash.Dash(__name__)
 # Empty Commit List of Dicts
 dummyOptions = []
 
-COLORS = ['#7FB7BE', '#D3F3EE', '#DEDEDF', '#E9C9D0', '#F4B4C1', '#FF9FB2']
-DYNAMIC_OPTIONS = ['Container', 'Traversal', 'LoadEstimator', 'DataLayout', 'Newton3']
+COLORS = ["#f1a208", "#32639a", "#03cea4", "#fb4d3d", "#30bced", "#690375", "#e3ecf3"]
+DYNAMIC_OPTIONS = ['Container', 'Traversal', 'LoadEstimator', 'DataLayout', 'Newton3', 'CellSizeFactor']
 
 
 # Layout
@@ -34,7 +34,10 @@ def getDynamicOptionTemplate(i, value, width):
                 style={
                     'width': f'{width}%',
                     'background-color': COLORS[i],
-                    'float': 'left'
+                    'color': 'white',
+                    'float': 'left',
+                    'padding': '.3%',
+                    'box-sizing': 'border-box'
                 }
             )
 
@@ -79,7 +82,6 @@ app.layout = html.Div(children=[
             'float': 'right'
         }
     ),
-
     html.Div(
         [html.H2('2) Select setup to compare:'),
 
@@ -89,6 +91,7 @@ app.layout = html.Div(children=[
                           'font-family': 'monospace',
                       })]
     ),
+    html.Br(),
 
     #### Dynamic Parts ####
     *[getDynamicOptionTemplate(i, k, 100/(len(DYNAMIC_OPTIONS)+1)) for i, k in enumerate(DYNAMIC_OPTIONS)],
@@ -105,7 +108,9 @@ app.layout = html.Div(children=[
         style={
             'width': f'{100/(len(DYNAMIC_OPTIONS)+1)}%',
             'background-color': COLORS[len(DYNAMIC_OPTIONS)],
-            'float': 'left'
+            'float': 'left',
+            'padding': '.3%',
+            'box-sizing': 'border-box'
         }
     ),
     html.Br(style={'clear': 'left'}),
