@@ -91,7 +91,7 @@ app.layout = html.Div(children=[
     ),
 
     #### Dynamic Parts ####
-    *[getDynamicOptionTemplate(i, k, 100/len(DYNAMIC_OPTIONS)) for i, k in enumerate(DYNAMIC_OPTIONS)],
+    *[getDynamicOptionTemplate(i, k, 100/(len(DYNAMIC_OPTIONS)+1)) for i, k in enumerate(DYNAMIC_OPTIONS)],
     #### Dynamic Parts ####
 
     html.Div(
