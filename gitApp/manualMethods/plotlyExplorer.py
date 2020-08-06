@@ -83,7 +83,6 @@ app.layout = html.Div(children=[
     html.Div(
         [
             html.H2('4) Plot:'),
-            html.Button('Plot Comparison', id='plotButton', n_clicks=0, disabled=True)
         ]
     ),
 
@@ -198,7 +197,6 @@ def availableContainer(setups):
 @app.callback(
     [Output('LoadingImg', 'src'),
      Output('LoadText', 'children'),
-     Output('plotButton', 'disabled'),
      Output('LoadCheck', 'disabled')],
     [Input('LoadCheck', 'n_intervals'),
      Input('Setups', 'value')],
@@ -214,18 +212,18 @@ def updateImg(n, setups, data):
     """
 
     if setups is None or setups == []:
-        return '', '', True, False
+        return '', '', False
     else:
         if data is None:
-            return 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif', f'Loading Results and computing speedups', False, False
+            return 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif', f'Loading Results and computing speedups', False
 
         setupsLoaded = data[1]
         setupsTarget = setups
 
         if setupsLoaded == setupsTarget:
-            return '', f'Speedups computed, ready to plot', False, True
+            return '', f'Speedups computed, ready to plot', True
         else:
-            return 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif', f'Loading Results and computing speedups', True, False
+            return 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif', f'Loading Results and computing speedups', False
 
 
 @app.callback(
@@ -310,11 +308,10 @@ def Z_retrieveDataAndBuildSpeedupTable(setups):
 
 @app.callback(
     Output('example-graph', 'figure'),
-    [Input('plotButton', 'n_clicks'),
-     Input('CurrentData', 'children'),
+    [Input('CurrentData', 'children'),
      Input('Container', 'value')]
 )
-def plotComparison(click, data, container):
+def plotComparison(data, container):
     print('\n[CALLBACK] Plotting Comparison')
 
     if data is None or container == []:
