@@ -366,30 +366,24 @@ def Z_retrieveDataAndBuildSpeedupTable(setups):
      Output('PlotTitle', 'children')],
     [Input('CurrentData', 'children'),
      Input('Coloring', 'value'),
-     Input({'type': 'dynamic', 'id': 'Container'}, 'value'),
-     Input({'type': 'dynamic', 'id': 'Traversal'}, 'value'),
-     Input({'type': 'dynamic', 'id': 'DataLayout'}, 'value'),
-     Input({'type': 'dynamic', 'id': 'Newton3'}, 'value'),
+     Input({'type': 'dynamic', 'id': ALL}, 'value'),
      ]
 )
-def plotComparison(data, coloring, container, traversal, datalayout, newton3):
+def plotComparison(data, coloring, dynamicSelectors):
     print('\n[CALLBACK] Plotting Comparison')
 
-    if data is None or container == []:
+    if data is None or dynamicSelectors == []:
         return px.line(x=[0], y=[0]), '4) Plot:'
 
-    speedupTable = pd.read_json(data[0])
+    filtered = pd.read_json(data[0])
+    lenAll = len(filtered)
 
-    filtered_by_container = speedupTable[speedupTable['dynamic_Container'].isin(container)]
-    filtered_by_traversal = filtered_by_container[filtered_by_container['dynamic_Traversal'].isin(traversal)]
-    filtered_by_datalayout = filtered_by_traversal[filtered_by_traversal['dynamic_DataLayout'].isin(datalayout)]
-    filtered_by_newton3 = filtered_by_datalayout[filtered_by_datalayout['dynamic_Newton3'].isin(newton3)]
+    for option, values in zip(DYNAMIC_OPTIONS, dynamicSelectors):
+        filtered = filtered[filtered[f'dynamic_{option}'].isin(values)]
 
-    finalSet = filtered_by_newton3
+    print(f'\tFiltered Set: {len(filtered)}/{lenAll}')
 
-    print(f'\tFiltered Set: {len(finalSet)}/{len(speedupTable)}')
-
-    fig = px.bar(finalSet,
+    fig = px.bar(filtered,
                  x='speedup',
                  y='label',
                  color=f'dynamic_{coloring}',
@@ -401,7 +395,7 @@ def plotComparison(data, coloring, container, traversal, datalayout, newton3):
             x0=1,
             y0=0,
             x1=1,
-            y1=len(finalSet),
+            y1=len(filtered),
             line=dict(
                 color='Black',
                 width=3,
@@ -409,12 +403,12 @@ def plotComparison(data, coloring, container, traversal, datalayout, newton3):
         )
     )
 
-    fig.update_layout(height=max(10 * len(finalSet), 200),
+    fig.update_layout(height=max(10 * len(filtered), 200),
                       width=1800)
     fig.update_yaxes(automargin=True)
 
 
-    return fig, f'Plotting Filtered Set: {len(finalSet)}/{len(speedupTable)}'
+    return fig, f'Plotting Filtered Set: {len(filtered)}/{lenAll}'
 
 
 if __name__ == '__main__':
