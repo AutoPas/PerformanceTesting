@@ -8,10 +8,16 @@ import mongoengine as me
 import os
 import re
 import time
+import flask
+import gunicorn
 
 from mongoDocuments import Config, Result
 
-app = dash.Dash(__name__)
+me.connect('performancedb', host=os.environ['MONGOHOST'], username=os.environ['USERNAME'],
+           password=os.environ['PASSWORD'])
+
+server = flask.Flask(__name__)  # define flask app.server
+app = dash.Dash(__name__, server=server)
 
 # Empty Commit List of Dicts
 dummyOptions = []
@@ -455,7 +461,5 @@ def plotComparison(data, coloring, dynamicSelectors):
 
 
 if __name__ == '__main__':
-    me.connect('performancedb', host=os.environ['MONGOHOST'], username=os.environ['USERNAME'],
-               password=os.environ['PASSWORD'])
 
     app.run_server(debug=True, host='0.0.0.0', port=8050)
