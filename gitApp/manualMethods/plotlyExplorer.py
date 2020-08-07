@@ -423,6 +423,9 @@ def plotComparison(data, coloring, dynamicSelectors):
 
     print(f'\tFiltered Set: {len(filtered)}/{lenAll}')
 
+    if len(filtered) == 0:
+        return px.line(x=[0], y=[0]), f'Filtered Set: {len(filtered)}/{lenAll} is empty'
+
     fig = px.bar(filtered,
                  x='speedup',
                  y='label',
