@@ -183,11 +183,25 @@ def updateSetups(sha0, sha1):
     for conf0 in config0_all:
         conf1_avail = Config.objects(commitSHA=sha1, system=conf0.system, setup=conf0.setup).order_by('-date')
         for conf1 in conf1_avail:
-            possible_comparisons.append({'label': f'{conf1.setup.name}: {conf1.system}',
-                                         'value': f'{str(conf0.id)} # {str(conf1.id)}'})
+
+            failure = True if conf0.failure is not None or conf1.failure is not None else False
+
+            if failure:
+                possible_comparisons.append(
+                    {'label': f'{conf1.setup.name}: {conf1.system} [{conf0.failure}] [{conf1.failure}]',
+                     'value': f'{str(conf0.id)} # {str(conf1.id)}',
+                     'disabled': failure})
+            else:
+                possible_comparisons.append(
+                    {'label': f'{conf1.setup.name}: {conf1.system} Run dates [{conf0.date} vs. {conf1.date}]',
+                     'value': f'{str(conf0.id)} # {str(conf1.id)}',
+                     'disabled': failure})
 
     if len(possible_comparisons) != 0:
-        return possible_comparisons, possible_comparisons[0]['value']
+        for comp in possible_comparisons:
+            if not comp['disabled']:
+                return possible_comparisons, comp['value']
+        return possible_comparisons, []
     else:
         return [], []
 
@@ -377,7 +391,7 @@ def Z_retrieveDataAndBuildSpeedupTable(setups):
 def plotComparison(data, coloring, dynamicSelectors):
     print('\n[CALLBACK] Plotting Comparison')
 
-    if data is None or dynamicSelectors == []:
+    if data is None or None in data or dynamicSelectors == []:
         return px.line(x=[0], y=[0]), '4) Plot:'
 
     filtered = pd.read_json(data[0])
