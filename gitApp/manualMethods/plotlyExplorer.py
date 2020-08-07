@@ -136,6 +136,7 @@ app.layout = html.Div(children=[
     html.Img(id='LoadingImg', src='', width='5%'),
 
     dcc.Interval('LoadCheck', interval=250, disabled=False),  # Continuously checking if load has succeeded
+    # TODO: Replace this with dcc.Store
     html.Div(id='CurrentData', style={'display': 'none'}),
 
     html.Div(
