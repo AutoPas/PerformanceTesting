@@ -45,43 +45,52 @@ def getDynamicOptionTemplate(i, value, width):
 app.layout = html.Div(children=[
     html.H1(children='Performance Explorer'),
 
-    html.Div(children='''
-        Interactively compare performance accross commits in the AutoPas GitHub Repo
-    '''),
+    html.Div(children=[
+        'Interactively compare performance across commits in the AutoPas GitHub Repo ',
+        html.Button('Refresh Commit List', id='refreshButton', n_clicks=0)]),
 
     html.Div(
-        [html.Button('Refresh Commit List', id='refreshButton', n_clicks=0)]
+
     ),
 
-    html.H2('1) Select commits to compare:'),
-    html.Div(
-        [
-            html.P('Base Commit:', style={'font-weight': 'bold'}),
-            dcc.Dropdown('CommitList0', options=[k for k in dummyOptions],
-                         placeholder='Select 1st Commit...',
-                         style={
-                             'font-family': 'monospace',
-                         })
-        ],
-        style={
-            'width': '50%',
-            'float': 'left'
-        }
-    ),
-    html.Div(
-        [
-            html.P('Compare Commit:', style={'font-weight': 'bold'}),
-            dcc.Dropdown('CommitList1', options=[k for k in dummyOptions],
-                         placeholder='Select 2nd Commit...',
-                         style={
-                             'font-family': 'monospace',
-                         })
-        ],
-        style={
-            'width': '50%',
-            'float': 'right'
-        }
-    ),
+    html.Div([
+        html.H2('1) Select commits to compare:'),
+        html.Div(
+            [
+                html.P('Base Commit:', style={'font-weight': 'bold'}),
+                dcc.Dropdown('CommitList0', options=[k for k in dummyOptions],
+                             placeholder='Select 1st Commit...',
+                             style={
+                                 'font-family': 'monospace',
+                             })
+            ],
+            style={
+                'width': '50%',
+                'float': 'left'
+            }
+        ),
+        html.Div(
+            [
+                html.P('Compare Commit:', style={'font-weight': 'bold'}),
+                dcc.Dropdown('CommitList1', options=[k for k in dummyOptions],
+                             placeholder='Select 2nd Commit...',
+                             style={
+                                 'font-family': 'monospace',
+                             })
+            ],
+            style={
+                'width': '50%',
+                'float': 'right'
+            }
+        ),
+    ],
+         style={
+            'width': '100%',
+            'float': 'left',
+            'background-color': '#F5F0F6'
+        }),
+    html.Br(),
+
     html.Div(
         [html.H2('2) Select setup to compare:'),
 
@@ -89,13 +98,21 @@ app.layout = html.Div(children=[
                       placeholder='Select Setup...',
                       style={
                           'font-family': 'monospace',
-                      })]
+                      })],
+        style={
+            'width': '100%',
+            'float': 'left',
+            'background-color': '#F5F0F6',
+            'padding-bottom': '1%'
+        }
     ),
     html.Br(),
 
-    #### Dynamic Parts ####
-    *[getDynamicOptionTemplate(i, k, 100/(len(DYNAMIC_OPTIONS)+1)) for i, k in enumerate(DYNAMIC_OPTIONS)],
-    #### Dynamic Parts ####
+    html.Div(
+        #### Dynamic Parts ####
+        [getDynamicOptionTemplate(i, k, 100/(len(DYNAMIC_OPTIONS)+1)) for i, k in enumerate(DYNAMIC_OPTIONS)],
+        #### Dynamic Parts ####
+    ),
 
     html.Div(
         [html.H2('3) Coloring:'),
@@ -131,7 +148,10 @@ app.layout = html.Div(children=[
         id='CompareGraph'
     ),
 
-])
+],
+    style={
+        'font-family': 'sans-serif',
+    })
 
 
 ### Parsing available commits
