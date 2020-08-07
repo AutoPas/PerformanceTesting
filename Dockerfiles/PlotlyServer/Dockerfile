@@ -6,7 +6,7 @@ RUN apt-get update
 RUN apt-get install -y python3-pip
 
 # Cloning Performance Testing Repo
-RUN echo "cache buster 5"
+RUN echo "cache buster 7"
 RUN git clone https://github.com/AutoPas/PerformanceTesting.git
 
 # install PerformanceTesting requirements
@@ -24,4 +24,4 @@ EXPOSE 8050/udp
 # ENV PASSWORD XXXXXXXXXXX
 
 # Run the server
-ENTRYPOINT ["python3", "/usr/src/app/PerformanceTesting/gitApp/manualMethods/plotlyExplorer.py"]
+ENTRYPOINT ["gunicorn", "plotlyExplorer:server", "-b 0.0.0.0:8050", "-w 4"]
