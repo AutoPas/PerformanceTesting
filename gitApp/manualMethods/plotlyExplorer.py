@@ -362,7 +362,7 @@ def _retrieveDataAndBuildSpeedupTable(setups):
 
         for i, r in enumerate(results):
             data = r.__dict__
-            data['meanTime'] = r.meanTime
+            data['minTime'] = r.minTime
             temp_dict[i] = data
 
         df = pd.DataFrame.from_dict(temp_dict)
@@ -387,7 +387,7 @@ def _retrieveDataAndBuildSpeedupTable(setups):
             table: dataframe with speedup table
         """
 
-        quantity = 'meanTime'
+        quantity = 'minTime'
         # TODO: watch out for no matches when adding other timing quants into dataframe
         all_data1_configs = data1.drop(columns=quantity)  # Drop column for matching
         table = all_data1_configs.copy()
@@ -407,6 +407,7 @@ def _retrieveDataAndBuildSpeedupTable(setups):
         return table
 
     speedupTable = calculate_speedup(df0, df1).sort_values('speedup')
+    #speedupTable = calculate_speedup(df0, df1).sort_values('quantity')
 
     return [speedupTable.to_json(), setups]
 
