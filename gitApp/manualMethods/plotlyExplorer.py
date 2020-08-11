@@ -199,7 +199,7 @@ app.layout = html.Div(children=[
      Output('CommitList1', 'options'),
      Output('CommitList1', 'value')],
     [Input('refreshButton', 'n_clicks')])
-def reloadAvailableCommits(refreshClicks):
+def _reloadAvailableCommits(refreshClicks):
     print(f'\n[CALLBACK] refreshing commit list for {refreshClicks}th time')
 
     uniqueSHAs = Config.objects().distinct(field='commitSHA')
