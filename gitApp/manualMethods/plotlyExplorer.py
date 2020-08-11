@@ -398,7 +398,9 @@ def Z_retrieveDataAndBuildSpeedupTable(setups):
             i_match = full_match[full_match == True].index[0]  # Get index of the full match in data1
 
             speedup = data1.loc[i_match, quantity] / data0.loc[i_search, quantity]
-            label = ''.join(str(v) + ' ' for v in data1.loc[i_match, :].values)
+            # label = ''.join(str(v) + ' ' for v in data1.loc[i_match, :].values)
+            label = ''.join([f'{str(v):>10} ' for v in data1.loc[i_match, :].values])
+            table.loc[i_match, 'quantity'] = data1.loc[i_match, quantity]
             table.loc[i_match, 'speedup'] = speedup
             table.loc[i_match, 'label'] = label
 
@@ -456,7 +458,8 @@ def plotComparison(data, coloring, dynamicSelectors):
     )
 
     fig.update_layout(height=max(10 * len(filtered), 200),
-                      width=1800)
+                      width=1800,
+                      font_family="monospace")
     fig.update_yaxes(automargin=True)
 
 
