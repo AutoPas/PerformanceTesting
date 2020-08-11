@@ -333,7 +333,7 @@ def updateImg(n, setups, data):
     Output('CurrentData', 'children'),
     [Input('Setups', 'value')],
 )
-def Z_retrieveDataAndBuildSpeedupTable(setups):
+def _retrieveDataAndBuildSpeedupTable(setups):
     print('\n[CALLBACK] Retrieving Data')
 
     if setups is None or setups == []:
