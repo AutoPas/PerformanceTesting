@@ -52,7 +52,10 @@ app.layout = html.Div(children=[
     html.H1(children='Performance Explorer'),
 
     html.Div(children=[
-        'Interactively compare performance across commits in the AutoPas GitHub Repo ',
+        dcc.Markdown(
+            'Interactively compare performance across commits in the [AutoPas](https://github.com/AutoPas/AutoPas) GitHub Repo\n'
+            'Working with data from [AutoPas-PerformanceTesting](https://github.com/AutoPas/PerformanceTesting)',
+            style={'whiteSpace': 'pre'}),
         html.Button('Refresh Commit List', id='refreshButton', n_clicks=0)]),
 
     html.Div(

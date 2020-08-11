@@ -6,6 +6,15 @@
 Welcome to Autopas Performance Testing's documentation!
 =======================================================
 
+Other Resources
+---------------
+
+`AutoPas <https://github.com/AutoPas/AutoPas>`_ Repo on GitHub.
+
+`Performance Testing <https://github.com/AutoPas/PerformanceTesting>`_ Repo on GitHub.
+
+Explore performance across commits: `Performance Explorer <http://autopas-performance-explorer.pproc-be.sccs.in.tum.de/>`_.
+
 .. toctree::
    :maxdepth: 4
    :caption: Contents:
