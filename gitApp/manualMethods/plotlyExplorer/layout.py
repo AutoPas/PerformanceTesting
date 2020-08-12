@@ -39,7 +39,7 @@ def makeLayout():
             style={'whiteSpace': 'pre'}),
         html.Button('Refresh Commit List', id='refreshButton', n_clicks=0)]),
 
-    dcc.Tabs(id='tabs', value='tab0', children=[
+    dcc.Tabs(id='tabs', value='tab1', children=[
         dcc.Tab(label='1v1 Compare', value='tab0',
                 children=html.Div([
                     html.Div([
@@ -160,6 +160,12 @@ def makeLayout():
                                'width': '100%',
                                'white-space': 'pre'}
                     ),
+
+                    dcc.Dropdown('BaseSetup', options=[k for k in dummyOptions],
+                                 placeholder='Select Setup...',
+                                 style={
+                                     'font-family': 'monospace',
+                                 }),
 
                     dcc.Graph(
                         id='TimeLine'
