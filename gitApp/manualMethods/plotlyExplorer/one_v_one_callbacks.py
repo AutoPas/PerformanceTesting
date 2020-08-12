@@ -194,28 +194,6 @@ def _retrieveDataAndBuildSpeedupTable(setups):
 
     start = time.time()
 
-    def aggregate_results(results: me.QuerySet) -> pd.DataFrame:
-        """
-        Aggregate Results into pandas Dataframe
-        Args:
-            results: queryset
-
-        Returns:
-            df: Dataframe
-        """
-
-        temp_dict = {}
-
-        for i, r in enumerate(results):
-            data = r.__dict__
-            data['minTime'] = r.minTime
-            temp_dict[i] = data
-
-        df = pd.DataFrame.from_dict(temp_dict)
-        df = df.drop(['_cls', '_dynamic_lock', '_fields_ordered'])
-        df = df.transpose()
-        return df
-
     df0 = aggregate_results(results0)
     df1 = aggregate_results(results1)
 
