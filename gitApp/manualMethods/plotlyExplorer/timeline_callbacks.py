@@ -8,6 +8,8 @@ import mongoengine as me
 import time
 import json
 import plotly.express as px
+import plotly.graph_objects as go
+
 
 @app.callback(
     [Output('CommitSlider', 'marks'),
@@ -95,6 +97,7 @@ def _makeResultFrame(results: me.QuerySet):
      State('CommitSlider', 'value')]
 )
 def _ComputeSpeedupTimeline(config, sliderDict, sliderPos):
+    print('[CALLBACK] Getting Results')
 
     start = time.time()
 
@@ -139,11 +142,32 @@ def _updateFigure(data):
     base_df = pd.read_json(data[0])
     compData = [pd.read_json(d) for d in data[1]]
 
-    # TODO: actually check for correct config
-    y = [c.iloc[0].minTime for c in compData]
-    x = [i for i in range(len(y))]
+    fig = go.Figure()
 
-    fig = px.line(x=x, y=y)
+    speedups = []
+
+    # Match configs and build lines
+    for i in range(len(base_df)):
+        base_line = base_df.iloc[i]
+
+        conf_speedup = []
+
+        # TODO: Parallelize this loop
+        # Check for matching line in all dataframes
+        for df in compData:
+
+            matchingTable = (df == base_line).sum(axis=1)
+
+            # TODO: Change 6 to sum of dynamic lines
+            matchedLine = df.loc[matchingTable == 6]
+
+            # TODO: Catch more than 1 value error
+            conf_speedup.append((base_line.minTime / matchedLine.minTime).values[0])
+
+        fig.add_trace(go.Scatter(x=[i for i in range(len(compData))], y=conf_speedup, mode='lines+markers'))
+
+        speedups.append(conf_speedup)
+
 
     print(f'\tPlotting took {time.time() - start} seconds')
 
