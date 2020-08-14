@@ -79,7 +79,7 @@ def _setSetup(sliderPos, sliderDict):
 
 
 @app.callback(Output('LoadTarget', 'data'),
-              [Input('BaseSetup', 'value')])
+              [Input('CommitSlider', 'value')])
 def _storeSetupTarget(value):
     return value
 
@@ -90,7 +90,7 @@ def _makeDynamicFunction(keyword):
                   [Input('BaseSetup', 'value')])
     def _dynFunction(setup):
 
-        if setup is None:
+        if setup is None or setup == []:
             return [], []
 
         conf = Config.objects.get(id=setup)
@@ -136,7 +136,7 @@ def _makeResultFrame(results: me.QuerySet):
 def _aggregateResults(config, sliderDict, sliderPos):
     print('[CALLBACK] Getting Results')
 
-    if config is None:
+    if config is None or config == []:
         return None, None
 
     start = time.time()
@@ -168,7 +168,7 @@ def _aggregateResults(config, sliderDict, sliderPos):
 
     print(f'\tAggregated all results: {time.time() - start} seconds')
 
-    return [base_df.to_json(), compData], config
+    return [base_df.to_json(), compData], sliderPos
 
 
 @app.callback([Output('TimelinePlotButton', 'disabled'),
