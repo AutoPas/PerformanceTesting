@@ -127,13 +127,17 @@ def _makeResultFrame(results: me.QuerySet):
 
 
 @app.callback(
-    Output('SliderSpeedups', 'data'),
+    [Output('SliderData', 'data'),
+     Output('CurrentLoad', 'data')],
     [Input('BaseSetup', 'value')],
     [State('SliderDict', 'data'),
      State('CommitSlider', 'value')]
 )
-def _ComputeSpeedupTimeline(config, sliderDict, sliderPos):
+def _aggregateResults(config, sliderDict, sliderPos):
     print('[CALLBACK] Getting Results')
+
+    if config is None:
+        return None, None
 
     start = time.time()
 
@@ -164,7 +168,23 @@ def _ComputeSpeedupTimeline(config, sliderDict, sliderPos):
 
     print(f'\tAggregated all results: {time.time() - start} seconds')
 
-    return [base_df.to_json(), compData]
+    return [base_df.to_json(), compData], config
+
+
+@app.callback([Output('TimelinePlotButton', 'disabled'),
+               Output('TimelinePlotButton', 'children')],
+              [Input('TimelineInterval', 'n_intervals')],
+              [State('CurrentLoad', 'data'),
+               State('LoadTarget', 'data')])
+def _setButton(interval, current, target):
+
+    if current is None or target is None:
+        return True, 'Selection is not valid for plotting'
+
+    if current == target:
+        return False, 'Start Plot (could take some time, depending on timeline)'  # Slider Data was updated, plotting can happen
+    else:
+        return True, 'Please wait for data to finish loading for selected configuration'  # Setup was changed, wait for SliderData update
 
 
 def _matchAndComputeSpeedup(data, base_line):
