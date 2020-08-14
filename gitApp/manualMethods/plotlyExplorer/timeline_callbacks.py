@@ -79,9 +79,10 @@ def _setSetup(sliderPos, sliderDict):
 
 
 @app.callback(Output('LoadTarget', 'data'),
-              [Input('CommitSlider', 'value')])
-def _storeSetupTarget(value):
-    return value
+              [Input('CommitSlider', 'value'),
+               Input('BaseSetup', 'value')])
+def _storeSetupTarget(sliderVal, setupVal):
+    return [sliderVal, setupVal]
 
 
 def _makeDynamicFunction(keyword):
@@ -168,7 +169,7 @@ def _aggregateResults(config, sliderDict, sliderPos):
 
     print(f'\tAggregated all results: {time.time() - start} seconds')
 
-    return [base_df.to_json(), compData], sliderPos
+    return [base_df.to_json(), compData], [sliderPos, config]
 
 
 @app.callback([Output('TimelinePlotButton', 'disabled'),
