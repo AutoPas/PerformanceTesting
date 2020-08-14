@@ -203,33 +203,65 @@ def _matchAndComputeSpeedup(data, base_line):
 
 
 @app.callback(Output('TimeLine', 'figure'),
-              [Input('SliderSpeedups', 'data')])
-def _updateFigure(data):
+              [Input('TimelinePlotButton', 'n_clicks')],
+              [State('SliderData', 'data'),
+               State({'type': 'dynamic1', 'id': ALL}, 'value'),
+               State('SliderDict', 'data'),
+               State('CommitSlider', 'value')])
+def _updateFigure(click, data, dynamicSelectors, sliderDict, sliderPos):
 
     print('[CALLBACK] Plotting Timeline')
 
     start = time.time()
 
-    base_df = pd.read_json(data[0])
-    compData = [pd.read_json(d) for d in data[1]]
+    if sliderDict is None:
+        return go.Figure()
+
+    parsedSlider = pd.read_json(sliderDict)
+
+    filtered_base = pd.read_json(data[0])
+    filtered_comp = [pd.read_json(d) for d in data[1]]
+    lenAll = len(filtered_base)
+
+    for option, values in zip(DYNAMIC_OPTIONS, dynamicSelectors):
+        filtered_base = filtered_base[filtered_base[f'dynamic_{option}'].isin(values)]
+        filtered_comp = [df[df[f'dynamic_{option}'].isin(values)] for df in filtered_comp]
+
+    print(f'\tFiltered Set: {len(filtered_base)}/{lenAll}')
 
     fig = go.Figure()
 
     speedups = []
 
-    pool = Pool(8)
+    pool = Pool(4)
 
     # Match configs and build lines
-    for i in range(len(base_df)):
-        base_line = base_df.iloc[i]
+    for i in range(len(filtered_base)):
+        base_line = filtered_base.iloc[i]
 
         # Check for matching line in all dataframes
         func = partial(_matchAndComputeSpeedup, base_line=base_line)
-        conf_speedup = pool.map(func, compData)
+        conf_speedup = pool.map(func, filtered_comp)
 
-        fig.add_trace(go.Scatter(x=[i for i in range(len(compData))], y=conf_speedup, mode='lines+markers'))
+        fig.add_trace(go.Scatter(x=[i for i in range(len(filtered_comp))],
+                                 y=conf_speedup,
+                                 mode='lines+markers',
+                                 opacity=.5,
+                                 name=str(base_line),
+                                 hovertext=str(base_line)))
 
         speedups.append(conf_speedup)
+
+    fig.update_layout(
+        xaxis=dict(
+            tickmode='array',
+            tickvals=[i for i in range(len(filtered_comp))],
+            ticktext=[parsedSlider.iloc[i] for i in range(sliderPos[0], sliderPos[1])]
+        ),
+        width=1900,
+        height=1000,
+        showlegend=False
+    )
 
     pool.close()
 
