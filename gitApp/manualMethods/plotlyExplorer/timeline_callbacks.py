@@ -78,6 +78,40 @@ def _setSetup(sliderPos, sliderDict):
     return [], []
 
 
+@app.callback(Output('LoadTarget', 'data'),
+              [Input('BaseSetup', 'value')])
+def _storeSetupTarget(value):
+    return value
+
+
+def _makeDynamicFunction(keyword):
+    @app.callback([Output({'type': 'dynamic1', 'id': keyword}, 'options'),
+                   Output({'type': 'dynamic1', 'id': keyword}, 'value')],
+                  [Input('BaseSetup', 'value')])
+    def _dynFunction(setup):
+
+        if setup is None:
+            return [], []
+
+        conf = Config.objects.get(id=setup)
+        options = Result.objects(config=conf).distinct(f'dynamic_{keyword}')
+
+        checkboxes = []
+        selected = []
+
+        for value in options:
+            checkboxes.append({'label': value, 'value': value})
+            selected.append(value)
+
+        return sorted(checkboxes, key=lambda c: c['label']), sorted(selected)
+
+    return _dynFunction
+
+
+for k in DYNAMIC_OPTIONS:
+    _function = _makeDynamicFunction(k)
+    _function.__name__ = f'dynamicCallback_{k}'
+
 
 def _makeResultFrame(results: me.QuerySet):
     """
