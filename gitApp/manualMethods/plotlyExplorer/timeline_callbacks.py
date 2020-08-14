@@ -9,6 +9,8 @@ import time
 import json
 import plotly.express as px
 import plotly.graph_objects as go
+from multiprocessing import Pool
+from functools import partial
 
 
 @app.callback(
@@ -131,6 +133,21 @@ def _ComputeSpeedupTimeline(config, sliderDict, sliderPos):
     return [base_df.to_json(), compData]
 
 
+def _matchAndComputeSpeedup(data, base_line):
+    matchingTable = (data == base_line).sum(axis=1)
+
+    # TODO: Change 6 to sum of dynamic lines
+    matchedLine = data.loc[matchingTable == 6]
+
+    # TODO: Catch more than 1 value error
+    speedups = (base_line.minTime / matchedLine.minTime).values
+    if len(speedups) == 1:
+        return speedups[0]
+    else:
+        print(speedups)
+        raise RuntimeError(f'More than one row matched Search Criteria: {len(speedups)} found!')
+
+
 @app.callback(Output('TimeLine', 'figure'),
               [Input('SliderSpeedups', 'data')])
 def _updateFigure(data):
@@ -146,28 +163,21 @@ def _updateFigure(data):
 
     speedups = []
 
+    pool = Pool(8)
+
     # Match configs and build lines
     for i in range(len(base_df)):
         base_line = base_df.iloc[i]
 
-        conf_speedup = []
-
-        # TODO: Parallelize this loop
         # Check for matching line in all dataframes
-        for df in compData:
-
-            matchingTable = (df == base_line).sum(axis=1)
-
-            # TODO: Change 6 to sum of dynamic lines
-            matchedLine = df.loc[matchingTable == 6]
-
-            # TODO: Catch more than 1 value error
-            conf_speedup.append((base_line.minTime / matchedLine.minTime).values[0])
+        func = partial(_matchAndComputeSpeedup, base_line=base_line)
+        conf_speedup = pool.map(func, compData)
 
         fig.add_trace(go.Scatter(x=[i for i in range(len(compData))], y=conf_speedup, mode='lines+markers'))
 
         speedups.append(conf_speedup)
 
+    pool.close()
 
     print(f'\tPlotting took {time.time() - start} seconds')
 
