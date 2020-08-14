@@ -122,8 +122,8 @@ def getOverLap(keyword, setups):
 
 
 def _makeDynamicFunction(value):
-    @app.callback([Output({'type': 'dynamic', 'id': value}, 'options'),
-                   Output({'type': 'dynamic', 'id': value}, 'value')],
+    @app.callback([Output({'type': 'dynamic0', 'id': value}, 'options'),
+                   Output({'type': 'dynamic0', 'id': value}, 'value')],
                   [Input('Setups', 'value')])
     def _dynFunction(setups):
         return getOverLap(value, setups)
@@ -242,7 +242,7 @@ def _retrieveDataAndBuildSpeedupTable(setups):
      Output('PlotTitle', 'children')],
     [Input('CurrentData', 'children'),
      Input('Coloring', 'value'),
-     Input({'type': 'dynamic', 'id': ALL}, 'value'),
+     Input({'type': 'dynamic0', 'id': ALL}, 'value'),
      ]
 )
 def plotComparison(data, coloring, dynamicSelectors):

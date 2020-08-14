@@ -8,10 +8,10 @@ from globalVars import *
 
 # Layout
 
-def getDynamicOptionTemplate(i, value, width):
+def getDynamicOptionTemplate(i, value, width, tab):
     return html.Div(
                 [html.H2(f'{value}:'),
-                 dcc.Checklist(id={'type': 'dynamic', 'id': value},
+                 dcc.Checklist(id={'type': f'dynamic{tab}', 'id': value},
                                options=[k for k in dummyOptions],
                                labelStyle={'display': 'block'},
                                style={
@@ -99,7 +99,7 @@ def makeLayout():
 
                     html.Div(
                         #### Dynamic Parts ####
-                        [getDynamicOptionTemplate(i, k, 100/(len(DYNAMIC_OPTIONS)+1)) for i, k in enumerate(DYNAMIC_OPTIONS)],
+                        [getDynamicOptionTemplate(i, k, 100/(len(DYNAMIC_OPTIONS)+1), tab=0) for i, k in enumerate(DYNAMIC_OPTIONS)],
                         #### Dynamic Parts ####
                     ),
 
@@ -161,18 +161,40 @@ def makeLayout():
                                'white-space': 'pre'}
                     ),
 
-                    dcc.Dropdown('BaseSetup', options=[k for k in dummyOptions],
-                                 placeholder='Select Setup...',
-                                 style={
-                                     'font-family': 'monospace',
-                                 }),
+                    html.Div(
+                        dcc.Dropdown('BaseSetup', options=[k for k in dummyOptions],
+                                     placeholder='Select Setup...',
+                                     style={
+                                         'font-family': 'monospace',
+                                     }),
+                        style={
+                            'width': '100%',
+                            'float': 'left',
+                            'background-color': '#F5F0F6',
+                            'padding-bottom': '1%'
+                        }
+                    ),
+                    html.Br(),
+
+                    html.Div(
+                        #### Dynamic Parts ####
+                        [getDynamicOptionTemplate(i, k, 100 / (len(DYNAMIC_OPTIONS)), tab=1) for i, k in
+                         enumerate(DYNAMIC_OPTIONS)],
+                        #### Dynamic Parts ####
+                    ),
+
+                    html.Div(
+                        [
+                            html.H2('Plot:', id='TimelinePlotDiv'),
+                        ]
+                    ),
 
                     dcc.Graph(
                         id='TimeLine'
                     )]))
     ]),
 
-],
-    style={
-        'font-family': 'sans-serif',
-    })
+    ],
+        style={
+            'font-family': 'sans-serif',
+        })
