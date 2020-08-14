@@ -154,7 +154,10 @@ def makeLayout():
                                 verticalHeight=400
                             ),
                             dcc.Store(id='SliderDict', data=None),
-                            dcc.Store(id='SliderSpeedups', data=None)
+                            dcc.Store(id='SliderData', data=None),
+                            dcc.Store(id='LoadTarget', data=None),
+                            dcc.Store(id='CurrentLoad', data=None),
+                            dcc.Interval(id='TimelineInterval', interval=250, disabled=False)
                         ],
                         style={'font-family': 'monospace',
                                'width': '100%',
@@ -182,10 +185,14 @@ def makeLayout():
                          enumerate(DYNAMIC_OPTIONS)],
                         #### Dynamic Parts ####
                     ),
+                    html.Br(style={'clear': 'left'}),
 
                     html.Div(
                         [
                             html.H2('Plot:', id='TimelinePlotDiv'),
+                            html.Button(children='Button not active yet',
+                                        id='TimelinePlotButton',
+                                        disabled=True)
                         ]
                     ),
 
