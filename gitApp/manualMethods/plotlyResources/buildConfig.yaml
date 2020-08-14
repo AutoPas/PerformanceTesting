@@ -1,0 +1,25 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  labels:
+    build: plotly-explorer
+  name: plotly-explorer
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: 'plotly-explorer:latest'
+  source:
+    git:
+      uri: 'https://github.com/AutoPas/PerformanceTesting.git'
+    type: Git
+  strategy:
+    dockerStrategy:
+      dockerfilePath: Dockerfiles/PlotlyServer/Dockerfile
+    type: Docker
+  triggers:
+    - type: ConfigChange
+    - generic:
+        secretReference:
+          name: autopas-performance-tester-webhook
+      type: Generic
