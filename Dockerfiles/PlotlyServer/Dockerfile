@@ -6,7 +6,7 @@ RUN apt-get update
 RUN apt-get install -y python3-pip
 
 # Cloning Performance Testing Repo
-RUN echo "cache buster 11"
+RUN echo "cache buster 12"
 RUN git clone https://github.com/AutoPas/PerformanceTesting.git
 
 # install PerformanceTesting requirements
