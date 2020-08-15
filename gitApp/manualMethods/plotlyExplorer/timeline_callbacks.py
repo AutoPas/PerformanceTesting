@@ -11,6 +11,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from multiprocessing import Pool
 from functools import partial
+import random
 
 
 @app.callback(
@@ -236,6 +237,11 @@ def _updateFigure(click, data, dynamicSelectors, sliderDict, sliderPos):
 
     pool = Pool(4)
 
+    # TODO: Add coloring radio buttons
+    avContainer = filtered_base['dynamic_Container'].unique()
+    col = lambda: random.randint(0, 255)
+    colors = {cont: f'#{col():02x}{col():02x}{col():02x}' for cont in avContainer}
+
     # Match configs and build lines
     for i in range(len(filtered_base)):
         base_line = filtered_base.iloc[i]
@@ -249,7 +255,8 @@ def _updateFigure(click, data, dynamicSelectors, sliderDict, sliderPos):
                                  mode='lines+markers',
                                  opacity=.5,
                                  name=str(base_line),
-                                 hovertext=str(base_line)))
+                                 hovertext=str(base_line),
+                                 line=dict(color=colors[base_line['dynamic_Container']])))
 
         speedups.append(conf_speedup)
 
