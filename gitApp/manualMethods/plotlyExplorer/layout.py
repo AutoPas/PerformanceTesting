@@ -4,6 +4,7 @@ import dash_html_components as html
 # Callback file imports
 import one_v_one_callbacks
 import timeline_callbacks
+import single_callbacks
 from globalVars import *
 
 # Layout
@@ -39,7 +40,7 @@ def makeLayout():
             style={'whiteSpace': 'pre'}),
         html.Button('Refresh Commit List', id='refreshButton', n_clicks=0)]),
 
-    dcc.Tabs(id='tabs', value='tab1', children=[
+    dcc.Tabs(id='tabs', value='tab2', children=[
         dcc.Tab(label='1v1 Compare', value='tab0',
                 children=html.Div([
                     html.Div([
@@ -198,7 +199,86 @@ def makeLayout():
 
                     dcc.Graph(
                         id='TimeLine'
-                    )]))
+                    )])),
+        dcc.Tab(label='Single view', value='tab2',
+                children=[
+                    html.Div([
+                        html.H2('1) Select commits to compare:'),
+                        html.Div(
+                            [
+                                dcc.Dropdown('CommitListSingle', options=[k for k in dummyOptions],
+                                             placeholder='Select Commit...',
+                                             style={
+                                                 'font-family': 'monospace',
+                                             })
+                            ],
+                            style={
+                                'width': '100%',
+                                'float': 'left',
+                            }
+                        )],
+                        style={
+                            'width': '100%',
+                            'float': 'left',
+                            'background-color': '#F5F0F6'
+                        }),
+                    html.Br(),
+
+                    html.Div(
+                        [html.H2('2) Select setup to compare:'),
+
+                         dcc.Dropdown('SetupSingle', options=[k for k in dummyOptions],
+                                      placeholder='Select Setup...',
+                                      style={
+                                          'font-family': 'monospace',
+                                      })],
+                        style={
+                            'width': '100%',
+                            'float': 'left',
+                            'background-color': '#F5F0F6',
+                            'padding-bottom': '1%'
+                        }
+                    ),
+                    html.Br(),
+
+                    html.Div(
+                        #### Dynamic Parts ####
+                        [getDynamicOptionTemplate(i, k, 100 / (len(DYNAMIC_OPTIONS) + 1), tab=2) for i, k in
+                         enumerate(DYNAMIC_OPTIONS)],
+                        #### Dynamic Parts ####
+                    ),
+
+                    html.Div(
+                        [html.H2('3) Grouping:'),
+
+                         dcc.RadioItems('GroupingSingle', options=[k for k in dummyOptions],
+                                        labelStyle={'display': 'block'},
+                                        style={
+                                            'font-family': 'monospace',
+                                        })],
+                        style={
+                            'width': f'{100 / (len(DYNAMIC_OPTIONS) + 1)}%',
+                            'background-color': COLORS[len(DYNAMIC_OPTIONS)],
+                            'float': 'left',
+                            'padding': '.3%',
+                            'box-sizing': 'border-box'
+                        }
+                    ),
+                    html.Br(style={'clear': 'left'}),
+                    dcc.Store(id='SingleData', data=None),
+
+                    html.Div(
+                        [
+                            html.H2('4) Plot, please wait:', id='PlotTitleSingle'),
+                        ]
+                    ),
+
+                    dcc.Graph(
+                        id='SingleGraph'
+                    ),
+
+                ]
+                )
     ]),
 
     ],

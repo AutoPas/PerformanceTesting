@@ -17,7 +17,10 @@ from dash.dependencies import Input, Output, State, ALL
     [Output('CommitList0', 'options'),
      Output('CommitList0', 'value'),
      Output('CommitList1', 'options'),
-     Output('CommitList1', 'value')],
+     Output('CommitList1', 'value'),
+     Output('CommitListSingle', 'options'),
+     Output('CommitListSingle', 'value')
+     ],
     [Input('refreshButton', 'n_clicks')])
 def _reloadAvailableCommits(refreshClicks):
     print(f'\n[CALLBACK] refreshing commit list for {refreshClicks}th time')
@@ -32,7 +35,7 @@ def _reloadAvailableCommits(refreshClicks):
 
     sorted_options = sorted(options, key=lambda x: x['label'])
 
-    return sorted_options, sorted_options[-2]['value'], sorted_options, sorted_options[-1]['value']
+    return sorted_options, sorted_options[-2]['value'], sorted_options, sorted_options[-1]['value'], sorted_options, sorted_options[-1]['value']
 
 ### Parsing available setups
 
