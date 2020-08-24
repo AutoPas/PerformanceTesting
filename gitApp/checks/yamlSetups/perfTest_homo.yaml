@@ -1,11 +1,11 @@
-container                        : [all]
-verlet-rebuild-frequency         :  20
+# container                        : [all]  # Deactivated to just use default container options
+verlet-rebuild-frequency         :  4  # Should lead to 3 rebuilds together with tuning-samples
 verlet-skin-radius               :  0.2
 verlet-cluster-size              :  4
 selector-strategy                :  Fastest-Absolute-Value
 tuning-strategy                  :  full-Search
 tuning-interval                  :  5000
-tuning-samples                   :  3
+tuning-samples                   :  12  # Setup to get multiple rebuilds to compare
 tuning-max-evidence              :  10
 tuning-phases                    :  1
 functor                          :  Lennard-Jones (12-6)
