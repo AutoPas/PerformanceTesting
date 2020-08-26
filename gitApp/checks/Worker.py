@@ -1,5 +1,6 @@
 from mongoDocuments import QueueObject
 from checks import CheckFlow
+from checks import Commit
 import sys
 
 
@@ -42,6 +43,44 @@ class Worker:
 
         # Recursion to check for remaining queue
         if self.checkQueue():
+            print('Queue is done')
+
+
+    def checkpointTests(self):
+        """
+        Run checks with active checkpoints
+        Returns:
+
+        """
+        nextUp: QueueObject
+        queue = QueueObject.objects(running=False)
+        if len(queue) != 0:
+            nextUp = queue.order_by('_id').first()  # Should work through queue by FIFO
+            del queue
+        else:
+            return True
+
+        nextUp.running = True
+        nextUp.save()  # Update status to running
+
+        try:
+            # Running Test
+            c = Commit(self.checkflow.repo.repo, nextUp.commitSHA)
+            self.checkflow.repo._testCommit(c, case='Checkpoint', plotting=False)
+
+            # reset to previous state
+            self.checkflow.repo.repo.head.reset(self.checkflow.repo.initialHead, index=True, working_tree=True)
+            nextUp.status = "completed"
+            nextUp.save()
+            nextUp.delete()  # Bit unnecessary to change status earlier, but hey
+
+        except Exception as exc:
+            nextUp.status = str(exc)
+            nextUp.save()
+
+        # Recursion to check for remaining queue
+
+        if self.checkpointTests():
             print('Queue is done')
 
 
