@@ -1,6 +1,6 @@
 from git import Repo
 from checks import Commit
-from mongoDocuments import Setup
+from mongoDocuments import Setup, Checkpoint
 from subprocess import run, PIPE
 import os
 
@@ -108,20 +108,43 @@ class Repository:
             # reset to previous state
             self.repo.head.reset(self.initialHead, index=True, working_tree=True)
 
-    def _testCommit(self, c: Commit):
+    def _testCommit(self, c: Commit, case: str = 'Setup', plotting: bool = True):
+        """
+        test the commit and return status and images
+        Args:
+            c: Commit to test
+            case: ['Setup', 'Checkpoint'] switch to use clean setups or checkpoints with their attached setups
+            plotting: bool if plotting to imgur is needed
+
+        Returns:
+
+        """
 
         try:
             if c.build():
                 print(f"{c.sha}: BUILD DONE")
-                for setup in Setup.objects(active=True):
-                    if c.measure(setup):
+                if case == 'Setup':
+                    iterator = Setup.objects(active=True)
+                elif case == 'Checkpoint':
+                    iterator = Checkpoint.objects(active=True)
+                else:
+                    raise ValueError(f'Invalid Case in _testCommit {case}')
+                for it in iterator:
+                    if case == 'Setup':
+                        measure = c.measure(it)
+                    elif case == 'Checkpoint':
+                        measure = c.measureCheckpoint(it)
+                    else:
+                        raise ValueError(f'Invalid Case')
+                    if measure:
                         print(f"{c.sha}: MEASUREMENT DONE")
                         if c.parse_and_upload():
                             print(f"{c.sha}: UPLOAD DONE")
                             # TODO: Move outside for loop or only upload single picture inside generatePlot
-                            if c.generatePlot():
-                                print(f"{c.sha}: PLOTS DONE")
-                                print("done testing")
+                            if plotting:
+                                if c.generatePlot():
+                                    print(f"{c.sha}: PLOTS DONE")
+                                    print("done testing")
                     else:
                         c.save_failed_config('Run failed')
             else:
