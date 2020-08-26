@@ -1,6 +1,7 @@
 from mongoDocuments import Config
 from mongoDocuments import Result
 from mongoDocuments import Setup
+from mongoDocuments import Checkpoint
 from hook.helper import convertOutput, get_dyn_keys, generate_label_table
 from checks import ImgurUploader
 
@@ -16,6 +17,7 @@ import matplotlib
 from matplotlib import pyplot as plt
 import numpy as np
 import mongoengine as me
+from shutil import copyfile
 
 # Switch for GUI
 matplotlib.use("Agg")
@@ -131,6 +133,70 @@ class Commit:
             print("MEASUREPERF failed with return code", self.measure_output.returncode)
             self.updateStatus(-1,
                               "PERFORMANCE MEASUREMENT",
+                              f"MEASUREPERF failed:\nSTDOUT: .... "
+                              f"{convertOutput(self.measure_output.stdout)[-500:]}\n"
+                              f"STDERR:{convertOutput(self.measure_output.stderr)}\n"
+                              f"Setup: {self.perfSetup.name}")
+            # change back to top level directory
+            os.chdir(self.baseDir)
+            return False
+
+        # change to top
+        os.chdir(self.baseDir)
+        self.updateStatus(1, "PERFORMANCE MEASUREMENT", f"MEASUREPERF succeeded: \n...\n"
+                                                        f"{convertOutput(self.measure_output.stdout)[-500:]}\n"
+                                                        f"{self.perfSetup.name}")
+        return True
+
+
+    def measureCheckpoint(self, checkpoint: Checkpoint):
+
+        # oldMain.py path
+        # issues with using the __file__ method when deploying via uwsgi
+        # mainPath = os.path.abspath(os.path.dirname(__file__))
+        mainPath = os.path.join(self.baseDir, "..", "PerformanceTesting/gitApp/checks")
+        print("measure_perf directory:", mainPath)
+
+        # change to md-flexible folder
+        os.chdir(self.mdFlexDir)
+
+        # Setting yaml file for this run
+        self.perfSetup = checkpoint.setup
+        yamlFile = 'perfConfig.yaml'
+        with open(yamlFile, 'w') as f:
+            f.write(self.perfSetup.yaml)
+
+        # Setting checkpoint file for this run
+        self.checkpoint = checkpoint
+        checkpointFile = 'checkpoint.vtk'
+        with open(checkpointFile, 'w') as f:
+            f.write(self.checkpoint.vtk.read().decode('utf-8'))
+
+        # Running one tuning session with yaml setup
+        self.measure_output = run(['./md-flexible',
+                                   '--log-level', 'debug',
+                                   '--yaml-filename', f'{yamlFile}',
+                                   '--checkpoint', f'{checkpointFile}'],
+                                  stdout=PIPE, stderr=PIPE)
+
+
+        """
+        DEBUG OUTPUT OF BINARIES AND LOGS
+        debug_dir = '/home'
+        try:
+            # TODO: SPECIAL DEBUG BULLSHIT
+            with open(f'{dir}/{self.sha}.log', 'w') as f:
+                f.write(self.measure_output.stdout.decode('utf-8'))
+
+            copyfile(os.path.join(self.mdFlexDir, 'md-flexible'), f'{dir}/md-flex_{self.sha}')
+        except Exception as e:
+            print(e)
+        """
+
+        if self.measure_output.returncode != 0:
+            print("MEASUREPERF failed with return code", self.measure_output.returncode)
+            self.updateStatus(-1,
+                              "PERFORMANCE MEASUREMENT with Checkpoint",
                               f"MEASUREPERF failed:\nSTDOUT: .... "
                               f"{convertOutput(self.measure_output.stdout)[-500:]}\n"
                               f"STDERR:{convertOutput(self.measure_output.stderr)}\n"
