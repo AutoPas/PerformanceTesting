@@ -40,7 +40,8 @@ def makeLayout():
             style={'whiteSpace': 'pre'}),
         html.Button('Refresh Commit List', id='refreshButton', n_clicks=0)]),
 
-    dcc.Tabs(id='tabs', value='tab2', children=[
+    # TODO: REVERT
+    dcc.Tabs(id='tabs', value='tab3', children=[
         dcc.Tab(label='1v1 Compare', value='tab0',
                 children=html.Div([
                     html.Div([
@@ -278,7 +279,79 @@ def makeLayout():
                     ),
 
                 ]
-                )
+                ),
+        dcc.Tab(label='Submit Job', value='tab3', children=[
+            html.Div(children=[
+                html.H1('Submit Custom Jobs to the worker queue.'),
+                html.H2('1) Job Name:'),
+                dcc.Input(id='CustomJobName', placeholder='CUSTOM JOB NAME', required=True, debounce=True),
+                html.H2('2) Git SHAs to test (1 per line):'),
+                dcc.Textarea(id='CustomSHAList', placeholder='Custom SHAs',
+                             required=True,  # pattern='^[a-fA-F0-9]{40}$',
+                             style={'width': '40em',
+                                    'height': '6em'}),
+                html.H2('3) Upload Yaml Config OR select from list of available:'),
+                dcc.RadioItems(id='YamlSelect', options=[{'label': 'Upload YAML File', 'value': 'uploaded'},
+                                                         {'label': 'Existing YAML', 'value': 'existing'}],
+                               value='existing', labelStyle={'display': 'inline-block'}),
+                html.Div(id='YamlUploadDiv', children=[
+                    html.H3('Upload YAML config file to use:'),
+                    dcc.Upload(id='YamlCustomUpload', multiple=False, children=[
+                        'Drag and Drop or ', html.A('Select a File')
+                    ],
+                               style={
+                                   'width': '100%',
+                                   'height': '60px',
+                                   'lineHeight': '60px',
+                                   'borderWidth': '1px',
+                                   'borderStyle': 'dashed',
+                                   'borderRadius': '5px',
+                                   'textAlign': 'center',
+                                   # 'display': 'block'
+                               }),
+                ]),
+                html.Div(id='YamlSelectDiv', children=[
+                    html.H3('Choose from existing YAML files'),
+                    dcc.Dropdown(id='YamlAvailable', options=[]),
+                ]),
+                html.H2('4) OPTIONAL: Upload Checkpoint file OR select from list of available:'),
+                dcc.RadioItems(id='CheckpointSelect', options=[{'label': 'No Checkpoint', 'value': 'noCheckPoint'},
+                                                               {'label': 'Upload Checkpoint File', 'value': 'uploaded'},
+                                                               {'label': 'Existing Checkpoint', 'value': 'existing'},
+                                                               ],
+                               value='noCheckPoint', labelStyle={'display': 'inline-block'}),
+                html.Div(id='CheckpointUploadDiv', children=[
+                    html.H3('Upload Checkpoint File config file to use:'),
+                    dcc.Upload(id='CheckpointCustomUpload', multiple=False, children=[
+                        'Drag and Drop or ', html.A('Select a File')
+                    ],
+                               style={
+                                   'width': '100%',
+                                   'height': '60px',
+                                   'lineHeight': '60px',
+                                   'borderWidth': '1px',
+                                   'borderStyle': 'dashed',
+                                   'borderRadius': '5px',
+                                   'textAlign': 'center',
+                                   # 'display': 'block'
+                               }),
+                ]),
+                html.Div(id='CheckpointSelectDiv', children=[
+                    html.H3('Choose from existing Checkpoint files'),
+                    dcc.Dropdown(id='CheckpointAvailable', options=[]),
+                ]),
+                html.H1('Submit Job:'),
+                html.P(id='Job Summary', children=[]),
+                html.Button('Submit Job', id='submitJob'),
+                html.P(id='SubmitResponse', children=[]),
+                html.H1('Cancel Job:'),
+                dcc.Input(id='CancelJobName', placeholder='CUSTOM JOB NAME', debounce=True),
+                html.Button('Cancel Job', id='cancelJob'),
+                html.P(id='CancelResponse', children=[])
+            ],
+                style={'text-align': 'center'}
+            )
+        ]),
     ]),
 
     ],
