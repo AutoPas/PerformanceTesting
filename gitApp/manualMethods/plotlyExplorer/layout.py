@@ -5,6 +5,7 @@ import dash_html_components as html
 import one_v_one_callbacks
 import timeline_callbacks
 import single_callbacks
+import customJobs_callbacks
 from globalVars import *
 
 # Layout
@@ -284,10 +285,10 @@ def makeLayout():
             html.Div(children=[
                 html.H1('Submit Custom Jobs to the worker queue.'),
                 html.H2('1) Job Name:'),
-                dcc.Input(id='CustomJobName', placeholder='CUSTOM JOB NAME', required=True, debounce=True),
+                dcc.Input(id='CustomJobName', placeholder='CUSTOM JOB NAME', required=True, debounce=False),
                 html.H2('2) Git SHAs to test (1 per line):'),
                 dcc.Textarea(id='CustomSHAList', placeholder='Custom SHAs',
-                             required=True,  # pattern='^[a-fA-F0-9]{40}$',
+                             required=True,
                              style={'width': '40em',
                                     'height': '6em'}),
                 html.H2('3) Upload Yaml Config OR select from list of available:'),
@@ -296,9 +297,7 @@ def makeLayout():
                                value='existing', labelStyle={'display': 'inline-block'}),
                 html.Div(id='YamlUploadDiv', children=[
                     html.H3('Upload YAML config file to use:'),
-                    dcc.Upload(id='YamlCustomUpload', multiple=False, children=[
-                        'Drag and Drop or ', html.A('Select a File')
-                    ],
+                    dcc.Upload(id='YamlCustomUpload', multiple=False, children=[],
                                style={
                                    'width': '100%',
                                    'height': '60px',
@@ -321,10 +320,8 @@ def makeLayout():
                                                                ],
                                value='noCheckPoint', labelStyle={'display': 'inline-block'}),
                 html.Div(id='CheckpointUploadDiv', children=[
-                    html.H3('Upload Checkpoint File config file to use:'),
-                    dcc.Upload(id='CheckpointCustomUpload', multiple=False, children=[
-                        'Drag and Drop or ', html.A('Select a File')
-                    ],
+                    html.H3('Upload Checkpoint File to use:'),
+                    dcc.Upload(id='CheckpointCustomUpload', multiple=False, children=[],
                                style={
                                    'width': '100%',
                                    'height': '60px',
@@ -341,7 +338,7 @@ def makeLayout():
                     dcc.Dropdown(id='CheckpointAvailable', options=[]),
                 ]),
                 html.H1('Submit Job:'),
-                html.P(id='Job Summary', children=[]),
+                html.P(id='JobSummary', children=[]),
                 html.Button('Submit Job', id='submitJob'),
                 html.P(id='SubmitResponse', children=[]),
                 html.H1('Cancel Job:'),
