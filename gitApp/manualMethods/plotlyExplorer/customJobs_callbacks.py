@@ -99,13 +99,13 @@ def JobSummary(jobname, SHAs,
                yamlSelect, yamlFileName, yamlContent, yamlExisting,
                checkpointSelect, checkFileName, checkContent, checkExisting):
 
-    summary = [html.B('Jobname: ')]
+    summary = [html.H3('Jobname: ')]
     if jobname is not None:
         summary.append(html.P(jobname))
     else:
         summary.append(html.P('Job Name Missing', style={'color': 'red'}))
 
-    summary.append(html.B('Git SHAs to test: '))
+    summary.append(html.H3('Git SHAs to test: '))
     if SHAs is not None:
         goodSHAs = True
         for line in SHAs.splitlines():
@@ -118,7 +118,7 @@ def JobSummary(jobname, SHAs,
     else:
         summary.append(html.P('Git SHAs Missing', style={'color': 'red'}))
 
-    summary.append(html.B('Selected YAML Setup: '))
+    summary.append(html.H3('Selected YAML Setup: '))
     if yamlSelect == 'uploaded':
         if yamlFileName is not None:
             summary.append(html.P(yamlFileName))
@@ -134,7 +134,7 @@ def JobSummary(jobname, SHAs,
             summary.append(html.P('Upload YAML File or select existing', style={'color': 'red'}))
 
     if 'noCheckPoint' not in checkpointSelect:
-        summary.append(html.B('Selected Checkpoint: '))
+        summary.append(html.H3('Selected Checkpoint: '))
 
         if checkpointSelect == 'uploaded':
             if checkFileName is not None:
