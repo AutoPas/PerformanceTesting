@@ -149,3 +149,7 @@ def JobSummary(jobname, SHAs,
                 summary.append(html.P('Upload Checkpoint File or select existing', style={'color': 'red'}))
 
     return summary
+
+
+# TODO: Submit Callback including validity checks for yamlHash etc. and feedback on submission
+# TODO: Cancel Callback including feedback
