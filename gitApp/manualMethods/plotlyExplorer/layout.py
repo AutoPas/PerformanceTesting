@@ -42,6 +42,7 @@ def makeLayout():
         html.Button('Refresh Commit List', id='refreshButton', n_clicks=0)]),
 
     # TODO: REVERT
+    # TODO: ADD JOB QUEUE TAB
     dcc.Tabs(id='tabs', value='tab3', children=[
         dcc.Tab(label='1v1 Compare', value='tab0',
                 children=html.Div([
@@ -340,16 +341,20 @@ def makeLayout():
                 html.Br(),
                 html.H1('Job Summary:'),
                 html.P(id='JobSummary', children=[]),
-                html.Button('Submit Job', id='submitJob'),
-                html.P(id='SubmitResponse', children=[]),
+                html.Button('Submit Job', id='submitJob', n_clicks=0),
+                html.P(id='SubmitResponse', children=[], style={'white-space': 'pre-wrap'}),
                 html.H1('Cancel Job:'),
                 dcc.Input(id='CancelJobName', placeholder='CUSTOM JOB NAME', debounce=True),
-                html.Button('Cancel Job', id='cancelJob'),
+                html.Button('Cancel Job', id='cancelJob', n_clicks=0),
                 html.P(id='CancelResponse', children=[])
             ],
                 style={'text-align': 'center'}
             )
         ]),
+        dcc.Tab(label='Current Queue', value='tab4', children=[
+
+        ]),
+
     ]),
 
     ],
