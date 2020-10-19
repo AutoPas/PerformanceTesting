@@ -122,7 +122,13 @@ def JobSummary(jobname, SHAs,
     if yamlSelect == 'uploaded':
         if yamlFileName is not None:
             summary.append(html.P(yamlFileName))
-            summary.append(html.P(base64.b64decode(yamlContent.split(';base64,')[1].encode('utf-8')).decode('utf-8'), style={'white-space': 'pre-wrap'}))
+            try:
+                decoded_yaml = base64.b64decode(yamlContent.split(';base64,')[1].encode('utf-8')).decode('utf-8')
+                yaml_color = 'black'
+            except UnicodeDecodeError:
+                decoded_yaml = 'BAD FILE'
+                yaml_color = 'red'
+            summary.append(html.P(decoded_yaml, style={'white-space': 'pre-wrap', 'color': yaml_color}))
         else:
             summary.append(html.P('Upload YAML File or select existing', style={'color': 'red'}))
     elif yamlSelect == 'existing':
