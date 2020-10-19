@@ -1,7 +1,9 @@
-from mongoDocuments import Config, QueueObject, Checkpoint, Setup
+from mongoDocuments import QueueObject, Checkpoint, Setup
 from app import app
 from globalVars import *
 
+import hashlib
+from datetime import datetime
 import re
 import base64
 from dash.dependencies import Input, Output, State, ALL
@@ -157,5 +159,115 @@ def JobSummary(jobname, SHAs,
     return summary
 
 
-# TODO: Submit Callback including validity checks for yamlHash etc. and feedback on submission
-# TODO: Cancel Callback including feedback
+@app.callback(Output('SubmitResponse', 'children'),
+              [Input('submitJob', 'n_clicks')],
+              [State('CustomJobName', 'value'),
+               State('CustomSHAList', 'value'),
+               State('YamlSelect', 'value'),
+               State('YamlCustomUpload', 'filename'),
+               State('YamlCustomUpload', 'contents'),
+               State('YamlAvailable', 'value'),
+               ])
+def submitCallback(button, jobname, SHAs, yamlSelect, yamlUploadFileName, yamlUploadContent, yamlExisting):
+    print('\n[CALLBACK] Submitting custom job')
+
+    submitResponse = 'Submit Status:\n'
+
+    if button == 0:
+        return ''
+
+    # Check if jobname exists in db or is empty
+    if jobname is None:
+        return submitResponse + 'EMPTY JOB NAME'
+
+    existing_jobnames = QueueObject.objects.distinct('job')
+    if jobname in existing_jobnames:
+        return submitResponse + 'JOB NAME ALREADY EXISTS'
+    else:
+        submitResponse += f'Job Name:\t{jobname}\n'
+
+    # Check if Git SHAs are valid
+    check_SHAs = []
+    if SHAs is not None:
+        for line in SHAs.splitlines():
+            match = bool(re.match('[a-fA-F0-9]{40}$', line))
+            if match:
+                check_SHAs.append(line)
+            else:
+                return submitResponse + 'BAD SHA'
+    else:
+        return submitResponse + 'MISSING SHAs'
+
+    # Existing YAML
+    if yamlSelect == 'existing':
+        if yamlExisting is not None:
+            usedSetup = Setup.objects.get(yamlHash=yamlExisting)
+            submitResponse += f'Yaml: {usedSetup.name}\n'
+        else:
+            return submitResponse + 'SELECT YAML'
+    # Check yaml file if valid and if already uploaded via hash
+    elif yamlSelect == 'uploaded':
+        newSetup = Setup()
+        newSetup.name = yamlUploadFileName
+        decoded_yaml = base64.b64decode(yamlUploadContent.split(';base64,')[1].encode('utf-8')).decode('utf-8')
+        yamlHash = hashlib.sha256(decoded_yaml.encode('utf-8')).hexdigest()
+        newSetup.yamlHash = yamlHash
+        existing_hashes = Setup.objects.distinct('yamlHash')
+        if yamlHash in existing_hashes:
+            del newSetup
+            return submitResponse + 'Trying to upload existing yaml. Please select from list instead of re-upload.'
+        else:
+            usedSetup = newSetup
+            newSetup.active = False
+            newSetup.uploadDate = datetime.utcnow()
+            newSetup.save()  # This can lead to bad user experience if checkpoint upload fails
+            submitResponse += f'Uploaded YAML: {yamlUploadFileName}'
+    else:
+        return 'BAD YAML SELECTION'
+
+    # TODO: Check if checkpoint file is set / valid / uploaded
+
+    # TODO: Kill setup if checkpoint fails
+
+    # TODO: Upload Checkpoint to backend
+
+    # TODO: Submit queue jobs
+    for sha in check_SHAs:
+        q = QueueObject()
+        q.commitSHA = sha
+        q.job = jobname
+        q.customYaml = usedSetup
+        q.save()
+
+    # TODO: Start worker
+
+    return submitResponse
+
+
+@app.callback(Output('CancelResponse', 'children'),
+              [Input('cancelJob', 'n_clicks')],
+              [State('CancelJobName', 'value')])
+def cancelCallback(button, jobname):
+    print('\n[CALLBACK] Canceling custom job')
+
+    cancelResponse = ''
+
+    if button == 0:
+        return ''
+
+    # Check if jobs with jobname exist in queue
+    existing_jobnames = QueueObject.objects.distinct('job')
+    if jobname is not None and jobname in existing_jobnames:
+        cancelResponse += f'Job {jobname} found.\n'
+    else:
+        return f'Job {jobname} is not in active Queue'
+
+    # Cancel jobs
+    objects = QueueObject.objects(job=jobname)
+    num = len(objects)
+    for q in objects:
+        q.delete()
+
+    cancelResponse += f'{num} tests deleted.'
+
+    return cancelResponse
