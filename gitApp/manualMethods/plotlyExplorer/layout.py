@@ -10,6 +10,8 @@ from globalVars import *
 
 # Layout
 
+# TODO: Documentation
+
 def getDynamicOptionTemplate(i, value, width, tab):
     return html.Div(
                 [html.H2(f'{value}:'),
@@ -147,6 +149,7 @@ def makeLayout():
                 children=html.Div([
                     html.Div(
                         [
+                            # TODO: SLIDER VIEW AND BETTER VERTICAL LAYOUT
                             dcc.RangeSlider(
                                 id='CommitSlider',
                                 min=0,
@@ -351,6 +354,9 @@ def makeLayout():
                 style={'text-align': 'center'}
             )
         ]),
+
+        # TODO: Show yaml in queue
+
         dcc.Tab(label='Current Queue', value='tab4', children=[
 
         ]),

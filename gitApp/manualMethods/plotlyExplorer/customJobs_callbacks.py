@@ -10,6 +10,7 @@ from dash.dependencies import Input, Output, State, ALL
 import dash_core_components as dcc
 import dash_html_components as html
 
+# TODO: OAUTH via GITHUB
 
 @app.callback([Output('YamlUploadDiv', 'style'),
                Output('YamlSelectDiv', 'style')],
@@ -210,11 +211,13 @@ def submitCallback(button, jobname, SHAs, yamlSelect, yamlUploadFileName, yamlUp
         newSetup = Setup()
         newSetup.name = yamlUploadFileName
         decoded_yaml = base64.b64decode(yamlUploadContent.split(';base64,')[1].encode('utf-8')).decode('utf-8')
+        # TODO: Strip white space before hashing / order lines
         yamlHash = hashlib.sha256(decoded_yaml.encode('utf-8')).hexdigest()
         newSetup.yamlHash = yamlHash
         existing_hashes = Setup.objects.distinct('yamlHash')
         if yamlHash in existing_hashes:
             del newSetup
+            # TODO: Just select the corresponding setup
             return submitResponse + 'Trying to upload existing yaml. Please select from list instead of re-upload.'
         else:
             usedSetup = newSetup
