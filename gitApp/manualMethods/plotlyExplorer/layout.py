@@ -7,6 +7,7 @@ import timeline_callbacks
 import single_callbacks
 import customJobs_callbacks
 import verification_callbacks
+import queueList_callbacks
 from globalVars import *
 
 # Layout
@@ -40,12 +41,22 @@ def makeLayout():
 
     html.H1(children='Performance Explorer'),
 
-    html.Div(children=[
-        dcc.Markdown(
-            'Interactively compare performance across commits in the [AutoPas](https://github.com/AutoPas/AutoPas) GitHub Repo\n'
-            'Working with data from [AutoPas-PerformanceTesting](https://github.com/AutoPas/PerformanceTesting)',
-            style={'whiteSpace': 'pre'}),
-        html.Button('Refresh Commit List', id='refreshButton', n_clicks=0)]),
+        html.Div(children=[
+            html.Div(children=[
+                dcc.Markdown(
+                    'Interactively compare performance across commits in the [AutoPas](https://github.com/AutoPas/AutoPas) GitHub Repo\n'
+                    'Working with data from [AutoPas-PerformanceTesting](https://github.com/AutoPas/PerformanceTesting)',
+                    style={'whiteSpace': 'pre'}),
+                html.Button('Refresh Commit List', id='refreshButton', n_clicks=0),
+                html.Br(), ]),
+
+        ], style={'float': 'left'}),
+        html.Div(children=[
+            html.Button('Login', id='loginButton', n_clicks=0),
+            html.P(id='loginResponse'),
+            html.Br(),
+        ], style={'float': 'right'}),
+        html.Br(style={'clear': 'left'}),
 
     # TODO: REVERT default tab
     # TODO: ADD JOB QUEUE TAB
@@ -291,9 +302,7 @@ def makeLayout():
                 ),
         dcc.Tab(label='Submit Job', value='tab3', children=[
             html.Div(children=[
-                html.H1('Submit Custom Jobs to the worker queue.'),
-                html.P(id='outP'),
-                html.Button('Login', id='loginButton', n_clicks=0),
+                html.H1('Submit Custom Jobs to the worker queue (if logged in).'),
 
                 # Hide div if not logged in
                 html.Div(id='submissionDiv', children=[
@@ -357,10 +366,6 @@ def makeLayout():
                     html.P(id='JobSummary', children=[]),
                     html.Button('Submit Job', id='submitJob', n_clicks=0),
                     html.P(id='SubmitResponse', children=[], style={'white-space': 'pre-wrap'}),
-                    html.H1('Cancel Job:'),
-                    dcc.Input(id='CancelJobName', placeholder='CUSTOM JOB NAME', debounce=True),
-                    html.Button('Cancel Job', id='cancelJob', n_clicks=0),
-                    html.P(id='CancelResponse', children=[])
                 ],
                          style={'display': 'none'}),
             ],
@@ -371,7 +376,17 @@ def makeLayout():
         # TODO: Show yaml in queue
 
         dcc.Tab(label='Current Queue', value='tab4', children=[
-
+            html.Div(children=[
+                html.Br(),
+                html.Button('Refresh Queue', id='refreshQueue', n_clicks=0),
+                html.Table(id='QueueTable', children=[], style={'margin': '0 auto'}),
+                html.Br(),
+                html.H1('Cancel Job:'),
+                dcc.Input(id='CancelJobName', placeholder='CUSTOM JOB NAME', debounce=True),
+                html.Button('Cancel Job', id='cancelJob', n_clicks=0),
+                html.P(id='CancelResponse', children=[])
+            ], style={'text-align': 'center'}
+            )
         ]),
 
     ]),
