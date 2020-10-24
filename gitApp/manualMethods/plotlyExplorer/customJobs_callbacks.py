@@ -265,7 +265,7 @@ def cancelCallback(button, jobname, loggedUser):
         return ''
 
     if loggedUser['user'] is None:
-        return 'BAD USER'
+        return 'Must be logged in to cancel jobs'
 
     # Check if jobs with jobname exist in queue
     existing_jobnames = QueueObject.objects.distinct('job')
