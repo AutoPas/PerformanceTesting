@@ -8,7 +8,7 @@ import dash
 from dash.dependencies import Input, Output, State, ALL
 
 
-@app.callback([Output('outP', 'children'),
+@app.callback([Output('loginResponse', 'children'),
                Output('loginButton', 'children'),
                Output('submissionDiv', 'style')],
               [Input('loginInfo', 'data')])
@@ -27,7 +27,7 @@ def showStatusAndLoginOption(data):
               [State('loginInfo', 'data')])
 def loginButton(button, data):
     if button != 0 and data['user'] is None:
-        return f'https://github.com/login/oauth/authorize/?client_id={os.environ["CLIENT_ID"]}&redirect_uri=http://localhost:8050'
+        return f'https://github.com/login/oauth/authorize/?client_id={os.environ["CLIENT_ID"]}&redirect_uri={os.environ["CALLBACK_URI"]}'
 
 
 @app.callback(Output('loginInfo', 'data'),
@@ -55,7 +55,7 @@ def processGitLogin(loc, button, data):
     r = requests.post('https://github.com/login/oauth/access_token', data={'client_id': os.environ['CLIENT_ID'],
                                                                            'client_secret': os.environ['CLIENT_SECRET'],
                                                                            'code': code,
-                                                                           'redirect_uri': 'http://localhost:8050'})
+                                                                           'redirect_uri': os.environ["CALLBACK_URI"]})
     print(r.text)
     try:
         token = re.findall('token=([^;&]+)', r.text)[0]
