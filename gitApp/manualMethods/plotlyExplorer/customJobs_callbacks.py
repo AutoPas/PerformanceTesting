@@ -254,14 +254,18 @@ def submitCallback(button, jobname, SHAs, yamlSelect, yamlUploadFileName, yamlUp
 
 @app.callback(Output('CancelResponse', 'children'),
               [Input('cancelJob', 'n_clicks')],
-              [State('CancelJobName', 'value')])
-def cancelCallback(button, jobname):
+              [State('CancelJobName', 'value'),
+               State('loginInfo', 'data')])
+def cancelCallback(button, jobname, loggedUser):
     print('\n[CALLBACK] Canceling custom job')
 
     cancelResponse = ''
 
     if button == 0:
         return ''
+
+    if loggedUser['user'] is None:
+        return 'BAD USER'
 
     # Check if jobs with jobname exist in queue
     existing_jobnames = QueueObject.objects.distinct('job')
