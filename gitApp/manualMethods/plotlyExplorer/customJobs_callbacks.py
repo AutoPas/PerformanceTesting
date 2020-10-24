@@ -10,7 +10,6 @@ from dash.dependencies import Input, Output, State, ALL
 import dash_core_components as dcc
 import dash_html_components as html
 
-# TODO: OAUTH via GITHUB
 
 @app.callback([Output('YamlUploadDiv', 'style'),
                Output('YamlSelectDiv', 'style')],
@@ -168,14 +167,19 @@ def JobSummary(jobname, SHAs,
                State('YamlCustomUpload', 'filename'),
                State('YamlCustomUpload', 'contents'),
                State('YamlAvailable', 'value'),
+               State('loginInfo', 'data')
                ])
-def submitCallback(button, jobname, SHAs, yamlSelect, yamlUploadFileName, yamlUploadContent, yamlExisting):
+def submitCallback(button, jobname, SHAs, yamlSelect, yamlUploadFileName, yamlUploadContent, yamlExisting, loginData):
     print('\n[CALLBACK] Submitting custom job')
 
     submitResponse = 'Submit Status:\n'
 
     if button == 0:
         return ''
+
+    # Double Check log-in data. Button shouldn't even be visible if no user is logged in
+    if loginData['user'] is None:
+        return 'NO VALID USER LOGGED IN'
 
     # Check if jobname exists in db or is empty
     if jobname is None:
@@ -240,6 +244,7 @@ def submitCallback(button, jobname, SHAs, yamlSelect, yamlUploadFileName, yamlUp
         q.commitSHA = sha
         q.job = jobname
         q.customYaml = usedSetup
+        q.jobuser = loginData['user']
         q.save()
 
     # TODO: Start worker
