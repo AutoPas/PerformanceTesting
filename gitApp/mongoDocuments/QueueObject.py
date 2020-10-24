@@ -23,6 +23,7 @@ class QueueObject(me.Document):
     job = me.StringField(default='default-job', required=True)
     customYaml = me.ReferenceField(Setup, required=False)
     customCheckpoint = me.ReferenceField(Checkpoint, required=False)
+    jobuser = me.StringField(default='auto-generated', required=True)
 
     def __str__(self):
         output = f"Name: {self.job} | {self.commitSHA} Running: {self.running}"
