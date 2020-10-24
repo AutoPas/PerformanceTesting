@@ -16,14 +16,21 @@ def FillList(refresh):
     qList.append(html.Tr(children=[
         html.Th('Jobname'),
         html.Th('User'),
-        html.Th('SHA')
+        html.Th('SHA'),
+        html.Th('Yaml')
     ]))
     for q in queue:
         text = f'Job: {q.job}\t SHA: {q.commitSHA}'
+
+        try:
+            yaml = f'{q.customYaml.name} {q.customYaml.uploadDate}'
+        except AttributeError:
+            yaml = 'Current Active'
         row = html.Tr(children=[
             html.Td(q.job),
             html.Td(q.jobuser),
-            html.Td(q.commitSHA)
+            html.Td(q.commitSHA),
+            html.Td(yaml)
         ])
         qList.append(row)
 
