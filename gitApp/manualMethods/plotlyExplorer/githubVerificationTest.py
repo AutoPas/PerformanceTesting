@@ -15,7 +15,7 @@ app.layout = html.Div(children=[
     dcc.Location(id='loc'),
     html.P(id='outP'),
     html.Button('Login', id='loginButton', n_clicks=0),
-    dcc.Store(id='loginInfo', storage_type='memory', data={'user': None}),
+    dcc.Store(id='loginInfo', storage_type='session', data={'user': None}),
 ])
 
 
