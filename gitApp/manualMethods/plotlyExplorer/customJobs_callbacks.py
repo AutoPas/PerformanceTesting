@@ -1,7 +1,7 @@
 from mongoDocuments import QueueObject, Checkpoint, Setup
 from app import app
 from globalVars import *
-from gitApp.hook.helper import spawnWorker
+from hook.helper import spawnWorker
 
 import hashlib
 from datetime import datetime
