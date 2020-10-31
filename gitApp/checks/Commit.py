@@ -152,7 +152,7 @@ class Commit:
         return True
 
 
-    def measureCheckpoint(self, checkpoint: Checkpoint):
+    def measureCheckpoint(self, checkpoint: Checkpoint, setup: Setup = None):
 
         # oldMain.py path
         # issues with using the __file__ method when deploying via uwsgi
@@ -164,7 +164,10 @@ class Commit:
         os.chdir(self.mdFlexDir)
 
         # Setting yaml file for this run
-        self.perfSetup = checkpoint.setup
+        if setup is None:
+            self.perfSetup = checkpoint.setup
+        else:
+            self.perfSetup = setup
         yamlFile = 'perfConfig.yaml'
         with open(yamlFile, 'w') as f:
             f.write(self.perfSetup.yaml)
