@@ -1,6 +1,7 @@
 from mongoDocuments import QueueObject, Checkpoint, Setup
 from app import app
 from globalVars import *
+from gitApp.hook.helper import spawnWorker
 
 import hashlib
 from datetime import datetime
@@ -300,7 +301,6 @@ def submitCallback(button, jobname, SHAs,
 
     # TODO: Kill setup if checkpoint fails
 
-    # TODO: Submit queue jobs
     for sha in check_SHAs:
         q = QueueObject()
         q.commitSHA = sha
@@ -312,7 +312,7 @@ def submitCallback(button, jobname, SHAs,
         q.running = False
         q.save()
 
-    # TODO: Start worker
+    spawnWorker()
 
     return submitResponse
 
