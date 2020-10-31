@@ -71,7 +71,7 @@ def ChecksAvailable(checkpointSelect):
         allCheckpoints = Checkpoint.objects()
         opts = []
         for check in allCheckpoints:
-            opts.append({'label': f'{check.name} {check.uploadDate} {check.setup.name}', 'value': f'{check.id}'})
+            opts.append({'label': f'{check.name} {check.uploadDate}', 'value': f'{check.vtk_hash}'})
         return opts
     else:
         return []
@@ -152,7 +152,7 @@ def JobSummary(jobname, SHAs,
                 summary.append(html.P('Upload Checkpoint File or select existing', style={'color': 'red'}))
         elif checkpointSelect == 'existing':
             if checkExisting is not None:
-                checkpoint = Checkpoint.objects.get(id=checkExisting)
+                checkpoint = Checkpoint.objects.get(vtk_hash=checkExisting)
                 summary.append(html.P(checkpoint.name))
             else:
                 summary.append(html.P('Upload Checkpoint File or select existing', style={'color': 'red'}))
@@ -193,9 +193,16 @@ def reCheckUserCred(loginData: dict):
                State('YamlCustomUpload', 'filename'),
                State('YamlCustomUpload', 'contents'),
                State('YamlAvailable', 'value'),
+               State('CheckpointSelect', 'value'),
+               State('CheckpointCustomUpload', 'filename'),
+               State('CheckpointCustomUpload', 'contents'),
+               State('CheckpointAvailable', 'value'),
                State('loginInfo', 'data')
                ])
-def submitCallback(button, jobname, SHAs, yamlSelect, yamlUploadFileName, yamlUploadContent, yamlExisting, loginData):
+def submitCallback(button, jobname, SHAs,
+                   yamlSelect, yamlUploadFileName, yamlUploadContent, yamlExisting,
+                   checkSelect, checkUploadFileName, checkUploadContent, checkExisting,
+                   loginData):
     print('\n[CALLBACK] Submitting custom job')
 
     submitResponse = 'Submit Status:\n'
@@ -260,10 +267,38 @@ def submitCallback(button, jobname, SHAs, yamlSelect, yamlUploadFileName, yamlUp
         return 'BAD YAML SELECTION'
 
     # TODO: Check if checkpoint file is set / valid / uploaded
+    if checkSelect == 'noCheckPoint':
+        submitResponse += 'No Checkpoint selected\n'
+        usedCheckpoint = None
+
+    elif checkSelect == 'existing':
+        if checkExisting is not None:
+            usedCheckpoint = Checkpoint.objects.get(vtk_hash=checkExisting)
+            submitResponse += f'Checkpoint: {usedCheckpoint.name}\n'
+        else:
+            return submitResponse + 'SELECT CHECKPOINT or choose No Checkpoint'
+
+    elif checkSelect == 'uploaded':
+        newCheckpoint = Checkpoint()
+        newCheckpoint.name = checkUploadFileName
+        decoded_checkpoint = base64.b64decode(checkUploadContent.split(';base64,')[1].encode('utf-8')).decode('utf-8')
+        checkpointHash = hashlib.sha256(decoded_checkpoint.encode('utf-8')).hexdigest()
+        newCheckpoint.vtk_hash = checkpointHash
+        newCheckpoint.vtk.put(decoded_checkpoint.encode('utf-8'))
+        existing_check_hashes = Checkpoint.objects.distinct('vtk_hash')
+        if checkpointHash in existing_check_hashes:
+            del newCheckpoint
+            return submitResponse + 'Trying to upload existing Checkpoint. Please select from list instead of re-upload.'
+        else:
+            usedCheckpoint = newCheckpoint
+            newCheckpoint.active = False
+            newCheckpoint.uploadDate = datetime.utcnow()
+            newCheckpoint.save()
+            submitResponse += f"Uploaded Checkpoint: {checkUploadFileName}"
+    else:
+        return 'BAD CHECKPOINT SELECTION'
 
     # TODO: Kill setup if checkpoint fails
-
-    # TODO: Upload Checkpoint to backend
 
     # TODO: Submit queue jobs
     for sha in check_SHAs:
@@ -271,6 +306,8 @@ def submitCallback(button, jobname, SHAs, yamlSelect, yamlUploadFileName, yamlUp
         q.commitSHA = sha
         q.job = jobname
         q.customYaml = usedSetup
+        if usedCheckpoint is not None:
+            q.customCheckpoint = usedCheckpoint
         q.jobuser = loginData['user']
         q.save()
 
