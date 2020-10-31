@@ -1,6 +1,6 @@
 from git import Repo
 from checks import Commit
-from mongoDocuments import Setup, Checkpoint
+from mongoDocuments import Setup, Checkpoint, QueueObject
 from subprocess import run, PIPE
 import os
 
@@ -108,7 +108,7 @@ class Repository:
             # reset to previous state
             self.repo.head.reset(self.initialHead, index=True, working_tree=True)
 
-    def _testCommit(self, c: Commit, case: str = 'Setup', plotting: bool = True):
+    def _testCommit(self, c: Commit, customJob: QueueObject = None, plotting: bool = True):
         """
         test the commit and return status and images
         Args:
@@ -123,30 +123,41 @@ class Repository:
         try:
             if c.build():
                 print(f"{c.sha}: BUILD DONE")
-                if case == 'Setup':
-                    iterator = Setup.objects(active=True)
-                elif case == 'Checkpoint':
-                    iterator = Checkpoint.objects(active=True)
-                else:
-                    raise ValueError(f'Invalid Case in _testCommit {case}')
-                for it in iterator:
-                    if case == 'Setup':
-                        measure = c.measure(it)
-                    elif case == 'Checkpoint':
-                        measure = c.measureCheckpoint(it)
-                    else:
-                        raise ValueError(f'Invalid Case')
+                # Custom Job Testing
+                if customJob is not None:
+                    setup = customJob.customYaml
+                    try:
+                        checkpoint = customJob.customCheckpoint
+                        measure = c.measureCheckpoint(checkpoint, setup)
+                    except AttributeError:
+                        measure = c.measure(setup)
+
                     if measure:
-                        print(f"{c.sha}: MEASUREMENT DONE")
+                        print(f"{c.sha}: Custom MEASUREMENT DONE")
                         if c.parse_and_upload():
-                            print(f"{c.sha}: UPLOAD DONE")
-                            # TODO: Move outside for loop or only upload single picture inside generatePlot
-                            if plotting:
-                                if c.generatePlot():
-                                    print(f"{c.sha}: PLOTS DONE")
-                                    print("done testing")
+                            print(f"{c.sha}: Custom UPLOAD DONE")
                     else:
                         c.save_failed_config('Run failed')
+
+                # Default CI Testing
+                else:
+                    iterator = Setup.objects(active=True)
+                    # TODO: Want to do same with checkpointed saves?
+                    # iterator = Checkpoint.objects(active=True)
+                    for it in iterator:
+                        measure = c.measure(it)
+
+                        if measure:
+                            print(f"{c.sha}: MEASUREMENT DONE")
+                            if c.parse_and_upload():
+                                print(f"{c.sha}: UPLOAD DONE")
+                                # TODO: Move outside for loop or only upload single picture inside generatePlot
+                                if plotting:
+                                    if c.generatePlot():
+                                        print(f"{c.sha}: PLOTS DONE")
+                                        print("done testing")
+                        else:
+                            c.save_failed_config('Run failed')
             else:
                 c.save_failed_config('Build failed')
 
