@@ -309,6 +309,7 @@ def submitCallback(button, jobname, SHAs,
         if usedCheckpoint is not None:
             q.customCheckpoint = usedCheckpoint
         q.jobuser = loginData['user']
+        q.running = False
         q.save()
 
     # TODO: Start worker
