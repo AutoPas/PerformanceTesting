@@ -11,6 +11,7 @@ class Checkpoint(me.Document):
 	name = me.StringField()  # Name
 	setup = me.ReferenceField(Setup)  # associated yaml setup
 	vtk = me.FileField()  # .vtk file
+	vtk_hash = me.StringField(unique=True)  # vtk hash
 	active = me.BooleanField()  # active toggle
 	uploadDate = me.DateTimeField()  # Upload Date
 
