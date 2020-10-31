@@ -66,8 +66,16 @@ def updateSetups(sha0, sha1):
             failure = True if conf0.failure is not None or conf1.failure is not None else False
 
             if failure:
+                try:
+                    system1 = conf1.system
+                except AttributeError:
+                    system1 = 'no system'
+                try:
+                    name1 = conf1.setup.name
+                except:
+                    name1 = 'no name'
                 possible_comparisons.append(
-                    {'label': f'{conf1.setup.name}: {conf1.system} [{conf0.failure}] [{conf1.failure}]',
+                    {'label': f'{1}: {system1} [{conf0.failure}] [{conf1.failure}]',
                      'value': f'{str(conf0.id)} # {str(conf1.id)}',
                      'disabled': failure})
             else:
@@ -224,7 +232,7 @@ def _retrieveDataAndBuildSpeedupTable(setups):
             full_match = (all_data1_configs == search_config).all(axis=1)  # Checks against all df1 rows and marks if full row matches df0 row, except z column
             i_match = full_match[full_match == True].index[0]  # Get index of the full match in data1
 
-            speedup = data1.loc[i_match, quantity] / data0.loc[i_search, quantity]
+            speedup = data0.loc[i_match, quantity] / data1.loc[i_search, quantity]
             # label = ''.join(str(v) + ' ' for v in data1.loc[i_match, :].values)
             label = ''.join([f'{str(v):>10} ' for v in data1.loc[i_match, :].values])
             table.loc[i_match, 'quantity'] = data1.loc[i_match, quantity]
