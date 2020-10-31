@@ -10,7 +10,10 @@ RUN apt-get update
 RUN apt-get install -y python3-pip lsb-release software-properties-common
 
 # Install clang
-RUN bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+# RUN bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"  # Newest
+wget https://apt.llvm.org/llvm.sh
+chmod +x llvm.sh
+./llvm.sh 11
 
 # Cloning Performance Testing Repo and AutoPas (should then update AutoPas, during deployment)
 RUN git clone https://github.com/AutoPas/AutoPas.git
