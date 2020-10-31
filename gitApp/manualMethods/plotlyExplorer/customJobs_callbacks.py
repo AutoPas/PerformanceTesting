@@ -312,7 +312,10 @@ def submitCallback(button, jobname, SHAs,
         q.running = False
         q.save()
 
-    spawnWorker()
+    try:
+        spawnWorker()
+    except Exception as e:
+        return f'{submitResponse} \n Job submitted to queue, but failed to launch worker with {e}'
 
     return submitResponse
 
