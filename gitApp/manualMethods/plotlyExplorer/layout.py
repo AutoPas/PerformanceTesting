@@ -38,7 +38,7 @@ def getDynamicOptionTemplate(i, value, width, tab):
 def makeLayout():
     return html.Div(children=[
         dcc.Location(id='loc'),  # Check URL for Git Auth
-        dcc.Store(id='loginInfo', storage_type='session', data={'user': None, 'status': None}),  # Used for Git Auth
+        dcc.Store(id='loginInfo', storage_type='session', data={'user': None, 'status': None, 'token': None}),  # Used for Git Auth
         dcc.Interval(id='queueRefreshTimer', interval=1000, n_intervals=0),
 
         html.H1(children='Performance Explorer'),

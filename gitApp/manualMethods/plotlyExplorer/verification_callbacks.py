@@ -39,12 +39,12 @@ def processGitLogin(loc, button, data):
 
     triggered = ctx.triggered[0]['prop_id']
     if 'loginButton' in triggered and data['user'] is not None:
-        return {'user': None, 'status': f'Logged out {data["user"]}'}
+        return {'user': None, 'status': f'Logged out {data["user"]}', 'token': None}
 
     if loc is None or loc is '' or data['user'] is not None:
         return data
 
-    noUser = {'user': None}
+    noUser = {'user': None, 'token': None}
     try:
         code = re.findall('code=([^;&]+)', loc)[0]
     except IndexError:
@@ -72,7 +72,7 @@ def processGitLogin(loc, button, data):
                                                                     'Accept': 'application/vnd.github.v3+json'})
     if r.status_code == 204:
         print(f'Congrats {user}, you can submit jobs')
-        return {'user': user, 'status': None}
+        return {'user': user, 'status': None, 'token': token}
     else:
         print(f'Error {r.status_code} {r.text}')
         noUser['status'] = f'Insufficient Privileges on AutoPas for user: {user}'
