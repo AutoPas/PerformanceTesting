@@ -74,6 +74,9 @@ class Commit:
 
         # run cmake
         print("Running CMAKE")
+        # TODO: log and test change to clang
+        os.environ['CC'] = 'clang'
+        os.environ['CXX'] = 'clang++'
         cmake_output = run(["cmake", "-DAUTOPAS_OPENMP=ON", "--target", "md-flexible", ".."], stdout=PIPE, stderr=PIPE)
         returncode = cmake_output.returncode
         if returncode != 0:
