@@ -26,6 +26,9 @@ def aggregate_results(results: me.QuerySet) -> pd.DataFrame:
         temp_dict[i] = data
 
     df = pd.DataFrame.from_dict(temp_dict)
-    df = df.drop(['_cls', '_dynamic_lock', '_fields_ordered'])
+    try:
+        df = df.drop(['_cls', '_dynamic_lock', '_fields_ordered'])
+    except KeyError:
+        pass
     df = df.transpose()
     return df

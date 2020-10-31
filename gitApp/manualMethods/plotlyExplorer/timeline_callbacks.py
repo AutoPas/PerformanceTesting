@@ -166,7 +166,8 @@ def _aggregateResults(config, sliderDict, sliderPos):
         # Get Results
         df = aggregate_results(Result.objects(config=conf))
         print(f'\t{len(df)}')
-        compData.append(df.to_json())
+        if len(df) != 0:
+            compData.append(df.to_json())
 
     print(f'\tAggregated all results: {time.time() - start} seconds')
 
