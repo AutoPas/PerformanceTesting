@@ -29,58 +29,38 @@ class Worker:
         nextUp.running = True
         nextUp.save()  # Update status to running
 
-        try:
-            self.checkflow.auth.updateInstallID(nextUp.installID)
-            if self.checkflow.runCheck(nextUp):  # Run perf measurements
-                if nextUp.compareUrl is not None:
-                    self.checkflow.comparePerformance(nextUp)  # Run comparison
-            nextUp.status = "completed"
-            nextUp.save()
-            nextUp.delete()  # Bit unnecessary to change status earlier, but hey
-        except Exception as exc:
-            nextUp.status = str(exc)
-            nextUp.save()
+        # Custom Jobs
+        if hasattr(nextUp, 'customYaml'):
+            try:
+                # Running Test
+                c = Commit(self.checkflow.repo.repo, nextUp.commitSHA)
+                self.checkflow.repo._testCommit(c, nextUp, plotting=False)
+
+                # reset to previous state
+                self.checkflow.repo.repo.head.reset(self.checkflow.repo.initialHead, index=True, working_tree=True)
+                nextUp.status = "completed"
+                nextUp.save()
+                nextUp.delete()  # Bit unnecessary to change status earlier, but hey
+
+            except Exception as exc:
+                nextUp.status = str(exc)
+                nextUp.save()
+
+        else:
+            try:
+                self.checkflow.auth.updateInstallID(nextUp.installID)
+                if self.checkflow.runCheck(nextUp):  # Run perf measurements
+                    if nextUp.compareUrl is not None:
+                        self.checkflow.comparePerformance(nextUp)  # Run comparison
+                nextUp.status = "completed"
+                nextUp.save()
+                nextUp.delete()  # Bit unnecessary to change status earlier, but hey
+            except Exception as exc:
+                nextUp.status = str(exc)
+                nextUp.save()
 
         # Recursion to check for remaining queue
         if self.checkQueue():
-            print('Queue is done')
-
-
-    def checkpointTests(self):
-        """
-        Run checks with active checkpoints
-        Returns:
-
-        """
-        nextUp: QueueObject
-        queue = QueueObject.objects(running=False)
-        if len(queue) != 0:
-            nextUp = queue.order_by('_id').first()  # Should work through queue by FIFO
-            del queue
-        else:
-            return True
-
-        nextUp.running = True
-        nextUp.save()  # Update status to running
-
-        try:
-            # Running Test
-            c = Commit(self.checkflow.repo.repo, nextUp.commitSHA)
-            self.checkflow.repo._testCommit(c, case='Checkpoint', plotting=False)
-
-            # reset to previous state
-            self.checkflow.repo.repo.head.reset(self.checkflow.repo.initialHead, index=True, working_tree=True)
-            nextUp.status = "completed"
-            nextUp.save()
-            nextUp.delete()  # Bit unnecessary to change status earlier, but hey
-
-        except Exception as exc:
-            nextUp.status = str(exc)
-            nextUp.save()
-
-        # Recursion to check for remaining queue
-
-        if self.checkpointTests():
             print('Queue is done')
 
 
