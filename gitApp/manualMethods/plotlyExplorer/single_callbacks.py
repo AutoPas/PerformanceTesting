@@ -28,15 +28,23 @@ def updateSetups(sha):
     for conf in config_all:
 
         failure = True if conf.failure is not None else False
+        try:
+            system = conf.system
+        except AttributeError:
+            system = 'no system'
+        try:
+            name = conf.setup.name
+        except:
+            name = 'no name'
 
         if failure:
             setups.append(
-                {'label': f'{conf.setup.name}: {conf.system} [{conf.failure}]',
+                {'label': f'{name}: {system} [{conf.failure}]',
                  'value': f'{str(conf.id)}',
                  'disabled': failure})
         else:
             setups.append(
-                {'label': f'{conf.setup.name}: {conf.system} Run dates [{conf.date}]',
+                {'label': f'{name}: {system} Run dates [{conf.date}]',
                  'value': f'{str(conf.id)}',
                  'disabled': failure})
 
