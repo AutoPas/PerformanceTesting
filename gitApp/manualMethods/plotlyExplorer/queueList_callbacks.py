@@ -7,8 +7,8 @@ from dash.dependencies import Input, Output, State, ALL
 
 
 @app.callback(Output('QueueTable', 'children'),
-              [Input('refreshQueue', 'n_clicks')])
-def FillList(refresh):
+              [Input('queueRefreshTimer', 'n_intervals')])
+def FillList(timer):
 
     queue = QueueObject.objects.all()
 

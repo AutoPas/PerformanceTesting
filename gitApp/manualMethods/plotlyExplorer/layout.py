@@ -39,6 +39,7 @@ def makeLayout():
     return html.Div(children=[
         dcc.Location(id='loc'),  # Check URL for Git Auth
         dcc.Store(id='loginInfo', storage_type='session', data={'user': None, 'status': None}),  # Used for Git Auth
+        dcc.Interval(id='queueRefreshTimer', interval=1000, n_intervals=0),
 
         html.H1(children='Performance Explorer'),
 
@@ -380,7 +381,7 @@ def makeLayout():
             dcc.Tab(label='Current Queue', value='tab4', children=[
                 html.Div(children=[
                     html.Br(),
-                    html.Button('Refresh Queue', id='refreshQueue', n_clicks=0),
+                    # html.Button('Refresh Queue', id='refreshQueue', n_clicks=0),
                     html.Table(id='QueueTable', children=[], style={'margin': '0 auto'}),
                     html.Br(),
                     html.H1('Cancel Job:'),
