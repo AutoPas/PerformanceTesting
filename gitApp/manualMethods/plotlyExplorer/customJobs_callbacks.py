@@ -9,6 +9,7 @@ import base64
 from dash.dependencies import Input, Output, State, ALL
 import dash_core_components as dcc
 import dash_html_components as html
+import requests
 
 
 @app.callback([Output('YamlUploadDiv', 'style'),
@@ -159,6 +160,31 @@ def JobSummary(jobname, SHAs,
     return summary
 
 
+def reCheckUserCred(loginData: dict):
+    """
+    Re-validates the already logged in user via a call to the GitHub API with the user token.
+    Re-checks the privileges of the user on the AutoPas Repo before allowing submit or cancel of jobs
+    Args:
+        loginData: dict with data of currently logged in user
+
+    Returns:
+        UserValid (bool), ErrorMessage (str)
+    """
+    if loginData['user'] is None:
+        return False, 'NO VALID USER LOGGED IN'
+
+    if loginData['token'] is None:
+        return False, 'NO VALID TOKEN, Re-Login please'
+
+    r = requests.get(f'https://api.github.com/repos/AutoPas/AutoPas/collaborators/{loginData["user"]}',
+                     headers={'Authorization': f'token {loginData["token"]}',
+                              'Accept': 'application/vnd.github.v3+json'})
+    if r.status_code != 204:
+        return False, f'BAD User/Token/Privileges {r.status_code}, Re-Login please'
+
+    return True, 'Valid User'
+
+
 @app.callback(Output('SubmitResponse', 'children'),
               [Input('submitJob', 'n_clicks')],
               [State('CustomJobName', 'value'),
@@ -178,8 +204,9 @@ def submitCallback(button, jobname, SHAs, yamlSelect, yamlUploadFileName, yamlUp
         return ''
 
     # Double Check log-in data. Button shouldn't even be visible if no user is logged in
-    if loginData['user'] is None:
-        return 'NO VALID USER LOGGED IN'
+    userValid, userMessage = reCheckUserCred(loginData)
+    if not userValid:
+        return userMessage
 
     # Check if jobname exists in db or is empty
     if jobname is None:
@@ -256,7 +283,7 @@ def submitCallback(button, jobname, SHAs, yamlSelect, yamlUploadFileName, yamlUp
               [Input('cancelJob', 'n_clicks')],
               [State('CancelJobName', 'value'),
                State('loginInfo', 'data')])
-def cancelCallback(button, jobname, loggedUser):
+def cancelCallback(button, jobname, loginInfo):
     print('\n[CALLBACK] Canceling custom job')
 
     cancelResponse = ''
@@ -264,8 +291,9 @@ def cancelCallback(button, jobname, loggedUser):
     if button == 0:
         return ''
 
-    if loggedUser['user'] is None:
-        return 'Must be logged in to cancel jobs'
+    userValid, userMessage = reCheckUserCred(loginInfo)
+    if not userValid:
+        return userMessage
 
     # Check if jobs with jobname exist in queue
     existing_jobnames = QueueObject.objects.distinct('job')
