@@ -17,7 +17,8 @@ def FillList(timer):
         html.Th('Jobname'),
         html.Th('User'),
         html.Th('SHA'),
-        html.Th('Yaml')
+        html.Th('Yaml'),
+        html.Th('Checkpoint')
     ]))
     for q in queue:
         text = f'Job: {q.job}\t SHA: {q.commitSHA}'
@@ -26,11 +27,17 @@ def FillList(timer):
             yaml = f'{q.customYaml.name} {q.customYaml.uploadDate}'
         except AttributeError:
             yaml = 'Current Active'
+        try:
+            checkpoint = f'{q.customCheckpoint.name} {q.customCheckpoint.uploadDate}'
+        except AttributeError:
+            checkpoint = 'None'
+
         row = html.Tr(children=[
             html.Td(q.job),
             html.Td(q.jobuser),
             html.Td(q.commitSHA),
-            html.Td(yaml)
+            html.Td(yaml),
+            html.Td(checkpoint)
         ])
         qList.append(row)
 
