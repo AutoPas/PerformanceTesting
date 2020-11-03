@@ -3,6 +3,7 @@ from app import app
 from globalVars import *
 from hook.helper import spawnWorker
 
+from pymongo.errors import DuplicateKeyError
 import hashlib
 from datetime import datetime
 import re
@@ -311,7 +312,10 @@ def submitCallback(button, jobname, SHAs,
             q.customCheckpoint = usedCheckpoint
         q.jobuser = loginData['user']
         q.running = False
-        q.save()
+        try:
+            q.save()
+        except (me.NotUniqueError, DuplicateKeyError):
+            submitResponse += 'Jobs partly submitted, tried to submit same SHA/Jobname combination'
 
     try:
         spawnWorker()
