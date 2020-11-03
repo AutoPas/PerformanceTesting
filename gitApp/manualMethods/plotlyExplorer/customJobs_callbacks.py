@@ -262,6 +262,7 @@ def submitCallback(button, jobname, SHAs,
             usedSetup = newSetup
             newSetup.active = False
             newSetup.uploadDate = datetime.utcnow()
+            newSetup.yaml = decoded_yaml
             newSetup.save()  # This can lead to bad user experience if checkpoint upload fails
             submitResponse += f'Uploaded YAML: {yamlUploadFileName}'
     else:
