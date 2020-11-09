@@ -120,24 +120,33 @@ class Repository:
 
         """
 
+        if customJob is not None:
+            jobname = customJob.job
+        else:
+            jobname = 'CI'
+
         try:
-            if c.build():
+            build_success, build_message = c.build()
+            if build_success:
                 print(f"{c.sha}: BUILD DONE")
                 # Custom Job Testing
                 if customJob is not None:
                     setup = customJob.customYaml
                     try:
                         checkpoint = customJob.customCheckpoint
-                        measure = c.measureCheckpoint(checkpoint, setup)
+                        measure_success, measure_message = c.measureCheckpoint(checkpoint, setup)
                     except AttributeError:
-                        measure = c.measure(setup)
+                        measure_success, measure_message = c.measure(setup)
 
-                    if measure:
+                    if measure_success:
                         print(f"{c.sha}: Custom MEASUREMENT DONE")
-                        if c.parse_and_upload():
+                        parse_upload_success, parse_upload_message = c.parse_and_upload()
+                        if parse_upload_success:
                             print(f"{c.sha}: Custom UPLOAD DONE")
+                        else:
+                            c.save_failed_config(f'{jobname} Parse/Upload failed {parse_upload_message}')
                     else:
-                        c.save_failed_config('Run failed')
+                        c.save_failed_config(f'{jobname} Run failed: {measure_message}')
 
                 # Default CI Testing
                 else:
@@ -145,25 +154,30 @@ class Repository:
                     # TODO: Want to do same with checkpointed saves?
                     # iterator = Checkpoint.objects(active=True)
                     for it in iterator:
-                        measure = c.measure(it)
+                        measure_success, measure_message = c.measure(it)
 
-                        if measure:
+                        if measure_success:
                             print(f"{c.sha}: MEASUREMENT DONE")
-                            if c.parse_and_upload():
+                            parse_upload_success, parse_upload_message = c.parse_and_upload()
+                            if parse_upload_success:
                                 print(f"{c.sha}: UPLOAD DONE")
                                 # TODO: Move outside for loop or only upload single picture inside generatePlot
                                 if plotting:
                                     if c.generatePlot():
                                         print(f"{c.sha}: PLOTS DONE")
                                         print("done testing")
+                            else:
+                                c.save_failed_config(f'{jobname} Parse/Upload failed {parse_upload_message}')
                         else:
-                            c.save_failed_config('Run failed')
+                            c.save_failed_config(f'{jobname} Run failed: {measure_message}')
             else:
-                c.save_failed_config('Build failed')
+                c.save_failed_config(f'{jobname} Build failed: {build_message}')
 
         except Exception as e:
             print(f"_testCommit {c.sha} failed with {e}")
             c.updateStatus(-1, 'GENERAL', f"failed with {e}")
+            c.save_failed_config(f'{jobname} Uncaught Exception {e}')
+
 
     def fetchAll(self):
         """

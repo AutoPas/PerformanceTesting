@@ -84,7 +84,7 @@ class Commit:
             self.updateStatus(-1, "CMAKE", f"CMAKE failed:\n{convertOutput(cmake_output.stderr)}")
             # change back to top level directory
             os.chdir(self.baseDir)
-            return False
+            return False, convertOutput(cmake_output.stderr)
 
         self.updateStatus(1, "CMAKE", f"CMAKE succeeded:\n{convertOutput(cmake_output.stdout)[-800:]}")
 
@@ -99,14 +99,14 @@ class Commit:
             self.updateStatus(-1, "MAKE", f"MAKE failed:\n{convertOutput(make_output.stderr)}")
             # change back to top level directory
             os.chdir(self.baseDir)
-            return False
+            return False, convertOutput(make_output.stderr)
 
         self.updateStatus(1, "MAKE", f"MAKE succeeded:\n{convertOutput(make_output.stdout)[-800:]}")
 
         # change back to top level directory
         os.chdir(self.baseDir)
         self.updateStatus(1, "BUILD", f"CMAKE+MAKE passed")
-        return True
+        return True, 'Build Succeeded'
 
     def measure(self, setup: Setup):
 
@@ -142,14 +142,14 @@ class Commit:
                               f"Setup: {self.perfSetup.name}")
             # change back to top level directory
             os.chdir(self.baseDir)
-            return False
+            return False, convertOutput(self.measure_output.stderr)
 
         # change to top
         os.chdir(self.baseDir)
         self.updateStatus(1, "PERFORMANCE MEASUREMENT", f"MEASUREPERF succeeded: \n...\n"
                                                         f"{convertOutput(self.measure_output.stdout)[-500:]}\n"
                                                         f"{self.perfSetup.name}")
-        return True
+        return True, 'Measure Succeeded'
 
 
     def measureCheckpoint(self, checkpoint: Checkpoint, setup: Setup = None):
@@ -209,14 +209,14 @@ class Commit:
                               f"Setup: {self.perfSetup.name}")
             # change back to top level directory
             os.chdir(self.baseDir)
-            return False
+            return False, convertOutput(self.measure_output.stderr)
 
         # change to top
         os.chdir(self.baseDir)
         self.updateStatus(1, "PERFORMANCE MEASUREMENT", f"MEASUREPERF succeeded: \n...\n"
                                                         f"{convertOutput(self.measure_output.stdout)[-500:]}\n"
                                                         f"{self.perfSetup.name}")
-        return True
+        return True, 'Measure Succeeded'
 
 
     def parse_and_upload(self):
@@ -260,7 +260,7 @@ class Commit:
             db_entry.save()
         except Exception as e:
             self.updateStatus(-1, "UPLOAD", str(e))
-            return False
+            return False, f'Upload of config to DB failed {e}'
         print(db_entry)
 
         for run in config_runs:
@@ -296,18 +296,18 @@ class Commit:
             except Exception as e:
                 print(f'Parsing of measurement failed {e}')
                 self.updateStatus(-1, "PARSING", str(e))
-                return False
+                return False, f'Parsing failed with {e}'
 
             try:
                 results.save()
             except Exception as e:
                 self.updateStatus(-1, "UPLOAD", str(e))
-                return False
+                return False, f'Upload of Result failed with {e}'
             print(results)
 
         os.chdir(self.baseDir)
         self.updateStatus(1, "UPLOAD", "RESULT UPLOAD succeeded\n")
-        return True
+        return True, 'Upload succeeded'
 
     def save_failed_config(self, failure: str):
         """
