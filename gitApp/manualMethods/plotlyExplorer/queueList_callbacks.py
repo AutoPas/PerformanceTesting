@@ -1,5 +1,5 @@
 from app import app
-from mongoDocuments import QueueObject
+from mongoDocuments import QueueObject, Config
 
 import dash_core_components as dcc
 import dash_html_components as html
@@ -22,7 +22,6 @@ def FillList(timer):
         html.Th('Status')
     ]))
     for q in queue:
-        text = f'Job: {q.job}\t SHA: {q.commitSHA}'
 
         try:
             yaml = f'{q.customYaml.name} {q.customYaml.uploadDate}'
@@ -48,3 +47,26 @@ def FillList(timer):
         qList.append(row)
 
     return qList
+
+
+
+@app.callback(Output('FailureTable', 'children'),
+              [Input('queueRefreshTimer', 'n_intervals')])
+def FillFailureList(timer):
+
+    failures = Config.objects(failure__exists=True)
+
+    fList = []
+    fList.append(html.Tr(children=[
+        html.Th('SHA'),
+        html.Th('Failure')
+    ]))
+    for q in failures:
+
+        row = html.Tr(children=[
+            html.Td(q.commitSHA),
+            html.Td(q.failure),
+        ])
+        fList.append(row)
+
+    return fList

@@ -388,7 +388,9 @@ def makeLayout():
                     html.H1('Cancel Job:'),
                     dcc.Input(id='CancelJobName', placeholder='CUSTOM JOB NAME', debounce=True),
                     html.Button('Cancel Job', id='cancelJob', n_clicks=0),
-                    html.P(id='CancelResponse', children=[])
+                    html.P(id='CancelResponse', children=[]),
+                    html.H1('Failed Jobs:'),
+                    html.Table(id='FailureTable', children=[], style={'margin': '0 auto'}),
                 ], style={'text-align': 'center'}
                 )
             ]),
