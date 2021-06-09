@@ -3,7 +3,7 @@ plotly
 dash
 gunicorn
 flask
-Django==2.2.13
+Django==2.2.22
 docutils==0.16
 gitdb2==2.0.5
 GitPython==3.0.1
