@@ -12,10 +12,10 @@ imagesize==1.2.0
 Jinja2==2.11.3
 kiwisolver==1.1.0
 MarkupSafe==1.1.1
-matplotlib==3.1.1
+matplotlib==3.4.3
 mongoengine==0.18.2
 mongomock==3.18.0
-numpy==1.17.0
+numpy==1.21.2
 packaging==20.4
 py-cpuinfo==5.0.0
 pycparser==2.19
