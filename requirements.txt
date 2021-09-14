@@ -3,13 +3,13 @@ plotly
 dash
 gunicorn
 flask
-Django==2.2.24
+Django==2.2.13
 docutils==0.16
 gitdb2==2.0.5
 GitPython==3.0.1
 idna==2.8
 imagesize==1.2.0
-Jinja2==2.11.3
+Jinja2==2.11.2
 kiwisolver==1.1.0
 MarkupSafe==1.1.1
 matplotlib==3.1.1
@@ -19,7 +19,7 @@ numpy==1.17.0
 packaging==20.4
 py-cpuinfo==5.0.0
 pycparser==2.19
-Pygments==2.7.4
+Pygments==2.6.1
 PyJWT==1.7.1
 pymongo==3.9.0
 pyparsing==2.4.2
@@ -40,5 +40,5 @@ sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.4
 sqlparse==0.3.0
-urllib3==1.26.5
+urllib3==1.25.3
 uwsgi==2.0.18
