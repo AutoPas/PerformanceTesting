@@ -12,7 +12,7 @@ idna==2.8
 imagesize==1.2.0
 Jinja2==3.0.1
 kiwisolver==1.1.0
-MarkupSafe==1.1.1
+MarkupSafe==2.0.1
 matplotlib==3.4.3
 mongoengine==0.18.2
 mongomock==3.18.0
