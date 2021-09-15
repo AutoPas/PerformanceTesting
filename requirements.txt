@@ -14,7 +14,7 @@ Jinja2==3.0.1
 kiwisolver==1.1.0
 MarkupSafe==2.0.1
 matplotlib==3.4.3
-mongoengine==0.18.2
+mongoengine==0.23.1
 mongomock==3.18.0
 numpy==1.21.2
 packaging==20.4
@@ -42,4 +42,4 @@ sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.4
 sqlparse==0.3.0
 urllib3==1.26.5
-uwsgi==2.0.18
+uwsgi==2.0.19.1
