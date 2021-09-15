@@ -11,7 +11,7 @@ if __name__ == '__main__':
     c.auth.updateInstallID(2027548)
     c.baseUrl = "https://api.github.com/repos/AutoPas/AutoPas"
 
-    testSHA = 'a3193c3dfc47afd976b1e1061bddb579b04c7ab9'
+    testSHA = '5c489e1630fb5091b23a40452133223cbf333aea'
 
     # TODO: Add mode without GitHub interaction and manual DB auth entry
 
