@@ -30,7 +30,7 @@ class Worker:
         nextUp.save()  # Update status to running
 
         # Custom Jobs
-        if hasattr(nextUp, 'customYaml'):
+        if hasattr(nextUp, 'customYaml') and nextUp.customYaml is not None:
             try:
                 # Running Test
                 c = Commit(self.checkflow.repo.repo, nextUp.commitSHA)
