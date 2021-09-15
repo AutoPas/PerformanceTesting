@@ -3,6 +3,7 @@ from checks import Commit
 from mongoDocuments import Setup, Checkpoint, QueueObject
 from subprocess import run, PIPE
 import os
+import traceback
 
 
 class Repository:
@@ -174,9 +175,9 @@ class Repository:
                 c.save_failed_config(f'{jobname} Build failed: {build_message}')
 
         except Exception as e:
-            print(f"_testCommit {c.sha} failed with {e}")
-            c.updateStatus(-1, 'GENERAL', f"failed with {e}")
-            c.save_failed_config(f'{jobname} Uncaught Exception {e}')
+            print(f"_testCommit {c.sha} failed with {traceback.print_exc()}")
+            c.updateStatus(-1, 'GENERAL', f"failed with {traceback.print_exc()}")
+            c.save_failed_config(f'{jobname} Uncaught Exception {traceback.print_exc()}')
 
 
     def fetchAll(self):
