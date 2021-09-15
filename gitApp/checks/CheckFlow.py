@@ -1,3 +1,4 @@
+import itertools
 import json
 import requests
 import mongoengine as me
@@ -94,7 +95,10 @@ class CheckFlow:
         # Run checks on commits url
         needWorker = self._checkCommits(ci_url)
         if needWorker:
+            print("Spawning worker!")
             spawnWorker()
+        else:
+            print("No worker needed!")
 
 
     def _getLastCommonRef(self, baseRef: str, branchRef: str) -> str:
@@ -179,6 +183,28 @@ class CheckFlow:
 
         return sha
 
+    def _getCommitSHAsFromURL(self, url):
+        """
+        Get the commit SHAs from a base url.
+        This will get all commits from a PR using pagination.
+        """
+        prSHAs = []
+        for page in itertools.count(1):
+            r = requests.get(url=url + '?page=' + str(page), headers=self.auth.getTokenHeader())
+            pretty_request(r)
+            cis = r.json()
+
+            if len(cis) == 0:
+                # if no more en
+                break
+            # Full list
+            for c in cis:
+                prSHAs.append(c["sha"])
+        print("COMMIT LIST:")
+        print(f"Found {len(prSHAs)} commits.")
+        print(", ".join(prSHAs))
+        return prSHAs
+
 
     def _checkCommits(self, url):
         """
@@ -186,10 +212,6 @@ class CheckFlow:
         :param url: url to receive commits from
         :return: if worker is needed
         """
-        r = requests.get(url=url, headers=self.auth.getTokenHeader())
-        pretty_request(r)
-        print("COMMIT LIST:")
-        cis = r.json()
 
         self.baseSHA = self._getBranchHead(f'origin/{self.base}')
         compareSHAs = {'0_BaseSHA': self.baseSHA}
@@ -208,10 +230,7 @@ class CheckFlow:
 
         needWorker = False  # if nothing is added to queue, no worker needs to be spawned
 
-        prSHAs = []
-        # Full list
-        for c in cis:
-            prSHAs.append(c["sha"])
+        prSHAs = self._getCommitSHAsFromURL(url)
 
         allSHAs = list(compareSHAs.values()) + prSHAs
 
