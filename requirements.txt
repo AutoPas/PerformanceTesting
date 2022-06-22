@@ -16,7 +16,7 @@ MarkupSafe==2.0.1
 matplotlib==3.4.3
 mongoengine==0.23.1
 mongomock==3.18.0
-numpy==1.21.2
+numpy==1.22.0
 packaging==20.4
 py-cpuinfo==5.0.0
 pycparser==2.19
